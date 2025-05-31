@@ -1,5 +1,8 @@
 # Tesseract Utils (BtW's Addon)
 
+<p align="center">
+  <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="500"/>
+</p>
 
 ## Presentation
 
@@ -20,7 +23,7 @@ Each command start with a double "/" with space afterward. "<>" = required, "[]"
 
 When an id is asked you can either give it the block's id or its name (names can cause issue, use EMI and advanced tooltips (F3+H) to find the id of blocks)
 
-When coordinates are asked (x,y,z), if you're looking at a block you can press "TAB" and it's going to enter that block's coordinate. By entering "~" it will use the corresponding coordinate of your current location, and by adding a number after the "~" it will offset the coordinate by the amount entered, example: // paste 23 ~ ~6, it will paste an object at x=23, y=your current Y coord and z=your Z coord + 6 (can be negative)
+When coordinates are asked (x,y,z), if you're looking at a block you can press "TAB" and it's going to enter that block's coordinate. By entering "\~\" it will use the corresponding coordinate of your current location, and by adding a number after the "\~\" it will offset the coordinate by the amount entered, example: // paste 23 ~ ~6, it will paste an object at x=23, y=your current Y coord and z=your Z coord + 6 (can be negative)
 
 This addon is, for the time being, almost only usable by entering commands, here is the list and explanation of each command:
 
