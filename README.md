@@ -77,8 +77,10 @@ This addon is, for the time being, almost only usable by entering commands, here
 - "// disableMomentum <true|false\>" : disable your player's flight momentum = doesn't "slide" in the air. (default: false)
 
 
-- "// enableClickReplace <true|false>" : if enabled, when right-clicking a block in the world with a block in your hand, it will replace it. (default: false)
+- "// enableClickReplace <true|false>" : if enabled, right-clicking a block will replace it with the block in your hand (if sneaking, blocks will be placed normally). (default: false)
 
+
+- "// enableNoClip <true|false> : if enabled, the player will pass through block like it's air, but can still interact with the world. (default: false)"
 
 (All QoL feature are accessible through configs as well, beware if changed the modifications will be directly applied when joining the game)
 
