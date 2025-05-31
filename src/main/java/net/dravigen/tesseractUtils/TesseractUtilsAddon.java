@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class TesseractUtilsAddon extends BTWAddon {
-    private static TesseractUtilsAddon instance;
 
     public TesseractUtilsAddon() {
         super();
@@ -20,16 +19,14 @@ public class TesseractUtilsAddon extends BTWAddon {
     public static int x2=9999999;
     public static int y2=9999999;
     public static int z2=9999999;
-
     public static List<String> blocksNameList = new ArrayList<>();
-
     public static float reach = 5;
     public static float flySpeed = 5;
     public static boolean disablePlaceCooldown = false;
     public static boolean disableBreakCooldown = false;
     public static boolean disableMomentum = false;
     public static boolean enableClickReplace = false;
-
+    public static boolean enableNoClip = false;
     public static List<List<SavedBlock>> undoSaved = new ArrayList<>();
     public static List<List<SavedBlock>> redoSaved = new ArrayList<>();
     public static List<SavedBlock> copySaved = new ArrayList<>();
@@ -48,6 +45,7 @@ public class TesseractUtilsAddon extends BTWAddon {
         disableBreakCooldown = Boolean.getBoolean(propertyValues.get("DisableBreakCooldown"));
         disableMomentum = Boolean.getBoolean(propertyValues.get("DisableMomentum"));
         enableClickReplace = Boolean.getBoolean(propertyValues.get("EnableClickReplace"));
+        enableNoClip = Boolean.getBoolean(propertyValues.get("EnableNoClip"));
     }
 
     @Override
@@ -58,7 +56,7 @@ public class TesseractUtilsAddon extends BTWAddon {
         this.registerProperty("DisableBreakCooldown", "False", "Default value: False");
         this.registerProperty("DisableMomentum", "False", "Default value: False");
         this.registerProperty("EnableClickReplace","False","Default value: False");
-
+        this.registerProperty("EnableNoClip","False","Default value: False");
     }
 
     private void createNewCommand() {
@@ -79,9 +77,9 @@ public class TesseractUtilsAddon extends BTWAddon {
                     initBlocksNameList();
                 }
                 if (strings.length==1) {
-                    return getListOfStringsMatchingLastWord(strings, new String[]{"set", "setblock", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2", "reach", "flySpeed", "disablePlaceCooldown", "disableBreakCooldown", "disableMomentum", "enableClickReplace"});
+                    return getListOfStringsMatchingLastWord(strings, new String[]{"set", "setblock", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2", "reach", "flySpeed", "disablePlaceCooldown", "disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip"});
                 }
-                String[] boolString = new String[]{"disablePlaceCooldown","disableBreakCooldown", "disableMomentum", "enableClickReplace"};
+                String[] boolString = new String[]{"disablePlaceCooldown","disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip"};
                 for (String string : boolString) {
                     if (strings[0].equalsIgnoreCase(string)) return getListOfStringsMatchingLastWord(strings, new String[]{"true", "false"});
                 }
@@ -628,35 +626,38 @@ public class TesseractUtilsAddon extends BTWAddon {
                         case "disablePlaceCooldown"->{
                             if (strings.length>1) {
                                 disablePlaceCooldown = Boolean.parseBoolean(strings[1]);
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(disablePlaceCooldown ? "The placing cooldown has been disabled." : "The placing cooldown has been enabled."));
+                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("The placing cooldown has been " + (!disablePlaceCooldown ? "enabled" : "disabled") +"."));
                             }
                         }
                         case "disableBreakCooldown"->{
                             if (strings.length>1) {
                                 disableBreakCooldown = Boolean.parseBoolean(strings[1]);
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(disableBreakCooldown ? "The breaking cooldown has been disabled." : "The breaking cooldown has been enabled."));
+                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("The breaking cooldown has been " + (!disableBreakCooldown ? "enabled" : "disabled") +"."));
                             }
                         }
                         case "disableMomentum"->{
                             if (strings.length>1) {
                                 disableMomentum = Boolean.parseBoolean(strings[1]);
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(disableMomentum ? "The flying momentum has been disabled." : "The flying momentum has been enabled."));
+                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Your flying momentum has been " + (!disableMomentum ? "enabled" : "disabled") +"."));
                             }
                         }
                         case "enableClickReplace"->{
                             if (strings.length>1) {
                                 enableClickReplace = Boolean.parseBoolean(strings[1]);
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(enableClickReplace ? "The ClickReplace has been enabled." : "The ClickReplace has been disabled."));
+                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("ClickReplace has been "+(enableClickReplace ? "enabled" : "disabled")+"."));
                             }
                         }
+                        case "enableNoClip"->{
+                            if (strings.length>1) {
+                                enableNoClip = Boolean.parseBoolean(strings[1]);
+                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("NoClip has been " + (enableNoClip ? "enabled" : "disabled") +"."));
+                            }
 
-
-
+                        }
                     }
                 } catch (NumberFormatException e) {
                     throw new WrongUsageException("Invalid command.");
                 }
-
             }
 
             private static @NotNull BlockInfoFromCommand getBlockInfo(String[] strings, int idPos) {
@@ -746,12 +747,8 @@ public class TesseractUtilsAddon extends BTWAddon {
                     }
                 }
             }
-
-
-
         });
     }
     private record SavedBlock(int x, int y, int z, int id, int meta) {
     }
-
 }

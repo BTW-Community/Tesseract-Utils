@@ -1,7 +1,6 @@
 package net.dravigen.tesseractUtils.mixin;
 
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
-import net.minecraft.src.EntityClientPlayerMP;
 import net.minecraft.src.Minecraft;
 import net.minecraft.src.PlayerControllerMP;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,11 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public class MinecraftMixin {
     @Shadow public PlayerControllerMP playerController;
-
     @Shadow private int rightClickDelayTimer;
-
-
-    @Shadow public EntityClientPlayerMP thePlayer;
 
     @Inject(method = "runTick",at = @At("HEAD"))
     private void disableRightClickCooldown(CallbackInfo ci){

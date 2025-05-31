@@ -5,8 +5,7 @@ import net.minecraft.src.EntityRenderer;
 import net.minecraft.src.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.*;
 
 @Mixin(EntityRenderer.class)
 public class EntityRendererMixin {

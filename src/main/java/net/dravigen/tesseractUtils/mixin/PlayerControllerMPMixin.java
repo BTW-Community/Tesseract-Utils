@@ -12,12 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PlayerControllerMP.class)
 public abstract class PlayerControllerMPMixin {
 
-    @Shadow
-    private EnumGameType currentGameType;
-    @Shadow
-    @Final
-    private Minecraft mc;
-
+    @Shadow private EnumGameType currentGameType;
+    @Shadow @Final private Minecraft mc;
     @Shadow private int blockHitDelay;
 
     @ModifyConstant(method = "getBlockReachDistance", constant = @Constant(floatValue = 5.0f))
@@ -54,13 +50,8 @@ public abstract class PlayerControllerMPMixin {
         }
     }
 
-
-
     @Redirect(method = "onPlayerDamageBlock",at = @At(value = "FIELD", target = "Lnet/minecraft/src/PlayerControllerMP;blockHitDelay:I",opcode = Opcodes.GETFIELD))
     private int disableBreakCooldown(PlayerControllerMP instance, int value){
         return this.currentGameType.isCreative()&& TesseractUtilsAddon.disableBreakCooldown ? 0 : this.blockHitDelay;
     }
 }
-
-
-
