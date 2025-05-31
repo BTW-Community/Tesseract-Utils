@@ -31,7 +31,7 @@ This addon is, for the time being, almost only usable by entering commands, here
 
 #### Editing commands:
 
-- "// setblock <ID\> <x\> <y\> <z\>" : Place a block at the designed coordinate with the ID given.
+- "// setblock <x\> <y\> <z\> <ID\>" : Place a block at the designed coordinate with the ID given.
 
 
 - "// set <ID\> [hollow|wall\] [thickness\]" : Replace a selection with blocks with the ID given. If shape specified: "hollow" create an empty box and "wall" create a wall, both with the thickness given (if not specified, default at 1).
@@ -91,7 +91,7 @@ You can add "ignoreAir" and/or "causeUpdate" as a parameter at the end of most c
 
 #### Commands
 
-- "// setblock <ID/meta\> <x\> <y\> <z\> [causeUpdate\] " 
+- "// setblock <x\> <y\> <z\> <ID/meta\> [causeUpdate\] " 
 
 
 - "// set <ID1/meta:%;ID2/meta:%;ID3/meta:%;...\> [hollow|wall\] [thickness\] [ignoreAir\] [causeUpdate\]"
