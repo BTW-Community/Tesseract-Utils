@@ -1,7 +1,7 @@
 # Tesseract Utils (BtW's Addon)
 
 <p align="center">
-  <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="500"/>
+  <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
 ## Presentation
