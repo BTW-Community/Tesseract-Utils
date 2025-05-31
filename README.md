@@ -62,22 +62,22 @@ This addon is, for the time being, almost only usable by entering commands, here
 
 #### Quality of life commands:
 
-- "// reach <block amount\>" : self-explanatory (default: 5)
+- "// reach <block amount\>" : self-explanatory. (default: 5)
 
 
-- "// flySpeed <speed modifier\>" : self-explanatory (default: 1)
+- "// flySpeed <speed modifier\>" : When pressing your sprint keybind, your fly speed get set to that value. (default: 1)
 
 
-- "// disablePlaceCooldown <true|false\>" : self-explanatory (default: false)
+- "// disablePlaceCooldown <true|false\>" : self-explanatory. (default: false)
 
 
-- "// disableBreakCooldown <true|false\>" : self-explanatory (default: false)
+- "// disableBreakCooldown <true|false\>" : self-explanatory. (default: false)
 
 
-- "// disableMomentum <true|false\>" : disable your player's flight momentum = doesn't "slide" in the air (default: false)
+- "// disableMomentum <true|false\>" : disable your player's flight momentum = doesn't "slide" in the air. (default: false)
 
 
-- "// enableClickReplace <true|false>" : if enabled, when right-clicking a block in the world with a block in your hand, it will replace it (default: false)
+- "// enableClickReplace <true|false>" : if enabled, when right-clicking a block in the world with a block in your hand, it will replace it. (default: false)
 
 
 (All QoL feature are accessible through configs as well, beware if changed the modifications will be directly applied when joining the game)
