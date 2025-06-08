@@ -1,8 +1,7 @@
 package net.dravigen.tesseractUtils.mixin;
 
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
-import net.minecraft.src.Minecraft;
-import net.minecraft.src.PlayerControllerMP;
+import net.dravigen.tesseractUtils.TessUConfig;
+import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,7 +16,9 @@ public class MinecraftMixin {
     @Inject(method = "runTick",at = @At("HEAD"))
     private void disableRightClickCooldown(CallbackInfo ci){
         if (this.playerController!=null&&this.playerController.isInCreativeMode()){
-            this.rightClickDelayTimer = TesseractUtilsAddon.disablePlaceCooldown ? 0 : this.rightClickDelayTimer;
+            this.rightClickDelayTimer = TessUConfig.disablePlaceCooldown ? 0 : this.rightClickDelayTimer;
         }
+
     }
+
 }

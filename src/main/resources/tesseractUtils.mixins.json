@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "EntityPlayerMixin",
+    "EntityPlayerMPMixing",
     "EntityRendererMixin",
     "MinecraftServerMixin",
     "NetServerHandlerMixin",
@@ -13,6 +14,10 @@
   ],
   "client": [
     "EntityPlayerSPMixin",
+    "GuiInGameMenuMixin",
+    "GuiIngameMixin",
+    "GuiMainMenuMixin",
+    "GuiScreenMixin",
     "MinecraftMixin"
   ],
   "injectors": {

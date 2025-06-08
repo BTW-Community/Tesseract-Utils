@@ -1,6 +1,7 @@
 package net.dravigen.tesseractUtils.mixin;
 
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import btw.item.items.RedstoneItem;
+import net.dravigen.tesseractUtils.TessUConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,7 +19,7 @@ public abstract class NetServerHandlerMixin {
 
     @Inject(method = "getCollidingBoundingBoxesIgnoreSpecifiedEntities", at = @At("RETURN"), cancellable = true)
     private void disableCollision(World world, Entity entity, AxisAlignedBB par2AxisAlignedBB, CallbackInfoReturnable<List<AxisAlignedBB>> cir) {
-        if (TesseractUtilsAddon.enableNoClip && entity instanceof EntityPlayer && ((EntityPlayer) entity).capabilities.isCreativeMode) {
+        if (TessUConfig.enableNoClip && entity instanceof EntityPlayer && ((EntityPlayer) entity).capabilities.isCreativeMode) {
             cir.setReturnValue(new ArrayList<>());
         }
     }
@@ -32,29 +33,29 @@ public abstract class NetServerHandlerMixin {
 
     @ModifyConstant(method = "handleBlockDig", constant = @Constant(doubleValue = 36.0))
     private double disableBreakDistanceLimit(double constant) {
-        if (this.playerEntity.capabilities.isCreativeMode && TesseractUtilsAddon.reach > 5) {
+        if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
             return 999999;
         } else return constant;
     }
 
     @Redirect(method = "handleUseEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayerMP;getDistanceSqToEntity(Lnet/minecraft/src/Entity;)D"))
     private double disableDistanceLimitUseEntity(EntityPlayerMP instance, Entity entity) {
-        if (this.playerEntity.capabilities.isCreativeMode && TesseractUtilsAddon.reach > 5) {
+        if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
             return 0;
         } else return this.playerEntity.getDistanceSqToEntity(entity);
     }
 
     @Redirect(method = "handlePlace", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayerMP;getDistanceSq(DDD)D"))
     private double disableDistanceLimitUseEntity(EntityPlayerMP instance, double x, double y, double z) {
-        if (this.playerEntity.capabilities.isCreativeMode && TesseractUtilsAddon.reach > 5) {
+        if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
             return 0;
         } else return this.playerEntity.getDistanceSq(x, y, z);
     }
 
     @Redirect(method = "handlePlace", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/ItemInWorldManager;activateBlockOrUseItem(Lnet/minecraft/src/EntityPlayer;Lnet/minecraft/src/World;Lnet/minecraft/src/ItemStack;IIIIFFF)Z"))
     private boolean replaceInsteadOfPlacing(ItemInWorldManager instance, EntityPlayer player, World world, ItemStack itemStack, int x, int y, int z, int side, float offX, float offY, float offZ) {
-        if (this.playerEntity.capabilities.isCreativeMode && TesseractUtilsAddon.enableClickReplace && !this.playerEntity.isSneaking()) {
-            world.setBlockToAir(x, y, z);
+            if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.enableClickReplace && !this.playerEntity.isSneaking() && itemStack!=null && (itemStack.getItem() instanceof ItemBlock || itemStack.getItem() instanceof RedstoneItem)) {
+            world.setBlock(x, y, z,0,0,2);
         }return instance.activateBlockOrUseItem(this.playerEntity, world, itemStack, x, y, z, side, offX, offY, offZ);
     }
 }

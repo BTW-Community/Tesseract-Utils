@@ -1,6 +1,6 @@
 package net.dravigen.tesseractUtils.mixin;
 
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.dravigen.tesseractUtils.TessUConfig;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,6 +16,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
     }
 
     @Shadow public PlayerCapabilities capabilities;
+
     @Unique private GameSettings gameSettings=Minecraft.getMinecraft().gameSettings; // Replace 'gameSettings' with the actual obfuscated field name
     @Unique private KeyBinding flyUpKey;
     @Unique private KeyBinding flyDownKey;
@@ -23,12 +24,12 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @ModifyConstant(method = "moveEntityWithHeading",constant = @Constant(floatValue = 2.0F))
     private float modifySprintFlightSpeed(float constant){
-        return this.capabilities.isCreativeMode ? TesseractUtilsAddon.flySpeed : constant;
+        return this.capabilities.isCreativeMode ? TessUConfig.flySpeed : constant;
     }
 
     @Redirect(method = "moveEntityWithHeading",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayer;isSprinting()Z"))
     private boolean isSprinting(EntityPlayer instance){
-        if (this.capabilities.isCreativeMode&&this.capabilities.isFlying&& TesseractUtilsAddon.flySpeed!=1) {
+        if (this.capabilities.isCreativeMode&&this.capabilities.isFlying&& TessUConfig.flySpeed!=2) {
             if (sprintKey == null) {
                 sprintKey = gameSettings.keyBindSpecial;
             }
@@ -40,12 +41,13 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
     @Inject(method = "moveEntityWithHeading",at = @At("TAIL"))
     private void a(float par1, float par2, CallbackInfo ci){
 
-        if (this.capabilities.isCreativeMode&&this.moveStrafing==0 && this.moveForward==0&&this.capabilities.isFlying&& TesseractUtilsAddon.disableMomentum) {
+        if (this.capabilities.isCreativeMode&&this.moveStrafing==0 && this.moveForward==0&&this.capabilities.isFlying&& TessUConfig.disableMomentum) {
             this.motionX *= 0.3;
             this.motionY *= 0.75;
             this.motionZ *= 0.3;
         }
     }
+
 
     @Inject(method = "onUpdate",at = @At(value = "HEAD"))
     private void b(CallbackInfo ci){
@@ -55,7 +57,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
                     this.motionY = 0;
                 }
             }
-            if (TesseractUtilsAddon.enableNoClip) {
+            if (TessUConfig.enableNoClip) {
                 this.onGround = false;
                 this.capabilities.isFlying = true;
                 this.noClip = true;
@@ -67,15 +69,15 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
                 flyDownKey = gameSettings.keyBindSneak;
                 sprintKey = gameSettings.keyBindSpecial;
             }
-            if (sprintKey.pressed && TesseractUtilsAddon.flySpeed != 1) {
+            if (sprintKey.pressed && TessUConfig.flySpeed != 2) {
                 if (flyUpKey.pressed) {
-                    this.motionY += 0.12D * TesseractUtilsAddon.flySpeed;
+                    this.motionY += 0.12D * TessUConfig.flySpeed;
                 }
                 if (flyDownKey.pressed) {
-                    this.motionY -= 0.12D * TesseractUtilsAddon.flySpeed;
+                    this.motionY -= 0.12D * TessUConfig.flySpeed;
                 }
             }
-            if (TesseractUtilsAddon.disableMomentum&&!sprintKey.pressed) {
+            if (TessUConfig.disableMomentum&&!sprintKey.pressed) {
                 if (flyUpKey.pressed) {
                     this.motionY += 0.05D;
                 }
@@ -88,7 +90,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @Redirect(method = "isEntityInsideOpaqueBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityLivingBase;isEntityInsideOpaqueBlock()Z"))
     private boolean disableBlockOcclusion(EntityLivingBase instance){
-        if (TesseractUtilsAddon.enableNoClip&&this.capabilities.isCreativeMode) {
+        if (TessUConfig.enableNoClip&&this.capabilities.isCreativeMode) {
             return false;
         }else return super.isEntityInsideOpaqueBlock();
     }

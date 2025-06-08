@@ -4,8 +4,9 @@ import btw.AddonHandler;
 import btw.BTWAddon;
 import net.minecraft.src.*;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
+
+import static net.dravigen.tesseractUtils.TessUConfig.*;
 
 public class TesseractUtilsAddon extends BTWAddon {
 
@@ -13,51 +14,35 @@ public class TesseractUtilsAddon extends BTWAddon {
         super();
     }
 
+    public static TesseractUtilsAddon instance;
+
     public static int x1=9999999;
     public static int y1=9999999;
     public static int z1=9999999;
     public static int x2=9999999;
     public static int y2=9999999;
     public static int z2=9999999;
+    public static int modeState;
     public static List<String> blocksNameList = new ArrayList<>();
-    public static float reach = 5;
-    public static float flySpeed = 5;
-    public static boolean disablePlaceCooldown = false;
-    public static boolean disableBreakCooldown = false;
-    public static boolean disableMomentum = false;
-    public static boolean enableClickReplace = false;
-    public static boolean enableNoClip = false;
+    public static List<String> invSavedNameList = new ArrayList<>();
     public static List<List<SavedBlock>> undoSaved = new ArrayList<>();
     public static List<List<SavedBlock>> redoSaved = new ArrayList<>();
     public static List<SavedBlock> copySaved = new ArrayList<>();
+    public static List<List<ItemStack>> invSavedList = new ArrayList<>();
+    // CONFIG
+    public static Map<String, String> properties;
+
+    public static TesseractUtilsAddon getInstance() {
+        return instance == null ? (new TesseractUtilsAddon()) : instance;
+    }
 
     @Override
     public void initialize() {
         AddonHandler.logMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
         createNewCommand();
+        TessUConfig.loadConfig();
     }
 
-    @Override
-    public void handleConfigProperties(Map<String, String> propertyValues) {
-        reach = Float.parseFloat(propertyValues.get("CreativeReach"));
-        flySpeed = Float.parseFloat(propertyValues.get("FlySpeed"));
-        disablePlaceCooldown = Boolean.getBoolean(propertyValues.get("DisablePlacingCooldown"));
-        disableBreakCooldown = Boolean.getBoolean(propertyValues.get("DisableBreakCooldown"));
-        disableMomentum = Boolean.getBoolean(propertyValues.get("DisableMomentum"));
-        enableClickReplace = Boolean.getBoolean(propertyValues.get("EnableClickReplace"));
-        enableNoClip = Boolean.getBoolean(propertyValues.get("EnableNoClip"));
-    }
-
-    @Override
-    public void preInitialize() {
-        this.registerProperty("CreativeReach", "5", "Default value: 5");
-        this.registerProperty("FlySpeed", "1", "Default value: 1");
-        this.registerProperty("DisablePlacingCooldown", "False", "Default value: False");
-        this.registerProperty("DisableBreakCooldown", "False", "Default value: False");
-        this.registerProperty("DisableMomentum", "False", "Default value: False");
-        this.registerProperty("EnableClickReplace","False","Default value: False");
-        this.registerProperty("EnableNoClip","False","Default value: False");
-    }
 
     private void createNewCommand() {
         registerAddonCommand(new CommandBase() {
@@ -68,7 +53,7 @@ public class TesseractUtilsAddon extends BTWAddon {
 
             @Override
             public String getCommandUsage(ICommandSender iCommandSender) {
-                return "// <set> <id/metadata> [hollow:wall] [thickness] OR // <setblock> <x> <y> <z> <id/metadata> OR // <replace> <id/metadata> [id/metadata replaced] OR // <move> <to:add> <x> <y> <z> OR // <undo> OR // <copy> OR // <paste> [x,y,z] OR // <pos1> OR // <pos2> OR // <reach> <distance> OR // <disablePlaceCooldown> <True:False>";
+                return "// <set> <id/metadata> [hollow:wall] [thickness] OR // <setblock> <x> <y> <z> <id/metadata> OR // <replace> <id/metadata> [id/metadata replaced] OR // <move> <to:add> <x> <y> <z> OR // <undo> OR // <copy> OR // <paste> [x,y,z] OR // <pos1> OR // <pos2> OR // <reach> <distance> OR // <disablePlaceCooldown> <True:False> OR // <disableBreakCooldown> <True:False> OR // <disableMomentum> <True:False> OR // <enableClickReplace> <True:False> OR // <enableNoClip> <True:False> OR // <enableExtraDebugInfo> <True:False>";
             }
 
             @Override
@@ -77,12 +62,12 @@ public class TesseractUtilsAddon extends BTWAddon {
                     initBlocksNameList();
                 }
                 if (strings.length==1) {
-                    return getListOfStringsMatchingLastWord(strings, new String[]{"set", "setblock", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2", "reach", "flySpeed", "disablePlaceCooldown", "disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip"});
+                    return getListOfStringsMatchingLastWord(strings, new String[]{"set", "setblock", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2"/*, "reach", "flySpeed", "disablePlaceCooldown", "disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip", "enableExtraDebugInfo"*/});
                 }
-                String[] boolString = new String[]{"disablePlaceCooldown","disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip"};
+                /*String[] boolString = new String[]{"disablePlaceCooldown","disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip", "enableExtraDebugInfo"};
                 for (String string : boolString) {
                     if (strings[0].equalsIgnoreCase(string)) return getListOfStringsMatchingLastWord(strings, new String[]{"true", "false"});
-                }
+                }*/
                 MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
                 if (strings[0].equalsIgnoreCase("pos1") || strings[0].equalsIgnoreCase("pos2")) {
                     if (blockCoord != null) {
@@ -611,7 +596,7 @@ public class TesseractUtilsAddon extends BTWAddon {
                             }
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Second position set to (" + x2 + ", " + y2 + ", " + z2 + ")."));
                         }
-                        case "reach" -> {
+                    /*    case "reach" -> {
                             if (strings.length==2){
                                 reach = Float.parseFloat(strings[1]);
                                 iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Your reach has been set to: " + reach + "."));
@@ -652,8 +637,15 @@ public class TesseractUtilsAddon extends BTWAddon {
                                 enableNoClip = Boolean.parseBoolean(strings[1]);
                                 iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("NoClip has been " + (enableNoClip ? "enabled" : "disabled") +"."));
                             }
+                        }
+                        case "enableExtraDebugInfo"->{
+                            if (strings.length>1) {
+                                enableExtraDebugInfo = Boolean.parseBoolean(strings[1]);
+                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Extra debug infos have been " + (enableExtraDebugInfo ? "enabled" : "disabled") +"."));
+                            }
 
                         }
+                        */
                     }
                 } catch (NumberFormatException e) {
                     throw new WrongUsageException("Invalid command.");
@@ -748,7 +740,87 @@ public class TesseractUtilsAddon extends BTWAddon {
                 }
             }
         });
+        registerAddonCommand(new CommandBase() {
+            @Override
+            public String getCommandName() {
+                return "inv";
+            }
+
+            @Override
+            public String getCommandUsage(ICommandSender iCommandSender) {
+                return "/inv <save> <name> // OR /inv <load> <name> OR //inv <preset> <presetName>";
+            }
+            @Override
+            public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
+                if (strings.length==1) {
+                    return getListOfStringsMatchingLastWord(strings, new String[]{"save", "load", "preset"});
+                }else if (strings.length==2 && strings[0].equalsIgnoreCase("load")){
+                    if (!invSavedNameList.isEmpty()) return getListOfStringsFromIterableMatchingLastWord(strings,invSavedNameList);
+                }
+                return null;
+            }
+            @Override
+            public void processCommand(ICommandSender iCommandSender, String[] strings) {
+                EntityPlayerMP player = getPlayer(iCommandSender,iCommandSender.getCommandSenderName());
+                switch (strings[0]){
+
+                    case "save" -> {
+                        if (strings.length==2){
+                            boolean sameName=false;
+                            for (String name : invSavedNameList){
+                                sameName = name.equalsIgnoreCase(strings[1]);
+                            }
+                            int index=invSavedNameList.size();
+                            if (sameName){
+                                index = invSavedNameList.indexOf(strings[1]);
+                            }
+                            invSavedNameList.add(index,strings[1]);
+                            List<ItemStack> list = new ArrayList<>();
+                            for (int i = 0; i < player.inventoryContainer.inventorySlots.size(); i++) {
+                                ItemStack var2 = ((Slot)player.inventoryContainer.inventorySlots.get(i)).getStack();
+                                list.add(var2);
+                            }
+                            invSavedList.add(list);
+                            player.sendChatToPlayer(ChatMessageComponent.createFromText("Current inventory named \""+strings[1]+ "\" got saved."));
+                        }
+                    }
+                    case "load" -> {
+                        if (strings.length==2){
+                            for (int i = 0; i < player.inventoryContainer.inventorySlots.size(); i++) {
+                                ItemStack stack = invSavedList.get(invSavedNameList.indexOf(strings[1])).get(i);
+                                ((Slot) player.inventoryContainer.inventorySlots.get(i)).putStack(stack);
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("The inventory named \""+strings[1]+ "\" got loaded."));
+
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
     private record SavedBlock(int x, int y, int z, int id, int meta) {
+    }
+
+    // Handles slider value
+    public void setSliderConfig(String property, float value) {
+        switch (property) {
+            case "reach":
+                reach = (int)(value*128);
+                break;
+            case "flightSpeed":
+                flySpeed = (int)(value*32)+1;
+                break;
+        }
+        saveConfig();
+
+    }
+
+    // Gets slider display
+    public String getSliderDisplay(String property) {
+        return switch (property) {
+            case "reach" -> "Reach: " + (int) reach;
+            case "flightSpeed" -> flySpeed < 32 ? "Flight speed: " + (int) (flySpeed) : "Flight speed: too fast";
+            default -> "";
+        };
     }
 }
