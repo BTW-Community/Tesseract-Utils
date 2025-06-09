@@ -4,7 +4,7 @@
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
-# /!\ NOT UP TO DATE /!\
+## /!\ NOT UP TO DATE /!\
 
 ## Presentation
 
