@@ -4,6 +4,7 @@
   "package": "net.dravigen.tesseractUtils.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "EntityListMixin",
     "EntityPlayerMixin",
     "EntityPlayerMPMixing",
     "EntityRendererMixin",
@@ -14,6 +15,7 @@
   ],
   "client": [
     "EntityPlayerSPMixin",
+    "GuiChatMixin",
     "GuiInGameMenuMixin",
     "GuiIngameMixin",
     "GuiMainMenuMixin",

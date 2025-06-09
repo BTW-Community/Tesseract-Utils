@@ -2,11 +2,15 @@ package net.dravigen.tesseractUtils;
 
 import btw.AddonHandler;
 import btw.BTWAddon;
+import net.dravigen.tesseractUtils.item.DeleteEntityItem;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 import static net.dravigen.tesseractUtils.TessUConfig.*;
+import static net.minecraft.src.CommandBase.getPlayer;
 
 public class TesseractUtilsAddon extends BTWAddon {
 
@@ -24,13 +28,18 @@ public class TesseractUtilsAddon extends BTWAddon {
     public static int z2=9999999;
     public static int modeState;
     public static List<String> blocksNameList = new ArrayList<>();
+    public static List<String> entityNameList = new ArrayList<>();
+    public static List<String> itemNameList = new ArrayList<>();
+    private static Language listLanguage;
+
     public static List<String> invSavedNameList = new ArrayList<>();
     public static List<List<SavedBlock>> undoSaved = new ArrayList<>();
     public static List<List<SavedBlock>> redoSaved = new ArrayList<>();
     public static List<SavedBlock> copySaved = new ArrayList<>();
     public static List<List<ItemStack>> invSavedList = new ArrayList<>();
-    // CONFIG
-    public static Map<String, String> properties;
+    
+    public static Item deleteEntityItem;
+    
 
     public static TesseractUtilsAddon getInstance() {
         return instance == null ? (new TesseractUtilsAddon()) : instance;
@@ -40,11 +49,14 @@ public class TesseractUtilsAddon extends BTWAddon {
     public void initialize() {
         AddonHandler.logMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
         createNewCommand();
-        TessUConfig.loadConfig();
+        loadConfig();
+        
+        deleteEntityItem=new DeleteEntityItem(1800-256).setCreativeTab(CreativeTabs.tabTools);
     }
 
 
     private void createNewCommand() {
+        /// worldEdit command
         registerAddonCommand(new CommandBase() {
             @Override
             public String getCommandName() {
@@ -58,16 +70,15 @@ public class TesseractUtilsAddon extends BTWAddon {
 
             @Override
             public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
+                if (listLanguage!=Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage()){
+                    blocksNameList.clear();
+                }
                 if (blocksNameList.isEmpty()) {
                     initBlocksNameList();
                 }
                 if (strings.length==1) {
-                    return getListOfStringsMatchingLastWord(strings, new String[]{"set", "setblock", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2"/*, "reach", "flySpeed", "disablePlaceCooldown", "disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip", "enableExtraDebugInfo"*/});
+                    return getListOfStringsMatchingLastWord(strings,"set", "setblock", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2");
                 }
-                /*String[] boolString = new String[]{"disablePlaceCooldown","disableBreakCooldown", "disableMomentum", "enableClickReplace", "enableNoClip", "enableExtraDebugInfo"};
-                for (String string : boolString) {
-                    if (strings[0].equalsIgnoreCase(string)) return getListOfStringsMatchingLastWord(strings, new String[]{"true", "false"});
-                }*/
                 MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
                 if (strings[0].equalsIgnoreCase("pos1") || strings[0].equalsIgnoreCase("pos2")) {
                     if (blockCoord != null) {
@@ -102,7 +113,7 @@ public class TesseractUtilsAddon extends BTWAddon {
                     if (strings.length == 2) {
                         return getBlockList(strings);
                     } else if (strings.length == 3) {
-                        return getListOfStringsMatchingLastWord(strings, new String[]{"hollow", "wall"});
+                        return getListOfStringsMatchingLastWord(strings, "hollow", "wall");
                     }
                 } else if (strings[0].equalsIgnoreCase("replace")) {
                     if (strings.length == 2 || strings.length == 3) {
@@ -124,7 +135,7 @@ public class TesseractUtilsAddon extends BTWAddon {
                     } else return null;
                 } else if (strings[0].equalsIgnoreCase("move")) {
                     if (strings.length == 2) {
-                        return getListOfStringsMatchingLastWord(strings, new String[]{"to", "add"});
+                        return getListOfStringsMatchingLastWord(strings, "to", "add");
                     }
                     if (blockCoord != null&&strings[1].equalsIgnoreCase("to")) {
                         int x = blockCoord.blockX;
@@ -142,15 +153,6 @@ public class TesseractUtilsAddon extends BTWAddon {
                 return null;
             }
 
-            private MovingObjectPosition getBlockPlayerIsLooking(ICommandSender par1ICommandSender) {
-                EntityPlayer player = getPlayer(par1ICommandSender, par1ICommandSender.getCommandSenderName());
-                Vec3 var3 = player.getPosition(1);
-                Vec3 var4 = var3.addVector(0, player.getEyeHeight(), 0);
-                Vec3 var5 = player.getLook(1);
-                Vec3 var6 = var4.addVector(var5.xCoord * reach, var5.yCoord * reach, var5.zCoord * reach);
-                return player.worldObj.clip(var4, var6);
-            }
-
             private @NotNull List<String> getBlockList(String[] strings) {
                 List<String> finalList = new ArrayList<>();
                 String var1 = strings[strings.length - 1];
@@ -166,7 +168,20 @@ public class TesseractUtilsAddon extends BTWAddon {
                     if (afterSemiColon){
                         lastString = "";
                     }
-                    if (string.toLowerCase().contains(lastString.toLowerCase())){
+                    if (string.toLowerCase().startsWith(lastString.toLowerCase())){
+                        finalList.add(firstString+string);
+                    }
+                }
+                for (String string : blocksNameList) {
+                    List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(";")));
+                    String lastString = split.get(split.size()-1);
+                    if (!afterSemiColon) split.remove(split.size()-1);
+                    String firstString = afterSemiColon ? var1 : split.isEmpty() ? "" : String.join(";",split)+";";
+
+                    if (afterSemiColon){
+                        lastString = "";
+                    }
+                    if (!string.toLowerCase().startsWith(lastString.toLowerCase())&&string.toLowerCase().contains(lastString.toLowerCase())){
                         finalList.add(firstString+string);
                     }
                 }
@@ -679,10 +694,13 @@ public class TesseractUtilsAddon extends BTWAddon {
                     } else {
                         for (int i = 0; i < Block.blocksList.length; i++) {
                             block = Block.blocksList[i];
-                            if (block != null && block.getLocalizedName().replace(" ", "").equalsIgnoreCase(idMeta[0])) {
-                                blockName = block.getLocalizedName().replace(" ", "");
-                                id = block.blockID;
-                                break;
+                            if (block != null) {
+                                String name = StringTranslate.getInstance().translateKey(block.getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
+                                if (name.equalsIgnoreCase(idMeta[0])) {
+                                    blockName = name;
+                                    id = block.blockID;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -690,7 +708,7 @@ public class TesseractUtilsAddon extends BTWAddon {
                     for (int i = 0; i < Block.blocksList.length; i++) {
                         block = Block.blocksList[i];
                         if (block != null && block.blockID == id) {
-                            blockName = Block.blocksList[i].getLocalizedName().replace(" ", "");
+                            blockName = StringTranslate.getInstance().translateKey(Block.blocksList[i].getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
                         }
                     }
                 }
@@ -726,7 +744,7 @@ public class TesseractUtilsAddon extends BTWAddon {
                     Block block = Block.blocksList[i];
                     boolean sameName = false;
                     if (block != null) {
-                        String blockName = block.getLocalizedName().replace(" ", "").replace("tile.","").replace("fc","").replace(".name","");
+                        String blockName = StringTranslate.getInstance().translateKey(block.getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
                         for (String name : blocksNameList) {
                             if (name.equalsIgnoreCase(blockName)) {
                                 sameName = true;
@@ -740,6 +758,7 @@ public class TesseractUtilsAddon extends BTWAddon {
                 }
             }
         });
+        /// inventory command
         registerAddonCommand(new CommandBase() {
             @Override
             public String getCommandName() {
@@ -753,7 +772,7 @@ public class TesseractUtilsAddon extends BTWAddon {
             @Override
             public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
                 if (strings.length==1) {
-                    return getListOfStringsMatchingLastWord(strings, new String[]{"save", "load", "preset"});
+                    return getListOfStringsMatchingLastWord(strings, "save", "load", "preset");
                 }else if (strings.length==2 && strings[0].equalsIgnoreCase("load")){
                     if (!invSavedNameList.isEmpty()) return getListOfStringsFromIterableMatchingLastWord(strings,invSavedNameList);
                 }
@@ -797,10 +816,355 @@ public class TesseractUtilsAddon extends BTWAddon {
                 }
             }
         });
+        /// summon command
+        registerAddonCommand(new CommandBase() {
+            @Override
+            public String getCommandName() {
+                return "summon";
+            }
+
+            @Override
+            public String getCommandUsage(ICommandSender iCommandSender) {
+                return "/summon <entity> [count]";
+            }
+
+            @Override
+            public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
+                if (strings.length==1){
+                    return getEntityName(strings);
+                }
+                MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
+                if (strings.length>=3) {
+                    if (blockCoord != null) {
+                        int x = blockCoord.blockX;
+                        int y = blockCoord.blockY;
+                        int z = blockCoord.blockZ;
+                        if (strings.length == 3) {
+                            return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                        } else if (strings.length == 4) {
+                            return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                        } else if (strings.length == 5) {
+                            return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                        }
+                    } else return null;
+                }
+                return null;
+            }
+
+            @Override
+            public void processCommand(ICommandSender iCommandSender, String[] strings) {
+                if (strings.length>=1) {
+                    int entityNum = 1;
+                    if (strings.length >= 2) {
+                        entityNum = Integer.parseInt(strings[1]);
+                    }
+                    int x;
+                    int y;
+                    int z;
+                    if (strings.length >= 4) {
+                        try {
+                            x = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posX, strings[1]));
+                            y = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posY, strings[2]));
+                            z = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posZ, strings[3]));
+                        } catch (Exception ignored) {
+                            x = Integer.parseInt(strings[2]);
+                            y = Integer.parseInt(strings[3]);
+                            z = Integer.parseInt(strings[4]);
+                        }
+                    } else {
+                        x = iCommandSender.getPlayerCoordinates().posX;
+                        y = iCommandSender.getPlayerCoordinates().posY;
+                        z = iCommandSender.getPlayerCoordinates().posZ;
+                    }
+                    for (int i = 0; i < entityNum; i++) {
+                        List<String> entitiesName = Arrays.stream(strings[0].split(":")).toList();
+                        List<Entity> entities = new ArrayList<>();
+
+                        for (String entity1 :entitiesName) {
+                            for (String name :entityNameList){
+                                if (name.equalsIgnoreCase(entity1)){
+                                    entities.add(EntityList.createEntityByName(entityNameList.get(entityNameList.indexOf(name)), iCommandSender.getEntityWorld()));
+                                    break;
+                                }
+                            }
+                        }
+                        for (int j=0; j<entities.size(); j++){
+                            Entity entity2 = entities.get(j);
+                            entity2.setPosition(x,y,z);
+                            iCommandSender.getEntityWorld().spawnEntityInWorld(entity2);
+                            if (j>0) {
+                                entity2.mountEntity(entities.get(j - 1));
+                            }
+                        }
+                    }
+                }
+            }
+
+        });
+        /// kill command
+        registerAddonCommand(new CommandBase() {
+            @Override
+            public String getCommandName() {
+                return "kill";
+            }
+
+            @Override
+            public String getCommandUsage(ICommandSender iCommandSender) {
+                return "";
+            }
+
+            @Override
+            public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] par2ArrayOfStr) {
+                if (listLanguage!=Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage()){
+                    itemNameList.clear();
+                }
+                if (itemNameList.isEmpty()) {
+                    initItemsNameList();
+                    listLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
+                }
+                if (par2ArrayOfStr.length==1){
+                    return getListOfStringsMatchingLastWord(par2ArrayOfStr,"player","mob","item","all");
+                }else if (par2ArrayOfStr.length==2 && par2ArrayOfStr[0].equalsIgnoreCase("mob")){
+                    return getEntityName(par2ArrayOfStr);
+                }else if (par2ArrayOfStr.length==2 && par2ArrayOfStr[0].equalsIgnoreCase("player")){
+                    return getListOfStringsMatchingLastWord(par2ArrayOfStr, MinecraftServer.getServer().getAllUsernames());
+                }else if (par2ArrayOfStr.length==2 && par2ArrayOfStr[0].equalsIgnoreCase("item")){
+                    return getItemNameList(par2ArrayOfStr);
+                }
+                return null;
+            }
+
+            @Override
+            public void processCommand(ICommandSender iCommandSender, String[] strings) {
+                boolean dropLoot = false;
+                for (String string : strings) {
+                    if (!dropLoot) {
+                        dropLoot = string.equalsIgnoreCase("dropLoot");
+                    }
+                }
+                if (strings.length>=1) {
+                    if (strings[0].equalsIgnoreCase("all")) {
+                        int killCount = 0;
+                        for (int i = 0; i < iCommandSender.getEntityWorld().loadedEntityList.size(); i++) {
+                            Entity entity = (Entity) iCommandSender.getEntityWorld().loadedEntityList.get(i);
+                            if (!(entity instanceof EntityPlayer)) {
+                                killCount++;
+                                if (dropLoot) {
+                                    entity.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
+                                } else entity.setDead();
+                            }
+                        }
+                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(killCount + " entities got killed."));
+                    } else if (strings[0].equalsIgnoreCase("mob")) {
+                        int killCount = 0;
+                        for (String name : entityNameList) {
+                            if (strings[1].equalsIgnoreCase(name)) {
+                                for (int i = 0; i < iCommandSender.getEntityWorld().loadedEntityList.size(); i++) {
+                                    Entity entity = (Entity) iCommandSender.getEntityWorld().loadedEntityList.get(i);
+                                    if (entity.getEntityName().equalsIgnoreCase(name)) {
+                                        if (dropLoot) {
+                                            entity.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
+                                        } else entity.setDead();
+                                        killCount++;
+                                    }
+                                }
+                            }
+                        }
+                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(killCount + " " + strings[1] + " got killed."));
+
+                    } else if (strings[0].equalsIgnoreCase("player")&&strings.length==2) {
+                        EntityPlayerMP var3;
+                        var3 = CommandGive.getPlayer(iCommandSender, strings[1]);
+                        if (dropLoot) {
+                            var3.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
+                        } else {
+                            var3.setHealth(0);
+                        }
+                        var3.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey("commands.kill.success"));
+                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromTranslationKey(var3.getEntityName() + " got killed."));
+
+                    } else if (strings[0].equalsIgnoreCase("item")) {
+                        int killCount = 0;
+                        ItemInfo itemInfo = getItemInfo(strings);
+                        int id = itemInfo.id();
+                        for (Object entity: iCommandSender.getEntityWorld().loadedEntityList){
+                            if (entity instanceof EntityItem item){
+                                if (id==item.getEntityItem().itemID){
+                                    killCount++;
+                                    item.setDead();
+                                }
+                            }
+                        }
+                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(killCount + " " + itemInfo.itemName + " item(s) got killed."));
+                    }
+                }
+            }
+
+
+        });
+        /// overwrite give command
+        registerAddonCommand(new CommandBase() {
+            @Override
+            public String getCommandName() {
+                return "give";
+            }
+
+            @Override
+            public int getRequiredPermissionLevel() {
+                return 2;
+            }
+
+            @Override
+            public String getCommandUsage(ICommandSender par1ICommandSender) {
+                return "commands.give.usage";
+            }
+
+            @Override
+            public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] par2ArrayOfStr) {
+                if (listLanguage!=Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage()){
+                    itemNameList.clear();
+                }
+                if (itemNameList.isEmpty()) {
+                    initItemsNameList();
+                    listLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
+                }
+                if (par2ArrayOfStr.length==1){
+                    return CommandGive.getListOfStringsMatchingLastWord(par2ArrayOfStr, this.getPlayers());
+                }else if (par2ArrayOfStr.length==2){
+                    return getItemNameList(par2ArrayOfStr);
+                }
+                return null;
+            }
+
+            @Override
+            public void processCommand(ICommandSender par1ICommandSender, String[] strings) {
+                int var6;
+                int var5;
+                int var4;
+                EntityPlayerMP var3;
+                if (strings.length >= 2) {
+                    var3 = CommandGive.getPlayer(par1ICommandSender, strings[0]);
+                    ItemInfo itemInfo = getItemInfo(strings);
+                    var4 = itemInfo.id;
+                    var5 = 1;
+                    var6 = 0;
+                    if (Item.itemsList[var4] == null) {
+                        throw new NumberInvalidException("commands.give.notFound", var4);
+                    }
+                    if (strings.length >= 3) {
+                        var5 = CommandGive.parseIntBounded(par1ICommandSender, strings[2], 1, 64);
+                    }
+                    if (strings.length >= 4) {
+                        var6 = CommandGive.parseInt(par1ICommandSender, strings[3]);
+                    }
+                } else {
+                    throw new WrongUsageException("commands.give.usage");
+                }
+                ItemStack var7 = new ItemStack(var4, var5, var6);
+                var7.getItem().initializeStackOnGiveCommand(var3.worldObj.rand, var7);
+                EntityItem var8 = var3.dropPlayerItem(var7);
+                var8.delayBeforeCanPickup = 0;
+                CommandGive.notifyAdmins(par1ICommandSender, "commands.give.success", Item.itemsList[var4].getItemStackDisplayName(var7), var4, var5, var3.getEntityName());
+            }
+
+            private String[] getPlayers() {
+                return MinecraftServer.getServer().getAllUsernames();
+            }
+
+        });
+
+
     }
-    private record SavedBlock(int x, int y, int z, int id, int meta) {
+    private static @NotNull ItemInfo getItemInfo(String[] strings) {
+        Item item;
+        int id = 99999;
+        String itemName="";
+        try {
+            id = Integer.parseInt(strings[1]);
+        } catch (NumberFormatException ignored) {
+        }
+        if (id == 99999) {
+            for (int i = 0; i < Item.itemsList.length; i++) {
+                item = Item.itemsList[i];
+                if (item != null) {
+                    itemName = StringTranslate.getInstance().translateKey(item.getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
+                    if (itemName.equalsIgnoreCase(strings[1])) {
+                        id = item.itemID;
+                        break;
+                    }
+                }
+            }
+        }else {
+            itemName = StringTranslate.getInstance().translateKey(Item.itemsList[id].getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
+        }
+        return new ItemInfo(id,itemName);
+    }
+    private record ItemInfo (int id,String itemName){
+    }
+    private static void initItemsNameList() {
+        for (int i = 0; i < Item.itemsList.length; i++) {
+            Item item = Item.itemsList[i];
+            boolean sameName = false;
+            if (item != null) {
+                String itemName = StringTranslate.getInstance().translateKey(item.getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
+                for (String name : itemNameList) {
+                    if (name.equalsIgnoreCase(itemName)) {
+                        sameName = true;
+                        break;
+                    }
+                }
+                if (!sameName) {
+                    itemNameList.add(itemName);
+                }
+            }
+        }
+    }
+    private @NotNull List<String> getItemNameList(String[] par2ArrayOfStr) {
+        List<String > finalList = new ArrayList<>();
+        for (String string: itemNameList){
+            if (string.toLowerCase().startsWith(par2ArrayOfStr[1].toLowerCase())){
+                finalList.add(string);
+            }
+        }
+        for (String string: itemNameList){
+            if (string.toLowerCase().contains(par2ArrayOfStr[1].toLowerCase())&&!string.toLowerCase().startsWith(par2ArrayOfStr[1].toLowerCase())){
+                finalList.add(string);
+            }
+        }
+        return finalList;
     }
 
+    private record SavedBlock(int x, int y, int z, int id, int meta) {
+    }
+    private @NotNull List<String> getEntityName(String[] strings) {
+        List<String> finalList = new ArrayList<>();
+        String var1 = strings[strings.length - 1];
+        String var2 = ":";
+        boolean afterColon = var2.regionMatches(true, 0, var1, var1.length()-1, 1);
+
+        for (String string : entityNameList) {
+            List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(":")));
+            String lastString = split.get(split.size()-1);
+            if (!afterColon) split.remove(split.size()-1);
+            String firstString = afterColon ? var1 : split.isEmpty() ? "" : String.join(":",split)+":";
+
+            if (afterColon){
+                lastString = "";
+            }
+            if (string.toLowerCase().startsWith(lastString.toLowerCase())){
+                finalList.add(firstString+string);
+            }
+        }
+        return finalList;
+    }
+    private MovingObjectPosition getBlockPlayerIsLooking(ICommandSender par1ICommandSender) {
+        EntityPlayer player = getPlayer(par1ICommandSender, par1ICommandSender.getCommandSenderName());
+        Vec3 var3 = player.getPosition(1);
+        Vec3 var4 = var3.addVector(0, player.getEyeHeight(), 0);
+        Vec3 var5 = player.getLook(1);
+        Vec3 var6 = var4.addVector(var5.xCoord * reach, var5.yCoord * reach, var5.zCoord * reach);
+        return player.worldObj.clip(var4, var6);
+    }
     // Handles slider value
     public void setSliderConfig(String property, float value) {
         switch (property) {

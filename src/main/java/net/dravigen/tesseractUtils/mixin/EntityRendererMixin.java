@@ -13,6 +13,7 @@ public class EntityRendererMixin {
 
     @ModifyConstant(method = "getMouseOver",constant = @Constant(doubleValue = 6.0,ordinal = 0))
     private double disableDistanceLimit(double constant){
+        if(this.mc.thePlayer.getHeldItem()!=null&&this.mc.thePlayer.getHeldItem().itemID==1800)return 999999;
         if (this.mc.thePlayer.capabilities.isCreativeMode&& TessUConfig.reach>5){
             return 999999;
         }else return constant;
