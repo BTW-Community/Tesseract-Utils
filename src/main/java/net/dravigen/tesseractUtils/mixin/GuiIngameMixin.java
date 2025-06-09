@@ -75,7 +75,7 @@ public class GuiIngameMixin extends Gui {
     private static boolean F4pressed = false;
 
 
-    @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glColor4f(FFFF)V",ordinal = 4,shift = At.Shift.BEFORE))
+    @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glColor4f(FFFF)V",ordinal = 4,shift = At.Shift.BEFORE),remap = false)
     private void modeSwapOverlay(float par1, boolean par2, int par3, int par4, CallbackInfo ci) {
         ScaledResolution var5 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
         int width = var5.getScaledWidth();

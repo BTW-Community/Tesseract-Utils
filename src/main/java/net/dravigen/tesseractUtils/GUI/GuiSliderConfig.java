@@ -1,6 +1,5 @@
 package net.dravigen.tesseractUtils.GUI;
 
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.src.GuiButton;
@@ -44,9 +43,9 @@ public class GuiSliderConfig extends GuiButton {
                     this.sliderValue = 1.0F;
                 }
 
-                TesseractUtilsAddon fl = TesseractUtilsAddon.getInstance();
-                fl.setSliderConfig(this.id, this.sliderValue);
-                this.displayString = fl.getSliderDisplay(this.id);
+                GuiUtils gu = GuiUtils.getInstance();
+                gu.setSliderConfig(this.id, this.sliderValue);
+                this.displayString = gu.getSliderDisplay(this.id);
             }
 
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -69,9 +68,9 @@ public class GuiSliderConfig extends GuiButton {
                 this.sliderValue = 1.0F;
             }
 
-            TesseractUtilsAddon fl = TesseractUtilsAddon.getInstance();
-            fl.setSliderConfig(this.id, this.sliderValue);
-            this.displayString = fl.getSliderDisplay(this.id);
+            GuiUtils gu = GuiUtils.getInstance();
+            gu.setSliderConfig(this.id, this.sliderValue);
+            this.displayString = gu.getSliderDisplay(this.id);
             this.dragging = true;
             return true;
         } else {

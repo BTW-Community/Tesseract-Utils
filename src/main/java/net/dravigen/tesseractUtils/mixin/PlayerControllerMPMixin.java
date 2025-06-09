@@ -2,6 +2,7 @@ package net.dravigen.tesseractUtils.mixin;
 
 import net.dravigen.tesseractUtils.TessUConfig;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.dravigen.tesseractUtils.command.UtilsCommand;
 import net.minecraft.src.*;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -31,9 +32,9 @@ public abstract class PlayerControllerMPMixin {
     private void selectionFirst(int x, int y, int z, int par4, CallbackInfoReturnable<Boolean> cir) {
         if (this.currentGameType.isCreative()) {
             if (this.mc.thePlayer.getHeldItem() != null && this.mc.thePlayer.getHeldItem().itemID == 271) {
-                TesseractUtilsAddon.x1 = x;
-                TesseractUtilsAddon.y1 = y;
-                TesseractUtilsAddon.z1 = z;
+                UtilsCommand.x1 = x;
+                UtilsCommand.y1 = y;
+                UtilsCommand.z1 = z;
                 if (this.mc.theWorld.isRemote) {
                     this.mc.thePlayer.addChatMessage("First position set to (" + x + ", " + y + ", " + z + ").");
                 }
@@ -46,9 +47,9 @@ public abstract class PlayerControllerMPMixin {
         if (this.currentGameType.isCreative()) {
             if (itemStack != null) {
                 if (itemStack.itemID == 271) {
-                    TesseractUtilsAddon.x2 = x;
-                    TesseractUtilsAddon.y2 = y;
-                    TesseractUtilsAddon.z2 = z;
+                    UtilsCommand.x2 = x;
+                    UtilsCommand.y2 = y;
+                    UtilsCommand.z2 = z;
                     if (world.isRemote) {
                         entity.addChatMessage("Second position set to (" + x + ", " + y + ", " + z + ").");
                     }

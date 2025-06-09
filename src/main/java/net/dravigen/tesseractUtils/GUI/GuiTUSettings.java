@@ -1,7 +1,6 @@
 package net.dravigen.tesseractUtils.GUI;
 
 import net.dravigen.tesseractUtils.TessUConfig;
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.minecraft.src.*;
 import org.lwjgl.opengl.GL11;
 
@@ -64,7 +63,7 @@ public class GuiTUSettings extends GuiScreen {
                         this.height / 6 + (29 * count),
                         (int) ((this.width / 2f + 150+25)-(this.width / 2f - 200+25)),
                         item.getEnumProperty(),
-                        TesseractUtilsAddon.getInstance().getSliderDisplay(item.getEnumProperty()),
+                        GuiUtils.getInstance().getSliderDisplay(item.getEnumProperty()),
                         getFloatValue(ordinal), 0);
                 buttons.add(slider);
                 this.buttonList.add(slider);
@@ -79,7 +78,7 @@ public class GuiTUSettings extends GuiScreen {
                         this.height / 6 + (29 * count),
                         150,
                         item.getEnumProperty(),
-                        TesseractUtilsAddon.getInstance().getSliderDisplay(item.getEnumProperty()),
+                        GuiUtils.getInstance().getSliderDisplay(item.getEnumProperty()),
                         getFloatValue(ordinal), item.getEnumFloatNotches());
                 buttons.add(slider);
                 this.buttonList.add(slider);
