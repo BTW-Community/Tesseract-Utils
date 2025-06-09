@@ -4,6 +4,8 @@
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
+# /!\ NOT UP TO DATE /!\
+
 ## Presentation
 
 This addon allow you to use handy tools such as setblock, copy/paste, move, replace, undo/redo, and much more.
