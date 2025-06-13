@@ -27,16 +27,6 @@ public class GuiTUSettings extends GuiScreen {
     public void initGui() {
         StringTranslate stringTranslate = StringTranslate.getInstance();
 
-        // Add a button to toggle the placing cooldown
-        /*
-        this.buttonList.add(new GuiButtonCustom(300+0, this.width / 2 +50, this.height / 6 + 24 ,  150, 20,200, (TessUConfig.disablePlaceCooldown ? "Disabled" : "Enabled"),customButton));
-        this.buttonList.add(new GuiButtonCustom(300+1, this.width / 2 +50, this.height / 6 + 24*2, 150, 20,200, (TessUConfig.disableBreakCooldown ? "Disabled" : "Enabled"),customButton));
-        this.buttonList.add(new GuiButtonCustom(300+2, this.width / 2 +50, this.height / 6 + 24*3, 150, 20,200, (TessUConfig.disableMomentum ? "Disabled" : "Enabled"),customButton));
-        this.buttonList.add(new GuiButtonCustom(300+3, this.width / 2 +50, this.height / 6 + 24*4, 150, 20,200, (!TessUConfig.enableClickReplace ? "Disabled" : "Enabled"),customButton));
-        this.buttonList.add(new GuiButtonCustom(300+4, this.width / 2 +50, this.height / 6 + 24*5, 150, 20,200, (!TessUConfig.enableNoClip ? "Disabled" : "Enabled"),customButton));
-        this.buttonList.add(new GuiButtonCustom(300+5, this.width / 2 +50, this.height / 6 + 24*6, 150, 20,200, (!TessUConfig.enableExtraDebugInfo ? "Disabled" : "Enabled"),customButton));
-*/
-
         // Add buttons
         int count = 1;
         for (EnumConfig item : enumConfigs) {
@@ -104,7 +94,6 @@ public class GuiTUSettings extends GuiScreen {
             case 300 -> {
                 TessUConfig.disablePlaceCooldown = !TessUConfig.disablePlaceCooldown;
                 button.displayString = TessUConfig.disablePlaceCooldown ? "Disabled" : "Enabled";
-                System.out.println(button.displayString);
             }
             case 301 -> {
                 TessUConfig.disableBreakCooldown = !TessUConfig.disableBreakCooldown;
@@ -167,7 +156,9 @@ public class GuiTUSettings extends GuiScreen {
                 }
             }
         }
-        this.mc.displayGuiScreen(new GuiTUSettings(parentScreen));
+        if (button.id!=306&&button.id!=307) {
+            this.mc.displayGuiScreen(new GuiTUSettings(parentScreen));
+        }
         TessUConfig.saveConfig();
 
         if (button.id == 100) {

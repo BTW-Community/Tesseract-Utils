@@ -78,6 +78,7 @@ public class CommandSummon extends CommandBase {
             for (String entity1 :entitiesName) {
                 for (String name : entityShowNameList){
                     if (name.equalsIgnoreCase(entity1)){
+                        System.out.println(UtilsCommand.entityTrueNameList.get(entityShowNameList.indexOf(name)));
                         entities.add(EntityList.createEntityByName(UtilsCommand.entityTrueNameList.get(entityShowNameList.indexOf(name)), sender.getEntityWorld()));
                         break;
                     }

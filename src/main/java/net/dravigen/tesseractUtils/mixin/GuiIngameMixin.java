@@ -75,7 +75,7 @@ public class GuiIngameMixin extends Gui {
     private static boolean F4pressed = false;
 
 
-    @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glColor4f(FFFF)V",ordinal = 4,shift = At.Shift.BEFORE),remap = false)
+    @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",ordinal = 9,remap = false))
     private void modeSwapOverlay(float par1, boolean par2, int par3, int par4, CallbackInfo ci) {
         ScaledResolution var5 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
         int width = var5.getScaledWidth();
@@ -179,25 +179,12 @@ public class GuiIngameMixin extends Gui {
             int x = MathHelper.floor_double(player.posX);
             int y = MathHelper.floor_double(player.boundingBox.minY);
             int z = MathHelper.floor_double(player.posZ);
-            Vec3 direction = player.getLookVec();
-            String facing = "";
-            if (direction.zCoord>0&&direction.xCoord>0){
-                if (direction.zCoord>direction.xCoord){
-                    facing = "south";
-                }else facing = "east";
-            } else if (direction.zCoord < 0 && direction.xCoord < 0) {
-                if (direction.zCoord>direction.xCoord){
-                    facing = "west";
-                }else facing = "north";
-            } else if (direction.zCoord > 0 && direction.xCoord < 0) {
-                if (direction.zCoord>-direction.xCoord) {
-                    facing = "south";
-                }
-            }else if (direction.zCoord < direction.xCoord) {
-                facing = "north";
-            }
-
-
+            float var2 = MathHelper.cos(-player.rotationYaw * ((float)Math.PI / 180) - (float)Math.PI);
+            float var3 = MathHelper.sin(-player.rotationYaw * ((float)Math.PI / 180) - (float)Math.PI);
+            float var5 = MathHelper.sin(-player.rotationPitch * ((float)Math.PI / 180));
+            Vec3 direction = player.worldObj.getWorldVec3Pool().getVecFromPool(-var3, var5, -var2);
+            String facing;
+            facing = direction.xCoord>=0 ? (direction.zCoord<=0 ? (direction.xCoord<=0.7 ? "north" : "east") : direction.xCoord<=0.7 ? "south" : "east") : (direction.zCoord<=0 ? (direction.xCoord>=-0.7 ? "north" : "west") : (direction.xCoord<=-0.7 ? "west" : "south"));
             this.drawString(fontRenderer, String.format("XYZ: " + x + " / " + y + " / " + z), 2, iYPos + 55, 0xE0E0E0);
             this.drawString(fontRenderer, String.format("Biome: " + player.worldObj.getBiomeGenForCoords(player.chunkCoordX,player.chunkCoordZ).biomeName), 2, iYPos + 65, 0xE0E0E0);
             this.drawString(fontRenderer, String.format("Light: " + player.worldObj.getBlockLightValue(x,y,z) + " (" + player.worldObj.getBlockNaturalLightValue(x,y,z) + " sky, " + player.worldObj.getBlockLightValueNoSky(x,y,z) + " block)"), 2, iYPos + 75, 0xE0E0E0);

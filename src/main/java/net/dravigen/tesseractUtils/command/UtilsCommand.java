@@ -3,7 +3,6 @@ package net.dravigen.tesseractUtils.command;
 import net.minecraft.src.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static net.dravigen.tesseractUtils.TessUConfig.reach;
@@ -14,7 +13,7 @@ public class UtilsCommand {
     public static List<String> entityShowNameList = new ArrayList<>();
     public static List<String> entityTrueNameList = new ArrayList<>();
 
-    private static Map<Class<?>, String> CLASS_TO_STRING_MAPPING;
+    public static Map<Class<?>, String> CLASS_TO_STRING_MAPPING;
 
     public static List<String> itemNameList = new ArrayList<>();
     public static List<String> blocksNameList = new ArrayList<>();
@@ -67,6 +66,7 @@ public class UtilsCommand {
     }
 
     public static void initBlocksNameList() {
+        blocksNameList.clear();
         blocksNameList.add("Air");
         for (int i = 0; i < Block.blocksList.length; i++) {
             Block block = Block.blocksList[i];
@@ -170,6 +170,7 @@ public class UtilsCommand {
     }
 
     public static void initItemsNameList() {
+        itemNameList.clear();
         for (int i = 0; i < Item.itemsList.length; i++) {
             Item item = Item.itemsList[i];
             if (item == null) {
@@ -273,28 +274,45 @@ public class UtilsCommand {
         return new ItemInfo(id,meta,itemName);
     }
 
+    private static class ClassSimpleNameComparator implements Comparator<Class<?>> {
+        @Override
+        public int compare(Class<?> class1, Class<?> class2) {
+            if (class1 == null && class2 == null) return 0;
+            if (class1 == null) return -1;
+            if (class2 == null) return 1;
+            processEntityName result1 = getProcessEntityName(CLASS_TO_STRING_MAPPING, class1);
+            processEntityName result2 = getProcessEntityName(CLASS_TO_STRING_MAPPING, class2);
+            return result1.finalName.compareTo(result2.finalName);
+        }
+    }
     public static void initEntityList(){
-        try {
 
-            String obfuscatedFieldName = "classToStringMapping";
-            Field mapField = EntityList.class.getDeclaredField(obfuscatedFieldName);
-            mapField.setAccessible(true);
-            CLASS_TO_STRING_MAPPING = (Map<Class<?>, String>) mapField.get(null);
-
-        }catch (Exception ignored){
-        }
-        for (Map.Entry<Class<?>, String> entry : CLASS_TO_STRING_MAPPING.entrySet()) {
-            Class<?> entityClass = entry.getKey();
-            String base = CLASS_TO_STRING_MAPPING.get(entityClass);
-            String unlocalizedName = "entity." + base + ".name";
-            String translated = StringTranslate.getInstance().translateKey(unlocalizedName);
-            if (translated.equalsIgnoreCase(unlocalizedName)){
-                translated=base;
+        entityShowNameList.clear();
+        entityTrueNameList.clear();
+        if (CLASS_TO_STRING_MAPPING!=null) {
+            Map<Class<?>, String> sortedMap = new TreeMap<>(new ClassSimpleNameComparator());
+            sortedMap.putAll(CLASS_TO_STRING_MAPPING);
+            for (Map.Entry<Class<?>, String> entry : sortedMap.entrySet()) {
+                Class<?> entityClass = entry.getKey();
+                processEntityName result = getProcessEntityName(sortedMap, entityClass);
+                entityTrueNameList.add(result.base());
+                entityShowNameList.add(result.finalName());
             }
-            String finalName = translated.replace("Entity","").replace("addon","").replace("fc","").replace(StringTranslate.getInstance().translateKey("entity.villager.name"),"").replace("DireWolf","The_Beast").replace("JungleSpider","Jungle_Spider").replace(" ","_");
-            entityTrueNameList.add(base);
-            entityShowNameList.add(finalName);
         }
+    }
+
+    private static @NotNull processEntityName getProcessEntityName(Map<Class<?>, String> sortedMap, Class<?> entityClass) {
+        String base = sortedMap.get(entityClass);
+        String unlocalizedName = "entity." + base + ".name";
+        String translated = StringTranslate.getInstance().translateKey(unlocalizedName);
+        if (translated.equalsIgnoreCase(unlocalizedName)) {
+            translated = base;
+        }
+        String finalName = translated.replace("Entity", "").replace("addon", "").replace("fc", "").replace(StringTranslate.getInstance().translateKey("entity.villager.name"), "").replace("DireWolf", "The_Beast").replace("JungleSpider", "Jungle_Spider").replace("arrow", "Arrow").replace(" ", "_");
+        return new processEntityName(base, finalName);
+    }
+
+    private record processEntityName(String base, String finalName) {
     }
 
     public @NotNull List<String> getEntityName(String[] strings) {

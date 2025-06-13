@@ -21,8 +21,8 @@ public class CommandNewKill extends CommandBase{
     @Override
     public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] par2ArrayOfStr) {
         if (par2ArrayOfStr.length==1){
-            return getListOfStringsMatchingLastWord(par2ArrayOfStr,"player","mob","item","all");
-        }else if (par2ArrayOfStr.length==2 && par2ArrayOfStr[0].equalsIgnoreCase("mob")){
+            return getListOfStringsMatchingLastWord(par2ArrayOfStr,"player","entity","item","all");
+        }else if (par2ArrayOfStr.length==2 && par2ArrayOfStr[0].equalsIgnoreCase("entity")){
             return UtilsCommand.getInstance().getEntityName(par2ArrayOfStr);
         }else if (par2ArrayOfStr.length==2 && par2ArrayOfStr[0].equalsIgnoreCase("player")){
             return getListOfStringsMatchingLastWord(par2ArrayOfStr, MinecraftServer.getServer().getAllUsernames());
@@ -55,7 +55,7 @@ public class CommandNewKill extends CommandBase{
                     }
                 }
                 iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Killed " + killCount + " entities"));
-            } else if (strings[0].equalsIgnoreCase("mob")) {
+            } else if (strings[0].equalsIgnoreCase("entity")) {
                 int killCount = 0;
                 for (String name : entityShowNameList) {
                     if (strings[1].equalsIgnoreCase(name)) {
