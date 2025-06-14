@@ -35,17 +35,29 @@ public class TessUConfig {
             saveConfig();
             return;
         }
-        reach = Float.parseFloat(properties.getProperty("CreativeReach"));
-        flySpeed = Float.parseFloat(properties.getProperty("FlySpeed"));
-        disablePlaceCooldown = Boolean.parseBoolean(properties.getProperty("DisablePlacingCooldown"));
-        disableBreakCooldown = Boolean.parseBoolean(properties.getProperty("DisableBreakCooldown"));
-        disableMomentum = Boolean.parseBoolean(properties.getProperty("DisableMomentum"));
-        enableClickReplace = Boolean.parseBoolean(properties.getProperty("EnableClickReplace"));
-        enableNoClip = Boolean.parseBoolean(properties.getProperty("EnableNoClip"));
-        enableExtraDebugInfo = Boolean.parseBoolean(properties.getProperty("EnableExtraDebugInfo"));
-        configMenu.keyCode = Integer.parseInt(properties.getProperty("ConfigMenuKey"));
-        hotbarSwap.keyCode = Integer.parseInt(properties.getProperty("HotbarSwapKey"));
-        modBinds = new KeyBinding[]{configMenu, hotbarSwap};
+        try {
+            reach = Float.parseFloat(properties.getProperty("CreativeReach"));
+            flySpeed = Float.parseFloat(properties.getProperty("FlySpeed"));
+            disablePlaceCooldown = Boolean.parseBoolean(properties.getProperty("DisablePlacingCooldown"));
+            disableBreakCooldown = Boolean.parseBoolean(properties.getProperty("DisableBreakCooldown"));
+            disableMomentum = Boolean.parseBoolean(properties.getProperty("DisableMomentum"));
+            enableClickReplace = Boolean.parseBoolean(properties.getProperty("EnableClickReplace"));
+            enableNoClip = Boolean.parseBoolean(properties.getProperty("EnableNoClip"));
+            enableExtraDebugInfo = Boolean.parseBoolean(properties.getProperty("EnableExtraDebugInfo"));
+            configMenu.keyCode = Integer.parseInt(properties.getProperty("ConfigMenuKey"));
+            hotbarSwap.keyCode = Integer.parseInt(properties.getProperty("HotbarSwapKey"));
+            modBinds = new KeyBinding[]{configMenu, hotbarSwap};
+        } catch (Throwable e) {
+            if (configFile.delete()) {
+                try {
+                    if (configFile.createNewFile()) {
+                        saveConfig();
+                    }
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        }
     }
 
     public static void saveConfig() {
