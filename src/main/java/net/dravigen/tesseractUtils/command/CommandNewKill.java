@@ -99,7 +99,7 @@ public class CommandNewKill extends CommandBase{
                 int id = itemInfo.id();
                 for (Object entity: iCommandSender.getEntityWorld().loadedEntityList){
                     if (entity instanceof EntityItem item){
-                        if (id==item.getEntityItem().itemID){
+                        if (id==item.getEntityItem().itemID&&itemInfo.meta()==item.getEntityItem().getItemDamage()){
                             killCount++;
                             item.setDead();
                         }

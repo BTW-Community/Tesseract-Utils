@@ -2,6 +2,7 @@ package net.dravigen.tesseractUtils.mixin;
 
 import net.dravigen.tesseractUtils.TessUConfig;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.lwjgl.input.Keyboard;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,6 +25,7 @@ public abstract class EntityPlayerMPMixing extends EntityPlayer {
 
     @Shadow public abstract void setGameType(EnumGameType par1EnumGameType);
 
+    @Shadow public MinecraftServer mcServer;
     @Unique
     private static boolean logic = false;
     @Unique
@@ -42,49 +44,51 @@ public abstract class EntityPlayerMPMixing extends EntityPlayer {
     private static boolean F4pressed = false;
 
     @Inject(method = "onUpdate",at = @At("HEAD"))
-    private void gameSwapLogic(CallbackInfo ci){
-        if(!Keyboard.isKeyDown(61) && Keyboard.isKeyDown(62)){
-            F4Foolpressed =true;
-        }
-        if (Keyboard.isKeyDown(61)&&!F4Foolpressed) {
-            F3=true;
-            if (Keyboard.isKeyDown(62)) {
-                F4pressed=true;
+    private void gameSwapLogic(CallbackInfo ci) {
+        if (this.mcServer.getConfigurationManager().isPlayerOpped(this.username)) {
+            if (!Keyboard.isKeyDown(61) && Keyboard.isKeyDown(62)) {
+                F4Foolpressed = true;
             }
-            if (F4pressed) {
-                if (!Keyboard.isKeyDown(62)) {
-                    F4 = false;
+            if (Keyboard.isKeyDown(61) && !F4Foolpressed) {
+                F3 = true;
+                if (Keyboard.isKeyDown(62)) {
+                    F4pressed = true;
                 }
-                if (!F4) {
-                    logic = Keyboard.isKeyDown(62);
-                }
-                if (logic) {
-                    if (previousCalled) {
-                        chosenMode++;
-                        chosenMode = chosenMode > 2 ? 0 : chosenMode;
-                    } else {
-                        chosenMode = previousMode;
-                        previousCalled = true;
+                if (F4pressed) {
+                    if (!Keyboard.isKeyDown(62)) {
+                        F4 = false;
                     }
-                    logic = false;
-                    F4 = true;
+                    if (!F4) {
+                        logic = Keyboard.isKeyDown(62);
+                    }
+                    if (logic) {
+                        if (previousCalled) {
+                            chosenMode++;
+                            chosenMode = chosenMode > 2 ? 0 : chosenMode;
+                        } else {
+                            chosenMode = previousMode;
+                            previousCalled = true;
+                        }
+                        logic = false;
+                        F4 = true;
+                    }
                 }
+            } else if (F3 && !Keyboard.isKeyDown(61)) {
+                F3 = false;
+                previousCalled = false;
+                F4pressed = false;
+                if (TesseractUtilsAddon.modeState != chosenMode) {
+                    previousMode = TesseractUtilsAddon.modeState;
+                    this.setGameType(chosenMode == 1 ? EnumGameType.SURVIVAL : EnumGameType.CREATIVE);
+                    TessUConfig.enableNoClip = chosenMode == 2;
+                }
+                chosenMode = TesseractUtilsAddon.modeState;
+            } else {
+                chosenMode = TesseractUtilsAddon.modeState;
             }
-        }else if (F3&&!Keyboard.isKeyDown(61)){
-            F3=false;
-            previousCalled=false;
-            F4pressed=false;
-            if (TesseractUtilsAddon.modeState != chosenMode){
-                previousMode=TesseractUtilsAddon.modeState;
-                this.setGameType(chosenMode == 1 ? EnumGameType.SURVIVAL : EnumGameType.CREATIVE);
-                TessUConfig.enableNoClip = chosenMode == 2;
+            if (!Keyboard.isKeyDown(61) && !Keyboard.isKeyDown(62)) {
+                F4Foolpressed = false;
             }
-            chosenMode =TesseractUtilsAddon.modeState;
-        }else {
-            chosenMode=TesseractUtilsAddon.modeState;
-        }
-        if (!Keyboard.isKeyDown(61)&&!Keyboard.isKeyDown(62)){
-            F4Foolpressed =false;
         }
     }
     @Unique

@@ -3,6 +3,7 @@ package net.dravigen.tesseractUtils.mixin;
 import net.dravigen.tesseractUtils.GUI.GuiTUSettings;
 import net.dravigen.tesseractUtils.TessUConfig;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
@@ -83,90 +84,92 @@ public class GuiIngameMixin extends Gui {
 
         this.mc.mcProfiler.startSection("modeSwap");
 
-        if(!Keyboard.isKeyDown(61) && Keyboard.isKeyDown(62)){
-            F4Foolpressed =true;
-        }
-        if (Keyboard.isKeyDown(61)&&!F4Foolpressed) {
-            F3 = true;
-            if (Keyboard.isKeyDown(62)) {
-                F4pressed=true;
+        if (MinecraftServer.getServer().getConfigurationManager().isPlayerOpped(this.mc.thePlayer.getCommandSenderName())) {
+            if (!Keyboard.isKeyDown(61) && Keyboard.isKeyDown(62)) {
+                F4Foolpressed = true;
             }
-            if (F4pressed){
-                GL11.glDisable(2896);
-                GL11.glDisable(2912);
-                Tessellator var2 = Tessellator.instance;
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/gamemodeBox.png"));
-                GL11.glColor4f(1f, 1f, 1f, 0.5f);
-                var2.startDrawingQuads();
-                var2.addVertexWithUV(width / 2f - 64, height / 2f + 38, 0.0, 0, 1);
-                var2.addVertexWithUV(width / 2f + 64, height / 2f + 38, 0.0, 1, 1);
-                var2.addVertexWithUV(width / 2f + 64, height / 2f - 38, 0.0, 1, 43 / 192f);
-                var2.addVertexWithUV(width / 2f - 64, height / 2f - 38, 0.0, 0, 43 / 192f);
-                var2.draw();
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/gamemodeBox.png"));
-                GL11.glColor4f(1f, 1f, 1f, 1f);
-                var2.startDrawingQuads();
-                var2.addVertexWithUV(width / 2f - 64, height / 2f - 38 + 22, 0.0, 0, 43 / 192f);
-                var2.addVertexWithUV(width / 2f + 64, height / 2f - 38 + 22, 0.0, 1, 43 / 192f);
-                var2.addVertexWithUV(width / 2f + 64, height / 2f - 38, 0.0, 1, 0);
-                var2.addVertexWithUV(width / 2f - 64, height / 2f - 38, 0.0, 0, 0);
-                var2.draw();
-                if (!Keyboard.isKeyDown(62)) {
-                    F4 = false;
+            if (Keyboard.isKeyDown(61) && !F4Foolpressed) {
+                F3 = true;
+                if (Keyboard.isKeyDown(62)) {
+                    F4pressed = true;
                 }
-                if (!F4) {
-                    logic = Keyboard.isKeyDown(62);
-                }
-                if (logic) {
-                    if (previousCalled) {
-                        chosenMode++;
-                        chosenMode = chosenMode > 2 ? 0 : chosenMode;
-                    } else {
-                        chosenMode = previousMode;
-                        previousCalled = true;
-                    }
-                    logic = false;
-                    F4 = true;
-                }
-                for (int i = 0; i < 3; i++) {
+                if (F4pressed) {
+                    GL11.glDisable(2896);
+                    GL11.glDisable(2912);
+                    Tessellator var2 = Tessellator.instance;
+                    GL11.glEnable(GL11.GL_BLEND);
                     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                    this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/gamemode.png"));
+                    this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/gamemodeBox.png"));
+                    GL11.glColor4f(1f, 1f, 1f, 0.5f);
+                    var2.startDrawingQuads();
+                    var2.addVertexWithUV(width / 2f - 64, height / 2f + 38, 0.0, 0, 1);
+                    var2.addVertexWithUV(width / 2f + 64, height / 2f + 38, 0.0, 1, 1);
+                    var2.addVertexWithUV(width / 2f + 64, height / 2f - 38, 0.0, 1, 43 / 192f);
+                    var2.addVertexWithUV(width / 2f - 64, height / 2f - 38, 0.0, 0, 43 / 192f);
+                    var2.draw();
+                    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                    this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/gamemodeBox.png"));
                     GL11.glColor4f(1f, 1f, 1f, 1f);
                     var2.startDrawingQuads();
-                    var2.addVertexWithUV(width / 2f - 12 - 32 + 32 * i, height / 2f + 12, 0.0, 1 / 3f * i, 0.5 + (chosenMode == i ? 0.5 : 0));
-                    var2.addVertexWithUV(width / 2f + 12 - 32 + 32 * i, height / 2f + 12, 0.0, 1 / 3f * (i + 1), 0.5 + (chosenMode == i ? 0.5 : 0));
-                    var2.addVertexWithUV(width / 2f + 12 - 32 + 32 * i, height / 2f - 12, 0.0, 1 / 3f * (i + 1), 0 + (chosenMode == i ? 0.5 : 0));
-                    var2.addVertexWithUV(width / 2f - 12 - 32 + 32 * i, height / 2f - 12, 0.0, 1 / 3f * i, 0 + (chosenMode == i ? 0.5 : 0));
+                    var2.addVertexWithUV(width / 2f - 64, height / 2f - 38 + 22, 0.0, 0, 43 / 192f);
+                    var2.addVertexWithUV(width / 2f + 64, height / 2f - 38 + 22, 0.0, 1, 43 / 192f);
+                    var2.addVertexWithUV(width / 2f + 64, height / 2f - 38, 0.0, 1, 0);
+                    var2.addVertexWithUV(width / 2f - 64, height / 2f - 38, 0.0, 0, 0);
                     var2.draw();
+                    if (!Keyboard.isKeyDown(62)) {
+                        F4 = false;
+                    }
+                    if (!F4) {
+                        logic = Keyboard.isKeyDown(62);
+                    }
+                    if (logic) {
+                        if (previousCalled) {
+                            chosenMode++;
+                            chosenMode = chosenMode > 2 ? 0 : chosenMode;
+                        } else {
+                            chosenMode = previousMode;
+                            previousCalled = true;
+                        }
+                        logic = false;
+                        F4 = true;
+                    }
+                    for (int i = 0; i < 3; i++) {
+                        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                        this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/gamemode.png"));
+                        GL11.glColor4f(1f, 1f, 1f, 1f);
+                        var2.startDrawingQuads();
+                        var2.addVertexWithUV(width / 2f - 12 - 32 + 32 * i, height / 2f + 12, 0.0, 1 / 3f * i, 0.5 + (chosenMode == i ? 0.5 : 0));
+                        var2.addVertexWithUV(width / 2f + 12 - 32 + 32 * i, height / 2f + 12, 0.0, 1 / 3f * (i + 1), 0.5 + (chosenMode == i ? 0.5 : 0));
+                        var2.addVertexWithUV(width / 2f + 12 - 32 + 32 * i, height / 2f - 12, 0.0, 1 / 3f * (i + 1), 0 + (chosenMode == i ? 0.5 : 0));
+                        var2.addVertexWithUV(width / 2f - 12 - 32 + 32 * i, height / 2f - 12, 0.0, 1 / 3f * i, 0 + (chosenMode == i ? 0.5 : 0));
+                        var2.draw();
+                    }
+                    FontRenderer font = Minecraft.getMinecraft().fontRenderer;
+                    font.drawString("[ F4 ]       ", (int) (width / 2f) - font.getStringWidth("[ F4 ]      ") / 2, (int) (height / 2f + 38 - 15), 0x00E1FF, false);
+                    font.drawString("         Next", (int) (width / 2f) - font.getStringWidth("        Next") / 2, (int) (height / 2f + 38 - 15), 0xffffff, false);
+
+                    drawCenteredString(font, chosenMode == 0 ? "Creative Mode" : chosenMode == 1 ? "Survival Mode" : "No Clip Mode", (int) (width / 2f), (int) (height / 2f - 38 + 7), 0xffffff);
+
+                    GL11.glDisable(GL11.GL_BLEND);
                 }
-                FontRenderer font = Minecraft.getMinecraft().fontRenderer;
-                font.drawString("[ F4 ]       ", (int) (width / 2f) - font.getStringWidth("[ F4 ]      ") / 2, (int) (height / 2f + 38 - 15), 0x00E1FF, false);
-                font.drawString("         Next", (int) (width / 2f) - font.getStringWidth("        Next") / 2, (int) (height / 2f + 38 - 15), 0xffffff, false);
-
-                drawCenteredString(font, chosenMode == 0 ? "Creative Mode" : chosenMode == 1 ? "Survival Mode" : "No Clip Mode", (int) (width / 2f), (int) (height / 2f - 38 + 7), 0xffffff);
-
-                GL11.glDisable(GL11.GL_BLEND);
+            } else if (F3 && !Keyboard.isKeyDown(61)) {
+                F4pressed = false;
+                F3 = false;
+                previousCalled = false;
+                if (TesseractUtilsAddon.modeState != chosenMode) {
+                    previousMode = TesseractUtilsAddon.modeState;
+                }
+                chosenMode = TesseractUtilsAddon.modeState;
+            } else {
+                chosenMode = TesseractUtilsAddon.modeState;
             }
-        }else if (F3&&!Keyboard.isKeyDown(61)){
-            F4pressed=false;
-            F3=false;
-            previousCalled=false;
-            if (TesseractUtilsAddon.modeState != chosenMode){
-                previousMode=TesseractUtilsAddon.modeState;
+            if (!Keyboard.isKeyDown(61) && !Keyboard.isKeyDown(62)) {
+                F4Foolpressed = false;
             }
-            chosenMode =TesseractUtilsAddon.modeState;
-        }else {
-            chosenMode =TesseractUtilsAddon.modeState;
-        }
-        if (!Keyboard.isKeyDown(61)&&!Keyboard.isKeyDown(62)){
-            F4Foolpressed =false;
-        }
-        this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
-        if (TessUConfig.configMenu.isPressed()) {
-            this.mc.displayGuiScreen(new GuiTUSettings(null ));
+            this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
+            if (TessUConfig.configMenu.isPressed()) {
+                this.mc.displayGuiScreen(new GuiTUSettings(null));
+            }
         }
     }
 

@@ -36,7 +36,7 @@ public abstract class PlayerControllerMPMixin {
                 UtilsCommand.y1 = y;
                 UtilsCommand.z1 = z;
                 if (this.mc.theWorld.isRemote) {
-                    this.mc.thePlayer.addChatMessage("First position set to (" + x + ", " + y + ", " + z + ").");
+                    this.mc.thePlayer.addChatMessage("§dFirst position set to (" + x + ", " + y + ", " + z + ")");
                 }
             }
         }
@@ -51,7 +51,7 @@ public abstract class PlayerControllerMPMixin {
                     UtilsCommand.y2 = y;
                     UtilsCommand.z2 = z;
                     if (world.isRemote) {
-                        entity.addChatMessage("Second position set to (" + x + ", " + y + ", " + z + ").");
+                        entity.addChatMessage("§dSecond position set to (" + x + ", " + y + ", " + z + ")");
                     }
                 }
             }

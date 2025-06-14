@@ -132,11 +132,20 @@ public class CommandWorldEdit extends CommandBase {
                             z = Integer.parseInt(strings[3]);
                         }
                         BlockInfo result = getBlockInfo(strings, 4);
+                        if (result.id()!=0) {
+                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
+                            List<ItemStack> subtype = new ArrayList<>();
+                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
+                            if (result.meta() > subtype.size() - 1) {
+                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
+                                return;
+                            }
+                        }
                         list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                         world.setBlock(x, y, z, result.id(), result.meta(), flag);
                         undoSaved.add(list);
                         redoSaved.clear();
-                        getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("Placed " + result.blockName().replace("_"," ") + " at: " + x + ", " + y + ", " + z + "."));
+                        getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§dPlaced " + result.blockName().replace("_", " ") + " at: " + x + ", " + y + ", " + z));
                     } catch (NumberFormatException e) {
                         throw new WrongUsageException("Wrong format: /edit setblock x y z id/metadata).");
                     }
@@ -160,14 +169,22 @@ public class CommandWorldEdit extends CommandBase {
                                     int absX = MathHelper.abs_int(x1 - x2)-l*2;
                                     int absY = wall ? MathHelper.abs_int(y1 - y2) : MathHelper.abs_int(y1 - y2)-l*2;
                                     int absZ = MathHelper.abs_int(z1 - z2)-l*2;
-
                                     for (int j = 0; j <= absY; j++) {
                                         for (int i = 0; i <= absX; i++) {
                                             for (int k = 0; k <= absZ; k++) {
                                                 BlockInfo result = getBlockInfo(strings, 1);
                                                 int x = minX + i;
-                                                int y = wall ? Math.min(y1, y2)+j : minY + j;
+                                                int y = wall ? Math.min(y1, y2) + j : minY + j;
                                                 int z = minZ + k;
+                                                if (result.id()!=0) {
+                                                    ItemStack itemStack = new ItemStack(result.id(), 0, 0);
+                                                    List<ItemStack> subtype = new ArrayList<>();
+                                                    itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
+                                                    if (result.meta() > subtype.size() - 1) {
+                                                        getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
+                                                        return;
+                                                    }
+                                                }
                                                 if (x == maxX || z == maxZ || x == minX || z == minZ) {
                                                     list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                                     world.setBlock(x, y, z, result.id(), result.meta(), flag);
@@ -190,10 +207,18 @@ public class CommandWorldEdit extends CommandBase {
                                     for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
                                         for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
                                             BlockInfo result = getBlockInfo(strings, 1);
-
                                             int x = Math.min(x1, x2) + i;
                                             int y = Math.min(y1, y2) + j;
                                             int z = Math.min(z1, z2) + k;
+                                            if (result.id()!=0) {
+                                                ItemStack itemStack = new ItemStack(result.id(), 0, 0);
+                                                List<ItemStack> subtype = new ArrayList<>();
+                                                itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
+                                                if (result.meta() > subtype.size() - 1) {
+                                                    getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
+                                                    return;
+                                                }
+                                            }
                                             list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                             world.setBlock(x, y, z, result.id(), result.meta(), flag);
                                             numBlock++;
@@ -205,7 +230,7 @@ public class CommandWorldEdit extends CommandBase {
                                 undoSaved.add(list);
                                 redoSaved.clear();
                             }
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(numBlock + " block(s) have been placed."));
+                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d"+numBlock + " block(s) have been placed"));
                         }
                     } catch (NumberFormatException e) {
                         throw new RuntimeException(e);
@@ -219,6 +244,15 @@ public class CommandWorldEdit extends CommandBase {
                                 for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
                                     for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
                                         BlockInfo result1 = getBlockInfo(strings, 1);
+                                        if (result1.id()!=0) {
+                                            ItemStack itemStack = new ItemStack(result1.id(), 0, 0);
+                                            List<ItemStack> subtype = new ArrayList<>();
+                                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
+                                            if (result1.meta() > subtype.size() - 1) {
+                                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result1.meta() + " out of bounds for length " + (subtype.size())));
+                                                return;
+                                            }
+                                        }
                                         BlockInfo result2 = null;
                                         if (strings.length > 2) {
                                             result2 = getBlockInfo(strings, 2);
@@ -229,6 +263,7 @@ public class CommandWorldEdit extends CommandBase {
                                         if (strings.length > 2) {
                                             if (result2 != null && world.getBlockId(x, y, z) == result2.id()) {
                                                 String[] idMeta = strings[2].split("/");
+                                                idMeta[0] = idMeta[0].split("\\|")[0];
                                                 if (idMeta.length == 1 || (idMeta.length == 2 && world.getBlockMetadata(x, y, z) == result2.meta())) {
                                                     list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                                     world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
@@ -243,7 +278,7 @@ public class CommandWorldEdit extends CommandBase {
                                     }
                                 }
                             }
-                            getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText(numBlock + " block(s) was replaced."));
+                            getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§d"+numBlock + " block(s) was replaced"));
 
                             if (!list.isEmpty()) {
                                 undoSaved.add(list);
@@ -340,7 +375,7 @@ public class CommandWorldEdit extends CommandBase {
                             if (!list1.isEmpty()) {
                                 undoSaved.add(list1);
                                 redoSaved.clear();
-                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText(numBlock + " block(s) have been moved."));
+                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§d"+numBlock + " block(s) have been moved"));
                             }
                         }
 
@@ -369,7 +404,7 @@ public class CommandWorldEdit extends CommandBase {
                             }
                         }
                     }
-                    getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText(numBlock + " block(s) have been copied."));
+                    getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§d"+numBlock + " block(s) have been copied"));
 
                 }
                 case "paste" ->{
@@ -411,7 +446,7 @@ public class CommandWorldEdit extends CommandBase {
                         undoSaved.add(list);
                         redoSaved.clear();
                     }
-                    getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText(numBlock + " block(s) have been pasted."));
+                    getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§d"+numBlock + " block(s) have been pasted"));
 
                 }
                 case "undo"->{
@@ -445,7 +480,7 @@ public class CommandWorldEdit extends CommandBase {
                             redoSaved.add(list);
                             undoSaved.remove(undoSaved.size() - 1);
                             if (!messageSent) {
-                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("Previous action(s) were reverted."));
+                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§dPrevious action(s) were reverted"));
                                 messageSent=true;
                             }
                         }
@@ -484,7 +519,7 @@ public class CommandWorldEdit extends CommandBase {
                             undoSaved.add(list);
                             redoSaved.remove(redoSaved.size() - 1);
                             if (!messageSent) {
-                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("Previous action(s) were redone."));
+                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§dPrevious action(s) were redone"));
                                 messageSent=true;
                             }
                         }
@@ -504,7 +539,7 @@ public class CommandWorldEdit extends CommandBase {
                         y1 = iCommandSender.getPlayerCoordinates().posY;
                         z1 = iCommandSender.getPlayerCoordinates().posZ;
                     }
-                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("First position set to (" + x1 + ", " + y1 + ", " + z1 + ")."));
+                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dFirst position set to (" + x1 + ", " + y1 + ", " + z1 + ")."));
                 }
                 case "pos2" -> {
                     if (strings.length == 4) {
@@ -520,7 +555,7 @@ public class CommandWorldEdit extends CommandBase {
                         y2 = iCommandSender.getPlayerCoordinates().posY;
                         z2 = iCommandSender.getPlayerCoordinates().posZ;
                     }
-                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Second position set to (" + x2 + ", " + y2 + ", " + z2 + ")."));
+                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dSecond position set to (" + x2 + ", " + y2 + ", " + z2 + ")."));
                 }
             }
         } catch (NumberFormatException e) {

@@ -70,17 +70,36 @@ public class UtilsCommand {
         blocksNameList.add("Air");
         for (int i = 0; i < Block.blocksList.length; i++) {
             Block block = Block.blocksList[i];
-            boolean sameName = false;
-            if (block != null) {
-                String blockName = StringTranslate.getInstance().translateKey(block.getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
-                for (String name : blocksNameList) {
-                    if (name.equalsIgnoreCase(blockName)) {
-                        sameName = true;
-                        break;
-                    }
+            if (block == null||block.blockID==74) continue;
+            List<ItemStack> subBlocks = new ArrayList<>();
+            try {
+                block.getSubBlocks(block.blockID, null, subBlocks);
+                if (subBlocks.isEmpty()) {
+                    subBlocks.add(new ItemStack(block));
                 }
-                if (!sameName) {
-                    blocksNameList.add(blockName);
+
+            } catch (Throwable e) {
+                System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
+                subBlocks.clear();
+                subBlocks.add(new ItemStack(block));
+            }
+            for (ItemStack stack : subBlocks) {
+                if (stack != null) {
+                    String entry;
+                    String previousString="";
+                    if (!blocksNameList.isEmpty()) {
+                        previousString = blocksNameList.get(blocksNameList.size()-1).split("\\|")[0].split("/")[0];
+                    }
+                    if (previousString.equalsIgnoreCase(stack.getDisplayName().replace(" ", "_"))) {
+                        if (stack.getItemDamage() == 0) {
+                            entry = stack.getDisplayName().replace(" ", "_") + "|" + stack.itemID;
+                            blocksNameList.set(blocksNameList.size()-1,Item.itemsList[i-1].getItemDisplayName(new ItemStack(Item.itemsList[i-1])).replace(" ", "_") + "|" + new ItemStack(Item.itemsList[i-1]).itemID);
+                        } else {
+                            entry = stack.getDisplayName().replace(" ", "_") + "/" + stack.getItemDamage();
+                            blocksNameList.set(blocksNameList.size()-1,stack.getItem().getItemDisplayName(new ItemStack(stack.getItem().itemID,1,subBlocks.get(subBlocks.indexOf(stack)-1).getItemDamage())).replace(" ", "_") + "/" + (subBlocks.get(subBlocks.indexOf(stack)-1).getItemDamage()));
+                        }
+                    } else entry = stack.getDisplayName().replace(" ", "_");
+                    blocksNameList.add(entry.replace(".name", "").replace("name.", "").replace("tile.", "").replace("fc", ""));
                 }
             }
         }
@@ -132,7 +151,9 @@ public class UtilsCommand {
         for (String s : differentBlock){
             String[] s1 = s.split(":");
             blockOdd.add(s1.length>1 ? Integer.parseInt(s1[1]) : 1 );
-            idMetaList.add(s1[0].split("/"));
+            if (s1[0].split("\\|").length>1){
+                idMetaList.add(new String[]{s1[0].split("\\|")[1]});
+            }else idMetaList.add(s1[0].split("/"));
         }
         String[] idMeta = getRandomBlockFromOdds(blockOdd, idMetaList);
         if (idMeta.length == 2) {
@@ -148,11 +169,28 @@ public class UtilsCommand {
             } else {
                 for (int i = 0; i < Block.blocksList.length; i++) {
                     block = Block.blocksList[i];
-                    if (block != null) {
-                        String name = StringTranslate.getInstance().translateKey(block.getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
+                    if (block == null||block.blockID==74) continue;
+                    List<ItemStack> subBlocks = new ArrayList<>();
+                    try {
+                        block.getSubBlocks(block.blockID, null, subBlocks);
+                        if (subBlocks.isEmpty()) {
+                            subBlocks.add(new ItemStack(block));
+                        }
+
+                    } catch (Throwable e) {
+                        System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
+                        subBlocks.clear();
+                        subBlocks.add(new ItemStack(block));
+                    }
+                    for (ItemStack subBlock : subBlocks) {
+                        String name = StringTranslate.getInstance().translateKey(subBlock.getUnlocalizedName() + ".name").replace(" ", "_").replace(".name", "").replace("name.", "").replace("tile.", "").replace("fc", "");
                         if (name.equalsIgnoreCase(idMeta[0])) {
                             blockName = name;
-                            id = block.blockID;
+                            id = subBlock.itemID;
+                            meta = subBlock.getItemDamage();
+                            if (idMeta.length>1){
+                                meta = Integer.parseInt(idMeta[1]);
+                            }
                             break;
                         }
                     }
@@ -171,11 +209,13 @@ public class UtilsCommand {
 
     public static void initItemsNameList() {
         itemNameList.clear();
-        for (int i = 0; i < Item.itemsList.length; i++) {
-            Item item = Item.itemsList[i];
-            if (item == null) {
-                continue;
-            }
+        List<Item> itemList = new ArrayList<>();
+        for (Item item:Item.itemsList){
+           if (item!=null)itemList.add(item);
+        }
+        for (int i = 0; i < itemList.size(); i++) {
+            Item item = itemList.get(i);
+            if (item == null||item.itemID==74) continue;
             List<ItemStack> subItems = new ArrayList<>();
             try {
                 item.getSubItems(item.itemID, null, subItems);
@@ -190,17 +230,19 @@ public class UtilsCommand {
             }
             for (ItemStack stack : subItems) {
                 if (stack != null) {
-                    stack.getDisplayName();
                     String entry;
                     String previousString="";
                     if (!itemNameList.isEmpty()) {
-                        previousString = itemNameList.get(itemNameList.size()-1);
+                        previousString = itemNameList.get(itemNameList.size()-1).split("\\|")[0].split("/")[0];
                     }
                     if (previousString.equalsIgnoreCase(stack.getDisplayName().replace(" ", "_"))) {
                         if (stack.getItemDamage() == 0) {
                             entry = stack.getDisplayName().replace(" ", "_") + "|" + stack.itemID;
-                        } else entry = stack.getDisplayName().replace(" ", "_") + "/" + stack.getItemDamage();
-                        itemNameList.set(itemNameList.size()-1,Item.itemsList[i-1].getItemDisplayName(new ItemStack(Item.itemsList[i-1])).replace(" ", "_") + "|" + new ItemStack(Item.itemsList[i-1]).itemID);
+                            itemNameList.set(itemNameList.size()-1,itemList.get(i-1).getItemDisplayName(new ItemStack(itemList.get(i-1))).replace(" ", "_") + "|" + new ItemStack(itemList.get(i-1)).itemID);
+                        } else {
+                            entry = stack.getDisplayName().replace(" ", "_") + "/" + stack.getItemDamage();
+                            itemNameList.set(itemNameList.size()-1,stack.getItem().getItemDisplayName(new ItemStack(stack.getItem().itemID,1,subItems.get(subItems.indexOf(stack)-1).getItemDamage())).replace(" ", "_") + "/" + (subItems.get(subItems.indexOf(stack)-1).getItemDamage()));
+                        }
                     } else entry = stack.getDisplayName().replace(" ", "_");
                     itemNameList.add(entry.replace("tile.", "").replace("fc", "").replace(".name", ""));
                 }
@@ -239,9 +281,7 @@ public class UtilsCommand {
         if (id == 99999) {
             for (int i = 0; i < Item.itemsList.length; i++) {
                 item = Item.itemsList[i];
-                if (item == null) {
-                    continue;
-                }
+                if (item == null||item.itemID==74) continue;
                 List<ItemStack> subItems = new ArrayList<>();
                 try {
                     item.getSubItems(item.itemID, null, subItems);
@@ -263,7 +303,11 @@ public class UtilsCommand {
                         if (sameItem){
                             id = stack.itemID;
                             meta = stack.getItemDamage();
+                            if (strings[1].split("/").length>1){
+                                meta = Integer.parseInt(strings[1].split("/")[1]);
+                            }
                             itemName= string;
+                            break;
                         }
                     }
                 }
@@ -285,6 +329,7 @@ public class UtilsCommand {
             return result1.finalName.compareTo(result2.finalName);
         }
     }
+
     public static void initEntityList(){
 
         entityShowNameList.clear();
