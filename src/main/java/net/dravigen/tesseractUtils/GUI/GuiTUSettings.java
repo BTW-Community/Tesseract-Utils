@@ -2,15 +2,19 @@ package net.dravigen.tesseractUtils.GUI;
 
 import net.dravigen.tesseractUtils.TessUConfig;
 import net.minecraft.src.*;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuiTUSettings extends GuiScreen {
+import static net.dravigen.tesseractUtils.TessUConfig.*;
 
+public class GuiTUSettings extends GuiScreen {
+    private int buttonId = -1;
     private final GuiScreen parentScreen;
     private static final EnumConfig[] enumConfigs;
+    private static GuiButton currentButton;
     static {
         enumConfigs = new EnumConfig[]{EnumConfig.PLACING_COOLDOWN,EnumConfig.BREAKING_COOLDOWN,EnumConfig.FLIGHT_MOMENTUM,EnumConfig.CLICK_REPLACE,EnumConfig.NO_CLIP,EnumConfig.EXTRA_DEBUG,EnumConfig.REACH, EnumConfig.FLIGHT_SPEED};
     }
@@ -29,9 +33,10 @@ public class GuiTUSettings extends GuiScreen {
 
         // Add buttons
         int count = 1;
+        int ordinal=0;
         for (EnumConfig item : enumConfigs) {
             // Get info
-            int ordinal = item.returnEnumOrdinal();
+             ordinal= item.returnEnumOrdinal();
 
             // Add buttons
             if (item.getEnumBoolean()) {
@@ -84,12 +89,39 @@ public class GuiTUSettings extends GuiScreen {
                     customButtonReset));
             count++;
         }
+        for (int i = 0; i < modBinds.length; i++) {
+            this.buttonList.add(new GuiButtonCustom(300+i+ordinal+1,
+                    this.width / 2 +25,
+                    this.height / 6 + 29 * (count) ,
+                    150,
+                    20,
+                    200,
+                    GameSettings.getKeyDisplayString(modBinds[i].keyCode),
+                    customButtonBar));
+            this.buttonList.add(new GuiButtonCustom(400+i+ordinal+1,
+                    this.width / 2 +25 + 154 ,
+                    this.height / 6 + 29 * (count) ,
+                    20,
+                    20,
+                    20,
+                    "",
+                    customButtonReset));
+            count++;
+        }
         // Add a "Done" button to return to the parent screen
-        this.buttonList.add(new GuiButton(100, this.width / 2 - 100, this.height / 6 + (29 * count)+10, stringTranslate.translateKey("gui.done")));
+        this.buttonList.add(new GuiButtonCustom(100,
+                this.width / 2 - 100,
+                this.height / 6 + (29 * count)+10,
+                200,
+                20,
+                200,
+                stringTranslate.translateKey("gui.done"),
+                customButtonBar));
     }
 
     @Override
     protected void actionPerformed(GuiButton button) {
+        currentButton=button;
         switch (button.id) {
             case 300 -> {
                 TessUConfig.disablePlaceCooldown = !TessUConfig.disablePlaceCooldown;
@@ -114,6 +146,11 @@ public class GuiTUSettings extends GuiScreen {
             case 305 -> {
                 TessUConfig.enableExtraDebugInfo = !TessUConfig.enableExtraDebugInfo;
                 button.displayString = !TessUConfig.enableExtraDebugInfo ? "Disabled" : "Enabled";
+            }
+            case 308, 309 -> {
+                this.buttonId = button.id;
+                String var10001 = button.displayString;
+                button.displayString = "> " + var10001 + " <";
             }
             case 400 -> {
                 if (TessUConfig.disablePlaceCooldown) {
@@ -155,10 +192,23 @@ public class GuiTUSettings extends GuiScreen {
                     TessUConfig.flySpeed=2;
                 }
             }
+            case 408 -> {
+                modBinds[0].keyCode = Keyboard.KEY_F6;
+                button.displayString = GameSettings.getKeyDisplayString(configMenu.keyCode);
+                properties.put(configMenu.keyDescription,Keyboard.KEY_F6);
+                KeyBinding.resetKeyBindingArrayAndHash();
+            }
+            case 409 -> {
+                modBinds[1].keyCode = Keyboard.KEY_H;
+                button.displayString = GameSettings.getKeyDisplayString(hotbarSwap.keyCode);
+                properties.put(hotbarSwap.keyDescription,Keyboard.KEY_H);
+                KeyBinding.resetKeyBindingArrayAndHash();
+            }
         }
-        if (button.id!=306&&button.id!=307) {
+        if (button.id!=306&&button.id!=307&&button.id!=308&&button.id!=309) {
             this.mc.displayGuiScreen(new GuiTUSettings(parentScreen));
         }
+
         TessUConfig.saveConfig();
 
         if (button.id == 100) {
@@ -168,6 +218,34 @@ public class GuiTUSettings extends GuiScreen {
                 this.mc.sndManager.resumeAllSounds();
             }else this.mc.displayGuiScreen(this.parentScreen);
         }
+    }
+
+    @Override
+    protected void mouseClicked(int par1, int par2, int par3) {
+        if (this.buttonId == 308 || this.buttonId ==309) {
+            this.updateBind(par3);
+        } else {
+            super.mouseClicked(par1, par2, par3);
+        }
+
+    }
+    @Override
+    protected void keyTyped(char par1, int par2) {
+        if (this.buttonId == 308 || this.buttonId ==309) {
+            this.updateBind(par2);
+        } else {
+            super.keyTyped(par1, par2);
+        }
+
+    }
+
+    public void updateBind(int scancode) {
+        this.buttonId-=308;
+        modBinds[this.buttonId].keyCode = scancode;
+        currentButton.displayString = GameSettings.getKeyDisplayString(modBinds[this.buttonId].keyCode);
+        properties.put(modBinds[this.buttonId].keyDescription,modBinds[this.buttonId].keyCode);
+        this.buttonId = -1;
+        KeyBinding.resetKeyBindingArrayAndHash();
     }
 
     private boolean getBoolValue(int ordinal) {
@@ -294,6 +372,10 @@ public class GuiTUSettings extends GuiScreen {
         optionNames.add("Replacing Click");
         optionNames.add("No Clip");
         optionNames.add("Extra Debug Info");
+        optionNames.add("");
+        optionNames.add("");
+        optionNames.add("Config Menu");
+        optionNames.add("Hotbar Swap");
 
         FontRenderer var4 = Minecraft.getMinecraft().fontRenderer;
        // int var6 = 0xff00fb;

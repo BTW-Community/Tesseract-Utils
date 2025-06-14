@@ -63,8 +63,7 @@ public abstract class PlayerControllerMPMixin {
         return this.currentGameType.isCreative()&& TessUConfig.disableBreakCooldown ? 0 : this.blockHitDelay;
     }
 
-
-     @Inject(method = "setGameType",at = @At("TAIL"))
+    @Inject(method = "setGameType",at = @At("TAIL"))
      private void setGameType(EnumGameType par1EnumGameType, CallbackInfo ci){
          if (par1EnumGameType == EnumGameType.SURVIVAL && TessUConfig.enableNoClip){
              TessUConfig.enableNoClip=false;

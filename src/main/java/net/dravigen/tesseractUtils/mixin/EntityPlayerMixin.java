@@ -37,10 +37,8 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
         }else return instance.isSprinting();
     }
 
-
     @Inject(method = "moveEntityWithHeading",at = @At("TAIL"))
-    private void a(float par1, float par2, CallbackInfo ci){
-
+    private void handleDisabledMomentum(float par1, float par2, CallbackInfo ci){
         if (this.capabilities.isCreativeMode&&this.moveStrafing==0 && this.moveForward==0&&this.capabilities.isFlying&& TessUConfig.disableMomentum) {
             this.motionX *= 0.3;
             this.motionY *= 0.75;
@@ -48,9 +46,8 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
         }
     }
 
-
     @Inject(method = "onUpdate",at = @At(value = "HEAD"))
-    private void b(CallbackInfo ci){
+    private void processTUConfigs(CallbackInfo ci){
         if (this.capabilities.isCreativeMode) {
             if (this.boundingBox.minY < -3) {
                 if (this.motionY < 0) {
@@ -94,4 +91,6 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
             return false;
         }else return super.isEntityInsideOpaqueBlock();
     }
+
+
 }

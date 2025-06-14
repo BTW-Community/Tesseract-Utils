@@ -165,7 +165,7 @@ public class GuiIngameMixin extends Gui {
             F4Foolpressed =false;
         }
         this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
-        if (Keyboard.isKeyDown(64)) {
+        if (TessUConfig.configMenu.isPressed()) {
             this.mc.displayGuiScreen(new GuiTUSettings(null ));
         }
     }

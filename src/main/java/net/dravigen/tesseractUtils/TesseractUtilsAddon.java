@@ -19,11 +19,9 @@ public class TesseractUtilsAddon extends BTWAddon {
 
     public static TesseractUtilsAddon instance;
     public static SavedInventoriesList globalSavedInventories;
-
     public static int modeState;
     public static Language listLanguage;
     public static Item deleteEntityItem;
-    
 
     public static TesseractUtilsAddon getInstance() {
         return instance == null ? (new TesseractUtilsAddon()) : instance;
@@ -51,8 +49,4 @@ public class TesseractUtilsAddon extends BTWAddon {
         ModDirectories.init();
         globalSavedInventories = InventoryDataManager.loadInventories();
     }
-
-
-
-
 }
