@@ -140,12 +140,12 @@ public class UtilsCommand {
         return finalList;
     }
 
-    public static @NotNull BlockInfo getBlockInfo(String[] strings, int idPos) {
+    public static @NotNull BlockInfo getBlockInfo(String string) {
         Block block;
         String blockName = "Air";
         int id = 99999;
         int meta = 0;
-        List<String> differentBlock = Arrays.stream(strings[idPos].split(";")).toList();
+        List<String> differentBlock = Arrays.stream(string.split(";")).toList();
         List<Integer> blockOdd = new ArrayList<>();
         List<String[]> idMetaList = new ArrayList<>();
         for (String s : differentBlock){

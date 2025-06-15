@@ -83,8 +83,9 @@ public class GuiIngameMixin extends Gui {
         int height = var5.getScaledHeight();
 
         this.mc.mcProfiler.startSection("modeSwap");
-
-        if (MinecraftServer.getServer().getConfigurationManager().isPlayerOpped(this.mc.thePlayer.getCommandSenderName())) {
+        MinecraftServer server = MinecraftServer.getServer();
+        if (server==null)return;
+        if (server.getConfigurationManager().isPlayerOpped(this.mc.thePlayer.getCommandSenderName())) {
             if (!Keyboard.isKeyDown(61) && Keyboard.isKeyDown(62)) {
                 F4Foolpressed = true;
             }

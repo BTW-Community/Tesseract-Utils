@@ -23,7 +23,7 @@ public abstract class PlayerControllerMPMixin {
 
     @ModifyConstant(method = "getBlockReachDistance", constant = @Constant(floatValue = 5.0f))
     private float modifyCreativeReach(float constant) {
-        if (this.mc.thePlayer.getHeldItem()!=null&&this.mc.thePlayer.getHeldItem().itemID==1800) return 128;
+        if (this.mc.thePlayer.getHeldItem()!=null&&(this.mc.thePlayer.getHeldItem().itemID==1800||(this.mc.thePlayer.getHeldItem().getTagCompound()!=null&&this.mc.thePlayer.getHeldItem().getTagCompound().hasKey("BuildingParams")))) return 128;
         if (this.currentGameType.isCreative()) return TessUConfig.reach;
         else return constant;
     }

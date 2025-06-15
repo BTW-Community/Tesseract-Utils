@@ -7,13 +7,12 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import static net.dravigen.tesseractUtils.TesseractUtilsAddon.listLanguage;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.initEntityList;
 
 @Mixin(Minecraft.class)
-public class MinecraftMixin {
+public abstract class MinecraftMixin {
     @Shadow public PlayerControllerMP playerController;
     @Shadow private int rightClickDelayTimer;
 

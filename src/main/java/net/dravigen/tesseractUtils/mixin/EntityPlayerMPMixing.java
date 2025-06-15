@@ -80,6 +80,9 @@ public abstract class EntityPlayerMPMixing extends EntityPlayer {
                 if (TesseractUtilsAddon.modeState != chosenMode) {
                     previousMode = TesseractUtilsAddon.modeState;
                     this.setGameType(chosenMode == 1 ? EnumGameType.SURVIVAL : EnumGameType.CREATIVE);
+                    if (chosenMode == 1){
+                        this.fallDistance=0;
+                    }
                     TessUConfig.enableNoClip = chosenMode == 2;
                 }
                 chosenMode = TesseractUtilsAddon.modeState;

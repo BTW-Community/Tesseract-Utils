@@ -34,7 +34,7 @@ public class CommandInv extends CommandBase {
     }
     @Override
     public String getCommandUsage(ICommandSender iCommandSender) {
-        return "/inv <save> <name> OR /inv <load> <name> OR /inv <remove> <name>";
+        return "/inv <save> <name> OR /inv <load> <name> OR /inv <remove> <name> OR /inv <preset> <name>";
     }
 
     @Override

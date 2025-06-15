@@ -50,8 +50,6 @@ public class CommandNewKill extends CommandBase{
                         if (dropLoot) {
                             entity.attackEntityFrom(DamageSource.outOfWorld, Float.MAX_VALUE);
                         } else entity.setDead();
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(entity.getEntityName()));
-
                     }
                 }
                 iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Killed " + killCount + " entities"));
