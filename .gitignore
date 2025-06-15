@@ -25,3 +25,15 @@ run/
 
 # macos
 *.DS_Store
+/custom_mappings/
+/libs/
+/mavenRepo/
+/gradle/
+/build_BTW/
+/image/
+install.bat
+install.sh
+gradlew
+gradlew.bat
+settings.gradle
+.gitignore
