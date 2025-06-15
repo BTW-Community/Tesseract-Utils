@@ -57,7 +57,7 @@ This addon improve the killing command to allow more efficient usage.
 
 This addon allow you to save and load previously saved inventory.
 
-- /inv <save|load|remove|preset> <name>
+- /inv <save|load|remove|preset> <name\>
 
 #### Editing commands:
 
