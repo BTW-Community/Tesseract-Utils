@@ -180,6 +180,7 @@ public class CommandWorldEdit extends CommandBase {
                                 return;
                             }
                         }
+
                         list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                         world.setBlock(x, y, z, result.id(), result.meta(), flag);
                         undoSaved.add(list);
