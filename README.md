@@ -21,22 +21,23 @@ It also has a bunch of QoL feature you can turn on and off as you want such as: 
 
 The wooden axe is being used as a selection tool. (A selection box is needed for // set, // replace, // move, // copy)
 
+The wooden shovel is being used as a building tool. (place or replace an area with block in the form of a shape)
+
 Each command start with a double "/" with space afterward. "<>" = required, "[]" = optional, "|" = or. 
 
 When an id is asked you can either give it the block's id or its name (names can cause issue, use EMI and advanced tooltips (F3+H) to find the id of blocks)
 
 When coordinates are asked (x,y,z), if you're looking at a block you can press "TAB" and it's going to enter that block's coordinate. By entering "\~\" it will use the corresponding coordinate of your current location, and by adding a number after the "\~\" it will offset the coordinate by the amount entered, example: // paste 23 ~ ~6, it will paste an object at x=23, y=your current Y coord and z=your Z coord + 6 (can be negative)
 
-This addon is, for the time being, almost only usable by entering commands, here is the list and explanation of each command:
-
 ### Simple commands:
-
-#### Editing commands:
 
 - "// setblock <x\> <y\> <z\> <ID\>" : Place a block at the designed coordinate with the ID given.
 
 
 - "// set <ID\> [hollow|wall\] [thickness\]" : Replace a selection with blocks with the ID given. If shape specified: "hollow" create an empty box and "wall" create a wall, both with the thickness given (if not specified, default at 1).
+
+
+- "// shape <x\> <y\> <z\> <ID\> <shape\> <radius\:thickness\:height\> [hollow\]" : Place a shape at the coordinate with the ID given, sphere/cylinder/cube are possible shapes, you can choose to place these shape hollowed with the specified thickness
 
 
 - "// replace <ID\> [ID replaced\]" : Replace every block that are not air (if not specified) with the first ID. If second ID specified: replace only block matching with the second ID.
@@ -62,29 +63,8 @@ This addon is, for the time being, almost only usable by entering commands, here
 
 - "// pos2" : Select the Second point of the selection with the current coords of the player.
 
-#### Quality of life commands:
 
-- "// reach <block amount\>" : self-explanatory. (default: 5)
-
-
-- "// flySpeed <speed modifier\>" : When pressing your sprint keybind, your fly speed get set to that value. (default: 1)
-
-
-- "// disablePlaceCooldown <true|false\>" : self-explanatory. (default: false)
-
-
-- "// disableBreakCooldown <true|false\>" : self-explanatory. (default: false)
-
-
-- "// disableMomentum <true|false\>" : disable your player's flight momentum = doesn't "slide" in the air. (default: false)
-
-
-- "// enableClickReplace <true|false>" : if enabled, right-clicking a block will replace it with the block in your hand (if sneaking, blocks will be placed normally). (default: false)
-
-
-- "// enableNoClip <true|false> : if enabled, the player will pass through block like it's air, but can still interact with the world. (default: false)"
-
-(All QoL feature are accessible through configs as well, beware if changed the modifications will be directly applied when joining the game)
+- "// tool <shape|radius:\thickness\:height|blockUsed|type|hollow|>" : Let you choose your building tool's caracteristics
 
 ### Advanced commands:
 
@@ -99,6 +79,9 @@ You can add "ignoreAir" and/or "causeUpdate" as a parameter at the end of most c
 
 
 - "// set <ID1/meta:%;ID2/meta:%;ID3/meta:%;...\> [hollow|wall\] [thickness\] [ignoreAir\] [causeUpdate\]"
+
+
+- "// shape <x\> <y\> <z\> <ID1/meta:%;ID2/meta:%;ID3/meta:%;...\> <shape\> <radius\:thickness\:height\> [hollow\] 
 
 
 - "// replace <ID1/meta:%;ID2/meta:%;ID3/meta:%;...\> [ID/meta replaced\] [causeUpdate\]"
@@ -122,6 +105,34 @@ When placing multiple block using // set or // replace:
 It is possible to use everything at once but need to follow this order: // set ID1/meta:%;ID2/meta:%;ID3/meta:%;etc. 
 
 Example: // set 1/2:75;obsidian:5;leaves/2:20 = will place 75% strata 2 stone, 5% obsidian, 20% birch leaves in the selection
+
+### Quality of life additions:
+
+You can have access to the addon's config menu by either: going in the main game menu on the right of the "quit game" button, or in the ingame menu next to "open to lan", or directly ingame by pressing "F6" (or the keybind you chosed to bind)
+
+In this config menu, you can customize your game by activating or deactivating configs, and select value for the "reach" and "flyspeed" or bind another key to the keybind of the addon.
+
+By pressing "F3"+"F4" and pressing multiple time F4 (while F3 is still pressed) you can cycle through the gamemode swap menu to choose your gamemode (cheats need to be ON)
+
+By pressing "H" (or modified keybind) your hotbar will cycle through your inventory rows.
+
+(Quality of life configs: 
+
+- reach : let you decide your reach in creative mode.
+  
+- flySpeed : When pressing your sprint keybind, your fly speed will get set to that value.
+  
+- disablePlaceCooldown : disabled your player's placing cooldown.
+  
+- disableBreakCooldown : disable your player's breaking cooldown (instamine in creative).
+  
+- disableMomentum : disable your player's flight momentum = doesn't "slide" in the air.
+  
+- enableClickReplace : if enabled, right-clicking a block will replace it with the block in your hand (if sneaking, blocks will be placed normally).
+  
+- enableNoClip : if enabled, the player will pass through block like it's air, but can still interact with the world.
+
+- extraDebugInfo : if enabled, coordinates/biome type/facing direction/light level/targeted block information will be shown in the F3 overlay.
 
 ## License
 
