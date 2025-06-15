@@ -65,7 +65,7 @@ This addon allow you to save and load previously saved inventory.
 - "// set <ID\> [hollow|wall\] [thickness\]" : Replace a selection with blocks with the ID given. If shape specified: "hollow" create an empty box and "wall" create a wall, both with the thickness given (if not specified, default at 1).
 
 
-- "// shape <ID\> <shape\> <parameters\> <x\> <y\> <z\> [hollow|open\] [replace\] " : Place a shape at the coordinate with the ID given, sphere/cylinder/cube are possible shapes, you can choose to place these shape hollowed with the specified thickness
+- "// shape <ID\> <shape\> <parameters\> <x\> <y\> <z\> [hollow|open\] [replace\] " : Place a shape at the coordinate with the ID given, sphere/cylinder/cube are possible shapes, the parameters depends on which shape you use: sphere only needs one parameter= radius, the cylinder needs two= radius and height, and the cube needs three= sizeX, sizeY and sizeZ. These parameters are in the form of: 1\:1\:1. You can choose to place these shape hollowed or opened at the top (for the cylinder and cube shape), you can choose the thickness in this case by adding another value to the parameters (if i placed a full cylinder with a 5 radius and 3 height: parameters = 5\:3 , if place a hollow cylinder with same parameters but with a thickness of 2: parameters = 5\:3\:2)
 
 
 - "// replace <ID\> [ID replaced\]" : Replace every block that are not air (if not specified) with the first ID. If second ID specified: replace only block matching with the second ID.
@@ -92,7 +92,7 @@ This addon allow you to save and load previously saved inventory.
 - "// pos2" : Select the Second point of the selection with the current coords of the player.
 
 
-- "// tool <shape\> <id\> <parameters\> [replace\] [hollow|open\]" : Let you choose your building tool's caracteristics
+- "// tool <shape\> <id\> <parameters\> [replace\] [hollow|open\]" : Let you choose your building tool's caracteristics (for more information refer yourself to the shape command)
 
 ### Advanced commands:
 
