@@ -35,29 +35,29 @@ When coordinates are asked (x,y,z), if you're looking at a block you can press "
 
 This addon improve the give command to allow more efficient usage.
 
-/give <id/meta\> [count\]
+- /give <id/meta\> [count\]
 
 OR
 
-/give <block name\> [count\]
+- /give <block name\> [count\]
 
 #### Summon commands:
 
 This addon add the summon command to allow summoning entity in the world
 
-/summon <entity name\> [count\] [x\] [y\] [z\]
+- /summon <entity name\> [count\] [x\] [y\] [z\]
 
 #### Kill commands:
 
 This addon improve the killing command to allow more efficient usage.
 
-/kill <player|entity|item|all> <entity name\>
+- /kill <player|entity|item|all> <entity name\>
 
 #### Inventory commands:
 
 This addon allow you to save and load previously saved inventory.
 
-/inv <save|load|remove|preset> <name>
+- /inv <save|load|remove|preset> <name>
 
 #### Editing commands:
 
