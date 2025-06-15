@@ -185,7 +185,7 @@ public class CommandWorldEdit extends CommandBase {
                         undoSaved.add(list);
                         redoSaved.clear();
                         getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§dPlaced " + result.blockName().replace("_", " ") + " at: " + x + ", " + y + ", " + z));
-                    } catch (NumberFormatException e) {
+                    } catch (Exception e) {
                         throw new WrongUsageException("// setblock <id/metadata> <x> <y> <z>");
                     }
                 }
@@ -271,7 +271,7 @@ public class CommandWorldEdit extends CommandBase {
                             }
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d"+numBlock + " block(s) have been placed"));
                         }
-                    } catch (NumberFormatException e) {
+                    } catch (Exception e) {
                         throw new WrongUsageException("// set <id/metadata>");
                     }
                 }
@@ -359,7 +359,7 @@ public class CommandWorldEdit extends CommandBase {
                                 }
                             }
                         }
-                    }catch (NumberFormatException e) {
+                    }catch (Exception e) {
                         throw new WrongUsageException("// shape <type> <id> <parameters> <x> <y> <z> [hollow|open] [replace]");
                     }
                 }
@@ -412,7 +412,7 @@ public class CommandWorldEdit extends CommandBase {
                                 redoSaved.clear();
                             }
                         }
-                    } catch (NumberFormatException e) {
+                    } catch (Exception e) {
                         throw new WrongUsageException("// replace <id> [id replaced]");
                     }
                 }
@@ -508,7 +508,7 @@ public class CommandWorldEdit extends CommandBase {
                                 }
                             }
                         }
-                    } catch (NumberFormatException e) {
+                    } catch (Exception e) {
                         throw new WrongUsageException("// move <to|add> <x> <y> <z>");
                     }
                 }
@@ -537,7 +537,7 @@ public class CommandWorldEdit extends CommandBase {
                             }
                         }
                         getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been copied"));
-                    }catch (NumberFormatException e) {
+                    }catch (Exception e) {
                         throw new WrongUsageException("// copy");
                     }
                 }
@@ -582,7 +582,7 @@ public class CommandWorldEdit extends CommandBase {
                             redoSaved.clear();
                         }
                         getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been pasted"));
-                    }catch (NumberFormatException e) {
+                    }catch (Exception e) {
                         throw new WrongUsageException("// paste [x] [y] [z]");
                     }
                 }
@@ -623,7 +623,7 @@ public class CommandWorldEdit extends CommandBase {
                                 }
                             }
                         }
-                    }catch (NumberFormatException e) {
+                    }catch (Exception e) {
                         throw new WrongUsageException("// undo [count]");
                     }
                 }
@@ -666,7 +666,7 @@ public class CommandWorldEdit extends CommandBase {
                                 }
                             }
                         }
-                    }catch (NumberFormatException e) {
+                    }catch (Exception e) {
                         throw new WrongUsageException("// redo [count]");
                     }
                 }
@@ -755,12 +755,12 @@ public class CommandWorldEdit extends CommandBase {
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-type of action= §a" + buildingParamsNBT.getString("actionType")));
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
                         }
-                    } catch (NumberFormatException e) {
+                    } catch (Exception e) {
                         throw new WrongUsageException("// tool <shape> <id> <parameters> [replace] [hollow|open]");
                     }
                 }
             }
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             throw new WrongUsageException("Invalid command.");
         }
     }
