@@ -138,15 +138,17 @@ Example: // set 1/2:75;obsidian:5;leaves/2:20 = will place 75% strata 2 stone, 5
 
 ### Quality of life additions:
 
-You can have access to the addon's config menu by either: going in the main game menu on the right of the "quit game" button, or in the ingame menu next to "open to lan", or directly ingame by pressing "F6" (or the keybind you chosed to bind)
+- By pressing "F3"+"F4" and pressing multiple time F4 (while F3 is still pressed) you can cycle through the gamemode swap menu to choose your gamemode (cheats need to be ON)
 
-In this config menu, you can customize your game by activating or deactivating configs, and select value for the "reach" and "flyspeed" or bind another key to the keybind of the addon.
+- By pressing "H" (or modified keybind) your hotbar will cycle through your inventory rows.
 
-By pressing "F3"+"F4" and pressing multiple time F4 (while F3 is still pressed) you can cycle through the gamemode swap menu to choose your gamemode (cheats need to be ON)
+- Chat limit increased to 512 characters (instead of 100).
 
-By pressing "H" (or modified keybind) your hotbar will cycle through your inventory rows.
+- Addition of the "entity eraser" item that allow you to delete entity by clicking on it from any distance.
 
 #### Quality of life configs: 
+
+You can have access to the addon's config menu by either: going in the main game menu on the right of the "quit game" button, or in the ingame menu next to "open to lan", or directly ingame by pressing "F6" (or the keybind you chosed to bind). In this config menu, you can customize your game by activating/deactivating, selecting values for these configs.
 
 - reach : let you decide your reach in creative mode.
   
