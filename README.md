@@ -31,6 +31,36 @@ When coordinates are asked (x,y,z), if you're looking at a block you can press "
 
 ### Simple commands:
 
+#### Give commands:
+
+This addon improve the give command to allow more efficient usage.
+
+/give <id/meta\> [count\]
+
+OR
+
+/give <block name\> [count\]
+
+#### Summon commands:
+
+This addon add the summon command to allow summoning entity in the world
+
+/summon <entity name\> [count\] [x\] [y\] [z\]
+
+#### Kill commands:
+
+This addon improve the killing command to allow more efficient usage.
+
+/kill <player|entity|item|all> <entity name\>
+
+#### Inventory commands:
+
+This addon allow you to save and load previously saved inventory.
+
+/inv <save|load|remove|preset> <name>
+
+#### Editing commands:
+
 - "// setblock <x\> <y\> <z\> <ID\>" : Place a block at the designed coordinate with the ID given.
 
 
@@ -116,7 +146,7 @@ By pressing "F3"+"F4" and pressing multiple time F4 (while F3 is still pressed) 
 
 By pressing "H" (or modified keybind) your hotbar will cycle through your inventory rows.
 
-(Quality of life configs: 
+#### Quality of life configs: 
 
 - reach : let you decide your reach in creative mode.
   
