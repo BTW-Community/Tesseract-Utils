@@ -43,29 +43,24 @@ public class CommandInv extends CommandBase {
             sender.sendChatToPlayer(ChatMessageComponent.createFromText("This command can only be used by a player."));
             return;
         }
-
         if (args.length < 2) {
-            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cUsage: " + getCommandUsage(sender))); // §c for red text
-            return;
-        }
-
-        String subCommand = args[0].toLowerCase();
-        String inventoryName = args[1];
-
-        switch (subCommand) {
-            case "save":
-                savePlayerInventory(player, inventoryName);
-                break;
-            case "load":
-                loadPlayerInventory(player, inventoryName);
-                break;
-            case "remove":
-                removeSavedInventoryWithName(player,inventoryName);
-                break;
-            default:
-                sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cUnknown subcommand: " + subCommand));
-                sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cUsage: " + getCommandUsage(sender)));
-                break;
+            throw new WrongUsageException(getCommandUsage(sender));
+        }else {
+            String subCommand = args[0].toLowerCase();
+            String inventoryName = args[1];
+            switch (subCommand) {
+                case "save":
+                    savePlayerInventory(player, inventoryName);
+                    break;
+                case "load":
+                    loadPlayerInventory(player, inventoryName);
+                    break;
+                case "remove":
+                    removeSavedInventoryWithName(player, inventoryName);
+                    break;
+                default:
+                    throw new WrongUsageException(getCommandUsage(sender));
+            }
         }
     }
 

@@ -45,8 +45,7 @@ public class CommandSummon extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] strings) {
         if (strings.length < 1) {
-            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cUsage: " + getCommandUsage(sender)));
-            return;
+            throw new WrongUsageException(getCommandUsage(sender));
         }
         int entityNum = 1;
         if (strings.length >= 2) {

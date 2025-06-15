@@ -105,7 +105,7 @@ public class CommandNewKill extends CommandBase{
                 }
                 iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("Killed " +killCount + " '" + itemInfo.itemName().replace("_"," ") + "' item"));
             }
-        }
+        }else throw new WrongUsageException("/kill <player|entity|item|all> <name>");
     }
 
 }
