@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static net.dravigen.tesseractUtils.TessUConfig.reach;
 import static net.minecraft.src.CommandBase.getPlayer;
 
 public class UtilsCommand {
@@ -40,7 +39,7 @@ public class UtilsCommand {
         Vec3 var3 = player.getPosition(1);
         Vec3 var4 = var3.addVector(0, player.getEyeHeight(), 0);
         Vec3 var5 = player.getLook(1);
-        Vec3 var6 = var4.addVector(var5.xCoord * reach, var5.yCoord * reach, var5.zCoord * reach);
+        Vec3 var6 = var4.addVector(var5.xCoord * 128, var5.yCoord * 128, var5.zCoord * 128);
         return player.worldObj.clip(var4, var6);
     }
 
