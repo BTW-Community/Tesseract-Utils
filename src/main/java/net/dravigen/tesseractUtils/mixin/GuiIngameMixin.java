@@ -1,6 +1,6 @@
 package net.dravigen.tesseractUtils.mixin;
 
-import net.dravigen.tesseractUtils.GUI.GuiTUSettings;
+import net.dravigen.tesseractUtils.GUI.GuiConfigSettingsScreen;
 import net.dravigen.tesseractUtils.TessUConfig;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.minecraft.server.MinecraftServer;
@@ -169,7 +169,7 @@ public class GuiIngameMixin extends Gui {
             }
             this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
             if (TessUConfig.configMenu.isPressed()) {
-                this.mc.displayGuiScreen(new GuiTUSettings(null));
+                this.mc.displayGuiScreen(new GuiConfigSettingsScreen(null));
             }
         }
     }

@@ -1,21 +1,44 @@
 package net.dravigen.tesseractUtils.mixin;
 
 import net.dravigen.tesseractUtils.TessUConfig;
-import net.minecraft.src.EntityRenderer;
-import net.minecraft.src.Minecraft;
+import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
 
+import java.util.Arrays;
+
+import static net.dravigen.tesseractUtils.TessUConfig.enableVanillaNightVis;
+
 @Mixin(EntityRenderer.class)
-public class EntityRendererMixin {
+public abstract class EntityRendererMixin {
     @Shadow private Minecraft mc;
 
     @ModifyConstant(method = "getMouseOver",constant = @Constant(doubleValue = 6.0,ordinal = 0))
     private double disableDistanceLimit(double constant){
-        if(this.mc.thePlayer.getHeldItem()!=null&&(this.mc.thePlayer.getHeldItem().itemID==1800||(this.mc.thePlayer.getHeldItem().getTagCompound()!=null&&this.mc.thePlayer.getHeldItem().getTagCompound().hasKey("BuildingParams"))))return 999999;
+        ItemStack heldItem = this.mc.thePlayer.getHeldItem();
+        if(heldItem != null) {
+            int id = heldItem.itemID;
+            if (id ==1800||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams"))) return 999999;
+        }
         if (this.mc.thePlayer.capabilities.isCreativeMode&& TessUConfig.reach>5){
             return 999999;
         }else return constant;
+    }
+
+    @Redirect(method = "updateFogColor",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityLivingBase;isPotionActive(Lnet/minecraft/src/Potion;)Z"))
+    private boolean disableRedNightVis(EntityLivingBase instance, Potion par1Potion){
+        if (enableVanillaNightVis){
+            return false;
+        }else return instance.isPotionActive(par1Potion);
+    }
+    @ModifyArg(method = "modUpdateLightmapOverworld", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/TextureUtil;uploadTexture(I[III)V"),index = 1)
+    private int[] manageNightvisionColor(int[] par1ArrayOfInteger) {
+        if (this.mc.thePlayer.isPotionActive(Potion.nightVision)&&enableVanillaNightVis) {
+            int[] numbers = new int[256];
+            Arrays.fill(numbers, -1);
+            return numbers;
+        }
+        return par1ArrayOfInteger;
     }
 }

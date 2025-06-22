@@ -25,10 +25,12 @@ public abstract class MinecraftMixin {
             itemNameList.clear();
             entityShowNameList.clear();
             blocksNameList.clear();
+            potionNameList.clear();
         }
-        if (itemNameList.isEmpty()||entityShowNameList.isEmpty()||blocksNameList.isEmpty()) {
+        if (itemNameList.isEmpty()||entityShowNameList.isEmpty()||blocksNameList.isEmpty()||potionNameList.isEmpty()) {
             initItemsNameList();
             initEntityList();
+            initPotionList();
             initBlocksNameList();
             listLanguage = Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage();
         }

@@ -1,7 +1,7 @@
 package net.dravigen.tesseractUtils.mixin;
 
 import net.dravigen.tesseractUtils.GUI.GuiButtonCustom;
-import net.dravigen.tesseractUtils.GUI.GuiTUSettings;
+import net.dravigen.tesseractUtils.GUI.GuiConfigSettingsScreen;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,7 +21,7 @@ public abstract class GuiMainMenuMixin extends GuiScreen {
     @Inject(method = "actionPerformed", at = @At("HEAD"))
     private void onActionPerformed(GuiButton button, CallbackInfo ci) {
         if (button.id == TESSERACT_SETTINGS_BUTTON_ID) {
-            this.mc.displayGuiScreen(new GuiTUSettings(this));
+            this.mc.displayGuiScreen(new GuiConfigSettingsScreen(this));
         }
     }
 }

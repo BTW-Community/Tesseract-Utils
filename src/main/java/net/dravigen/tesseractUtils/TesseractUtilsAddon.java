@@ -41,6 +41,7 @@ public class TesseractUtilsAddon extends BTWAddon {
         registerAddonCommand(new CommandSummon());
         registerAddonCommand(new CommandNewKill());
         registerAddonCommand(new CommandNewGive());
+        registerAddonCommand(new CommandNewEffect());
     }
 
     @Override

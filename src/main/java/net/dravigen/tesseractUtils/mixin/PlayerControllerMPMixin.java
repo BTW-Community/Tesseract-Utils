@@ -8,6 +8,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -18,25 +19,39 @@ public abstract class PlayerControllerMPMixin {
     @Shadow private EnumGameType currentGameType;
     @Shadow @Final private Minecraft mc;
     @Shadow private int blockHitDelay;
-
     @Shadow public abstract void setGameType(EnumGameType par1EnumGameType);
 
     @ModifyConstant(method = "getBlockReachDistance", constant = @Constant(floatValue = 5.0f))
     private float modifyCreativeReach(float constant) {
-        if (this.mc.thePlayer.getHeldItem()!=null&&(this.mc.thePlayer.getHeldItem().itemID==1800||(this.mc.thePlayer.getHeldItem().getTagCompound()!=null&&this.mc.thePlayer.getHeldItem().getTagCompound().hasKey("BuildingParams")))) return 128;
+        ItemStack heldItem = this.mc.thePlayer.getHeldItem();
+        if (heldItem != null) {
+            int id = heldItem.itemID;
+            if (id ==1800|| id ==Item.axeWood.itemID|| id ==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
+                return 128;
+        }
         if (this.currentGameType.isCreative()) return TessUConfig.reach;
         else return constant;
     }
 
+    @Unique
+    private long prevTime = System.currentTimeMillis()-1050;
+
     @Inject(method = "onPlayerDestroyBlock", at = @At("HEAD"))
     private void selectionFirst(int x, int y, int z, int par4, CallbackInfoReturnable<Boolean> cir) {
         if (this.currentGameType.isCreative()) {
-            if (this.mc.thePlayer.getHeldItem() != null && this.mc.thePlayer.getHeldItem().itemID == 271) {
-                UtilsCommand.x1 = x;
-                UtilsCommand.y1 = y;
-                UtilsCommand.z1 = z;
-                if (this.mc.theWorld.isRemote) {
-                    this.mc.thePlayer.addChatMessage("§dFirst position set to (" + x + ", " + y + ", " + z + ")");
+            ItemStack heldItem = this.mc.thePlayer.getHeldItem();
+            if (heldItem != null) {
+                int id = heldItem.itemID;
+                if (id == Item.axeWood.itemID) {
+                    if (prevTime + 1000 < System.currentTimeMillis()) {
+                        UtilsCommand.x1 = x;
+                        UtilsCommand.y1 = y;
+                        UtilsCommand.z1 = z;
+                        if (this.mc.theWorld.isRemote) {
+                            this.mc.thePlayer.addChatMessage("§dFirst position set to (" + x + ", " + y + ", " + z + ")");
+                        }
+                        prevTime = System.currentTimeMillis();
+                    }
                 }
             }
         }
@@ -45,15 +60,15 @@ public abstract class PlayerControllerMPMixin {
     @Inject(method = "onPlayerRightClick", at = @At("HEAD"))
     private void selectionSecond(EntityPlayer entity, World world, ItemStack itemStack, int x, int y, int z, int par7, Vec3 par8Vec3, CallbackInfoReturnable<Boolean> cir) {
         if (this.currentGameType.isCreative()) {
-            if (itemStack != null) {
-                if (itemStack.itemID == 271) {
-                    UtilsCommand.x2 = x;
-                    UtilsCommand.y2 = y;
-                    UtilsCommand.z2 = z;
-                    if (world.isRemote) {
-                        entity.addChatMessage("§dSecond position set to (" + x + ", " + y + ", " + z + ")");
-                    }
+            if (itemStack != null && itemStack.itemID == Item.axeWood.itemID) {
+                if (prevTime + 1000 > System.currentTimeMillis()) return;
+                UtilsCommand.x2 = x;
+                UtilsCommand.y2 = y;
+                UtilsCommand.z2 = z;
+                if (world.isRemote) {
+                    entity.addChatMessage("§dSecond position set to (" + x + ", " + y + ", " + z + ")");
                 }
+                prevTime = System.currentTimeMillis();
             }
         }
     }

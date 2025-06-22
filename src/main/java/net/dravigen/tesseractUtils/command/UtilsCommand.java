@@ -5,12 +5,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static net.dravigen.tesseractUtils.TessUConfig.extrudeLimit;
 import static net.minecraft.src.CommandBase.getPlayer;
 
 public class UtilsCommand {
 
     public static List<String> entityShowNameList = new ArrayList<>();
     public static List<String> entityTrueNameList = new ArrayList<>();
+    public static List<String> potionNameList = new ArrayList<>();
 
     public static Map<Class<?>, String> CLASS_TO_STRING_MAPPING;
 
@@ -34,7 +36,7 @@ public class UtilsCommand {
         return instance == null ? (new UtilsCommand()) : instance;
     }
 
-    public MovingObjectPosition getBlockPlayerIsLooking(ICommandSender par1ICommandSender) {
+    public static MovingObjectPosition getBlockPlayerIsLooking(ICommandSender par1ICommandSender) {
         EntityPlayer player = getPlayer(par1ICommandSender, par1ICommandSender.getCommandSenderName());
         Vec3 var3 = player.getPosition(1);
         Vec3 var4 = var3.addVector(0, player.getEyeHeight(), 0);
@@ -43,25 +45,24 @@ public class UtilsCommand {
         return player.worldObj.clip(var4, var6);
     }
 
-    public static String[] getRandomBlockFromOdds(List<Integer> blockOdd, List<String[]> idMetaList) {
+    public static BlockInfo getRandomBlockFromOdds(List<BlockInfo> blocks) {
         Random rand = new Random();
         int totalOdd=0;
-        for (int odd: blockOdd){
-            totalOdd+=odd;
+        for (BlockInfo block: blocks){
+            totalOdd+=block.odd;
         }
-
         int randNum = rand.nextInt(totalOdd)+1;
         int blockPosInList=0;
-        for (int i = 0; i< blockOdd.size(); i++){
-            if (blockOdd.get(i)<randNum){
-                randNum-=blockOdd.get(i);
+        for (int i = 0; i< blocks.size(); i++){
+            if (blocks.get(i).odd<randNum){
+                randNum-=blocks.get(i).odd;
             }else {
                 blockPosInList = i;
                 break;
             }
         }
 
-        return idMetaList.get(blockPosInList);
+        return blocks.get(blockPosInList);
     }
 
     public static void initBlocksNameList() {
@@ -139,71 +140,72 @@ public class UtilsCommand {
         return finalList;
     }
 
-    public static @NotNull BlockInfo getBlockInfo(String string) {
-        Block block;
-        String blockName = "Air";
-        int id = 99999;
-        int meta = 0;
+    public static @NotNull List<BlockInfo> getBlockInfo(String string) {
         List<String> differentBlock = Arrays.stream(string.split(";")).toList();
-        List<Integer> blockOdd = new ArrayList<>();
-        List<String[]> idMetaList = new ArrayList<>();
-        for (String s : differentBlock){
-            String[] s1 = s.split(":");
-            blockOdd.add(s1.length>1 ? Integer.parseInt(s1[1]) : 1 );
-            if (s1[0].split("\\|").length>1){
-                idMetaList.add(new String[]{s1[0].split("\\|")[1]});
-            }else idMetaList.add(s1[0].split("/"));
-        }
-        String[] idMeta = getRandomBlockFromOdds(blockOdd, idMetaList);
-        if (idMeta.length == 2) {
-            meta = Integer.parseInt(idMeta[1]);
-        }
-        try {
-            id = Integer.parseInt(idMeta[0]);
-        } catch (NumberFormatException ignored) {
-        }
-        if (id == 99999) {
-            if (idMeta[0].equalsIgnoreCase("Air")) {
-                id = 0;
+        List<BlockInfo> blocksInfos = new ArrayList<>();
+        for (String diff:differentBlock){
+            Block block;
+            String blockName = "Air";
+            int id = 99999;
+            int meta = 0;
+            int odd;
+            String[] idMeta;
+            String[] blockNodd = diff.split(":");
+            odd = blockNodd.length>1 ? Integer.parseInt(blockNodd[1]) : 1;
+            if (blockNodd[0].split("\\|").length>1){
+                idMeta=new String[]{blockNodd[0].split("\\|")[1]};
+            }else idMeta=blockNodd[0].split("/");
+            try {
+                id = Integer.parseInt(idMeta[0]);
+            } catch (NumberFormatException ignored) {
+            }
+            if (id == 99999) {
+                if (idMeta[0].equalsIgnoreCase("Air")) {
+                    id = 0;
+                } else {
+                    boolean found = false;
+                    for (int i = 0; i < Block.blocksList.length; i++) {
+                        block = Block.blocksList[i];
+                        if (block == null||block.blockID==74) continue;
+                        List<ItemStack> subBlocks = new ArrayList<>();
+                        try {
+                            block.getSubBlocks(block.blockID, null, subBlocks);
+                            if (subBlocks.isEmpty()) {
+                                subBlocks.add(new ItemStack(block));
+                            }
+
+                        } catch (Throwable e) {
+                            System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
+                            subBlocks.clear();
+                            subBlocks.add(new ItemStack(block));
+                        }
+                        for (ItemStack subBlock : subBlocks) {
+                            String name = StringTranslate.getInstance().translateKey(subBlock.getUnlocalizedName() + ".name").replace(" ", "_").replace(".name", "").replace("name.", "").replace("tile.", "").replace("fc", "");
+                            if (name.equalsIgnoreCase(idMeta[0])) {
+                                blockName = name;
+                                id = subBlock.itemID;
+                                meta = subBlock.getItemDamage();
+                                if (idMeta.length>1){
+                                    meta = Integer.parseInt(idMeta[1]);
+                                }
+                                found=true;
+                                break;
+                            }
+                        }
+                        if (found)break;
+                    }
+                }
             } else {
                 for (int i = 0; i < Block.blocksList.length; i++) {
                     block = Block.blocksList[i];
-                    if (block == null||block.blockID==74) continue;
-                    List<ItemStack> subBlocks = new ArrayList<>();
-                    try {
-                        block.getSubBlocks(block.blockID, null, subBlocks);
-                        if (subBlocks.isEmpty()) {
-                            subBlocks.add(new ItemStack(block));
-                        }
-
-                    } catch (Throwable e) {
-                        System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
-                        subBlocks.clear();
-                        subBlocks.add(new ItemStack(block));
-                    }
-                    for (ItemStack subBlock : subBlocks) {
-                        String name = StringTranslate.getInstance().translateKey(subBlock.getUnlocalizedName() + ".name").replace(" ", "_").replace(".name", "").replace("name.", "").replace("tile.", "").replace("fc", "");
-                        if (name.equalsIgnoreCase(idMeta[0])) {
-                            blockName = name;
-                            id = subBlock.itemID;
-                            meta = subBlock.getItemDamage();
-                            if (idMeta.length>1){
-                                meta = Integer.parseInt(idMeta[1]);
-                            }
-                            break;
-                        }
+                    if (block != null && block.blockID == id) {
+                        blockName = StringTranslate.getInstance().translateKey(Block.blocksList[i].getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
                     }
                 }
             }
-        } else {
-            for (int i = 0; i < Block.blocksList.length; i++) {
-                block = Block.blocksList[i];
-                if (block != null && block.blockID == id) {
-                    blockName = StringTranslate.getInstance().translateKey(Block.blocksList[i].getUnlocalizedName()+ ".name").replace(" ", "_").replace(".name","").replace("name.","").replace("tile.","").replace("fc","");
-                }
-            }
+            blocksInfos.add(new BlockInfo(blockName,id,meta,odd));
         }
-        return new BlockInfo(blockName, id, meta);
+        return blocksInfos;
     }
 
     public static void initItemsNameList() {
@@ -381,8 +383,124 @@ public class UtilsCommand {
         return finalList;
     }
 
-    public record BlockInfo(String blockName, int id, int meta) { }
+    public static void initPotionList(){
+        for (Potion potion:Potion.potionTypes){
+            if (potion==null)continue;
+            String name = StringTranslate.getInstance().translateKey(potion.getName());
+            potionNameList.add(name.replace(" ","_"));
+        }
+    }
+
+    public record BlockInfo(String blockName, int id, int meta, int odd) { }
 
     public record ItemInfo (int id, int meta, String itemName){ }
+
+    public static class BlockPos {
+        public int x, y, z;
+        public BlockPos(int x, int y, int z) { this.x = x; this.y = y; this.z = z; }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BlockPos blockPos = (BlockPos) o;
+            return x == blockPos.x && y == blockPos.y && z == blockPos.z;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = x;
+            result = 31 * result + y;
+            result = 31 * result + z;
+            return result;
+        }
+    }
+
+    public static List<BlockPos> findConnectedBlocksInPlane(
+            World world,
+            int startX, int startY, int startZ,
+            int referenceBlockId,
+            int referenceBlockMeta,
+            int clickedFace,
+            boolean fuzzy) {
+
+        List<BlockPos> foundBlocks = new ArrayList<>();
+        Queue<BlockPos> queue = new LinkedList<>();
+        Set<BlockPos> visited = new HashSet<>();
+
+        BlockPos startPos = new BlockPos(startX, startY, startZ);
+
+        queue.add(startPos);
+        visited.add(startPos);
+
+        int[][] planeOffsets;
+        if (fuzzy){
+            switch (clickedFace) {
+                case 0,1: //tranversal
+                    planeOffsets = new int[][]{{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}, {1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1}};
+                    break;
+                case 2,3: //frontal
+                    planeOffsets = new int[][]{{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0},{1, 1, 0}, {-1, 1, 0}, {1, -1, 0}, {-1, -1, 0}};
+                    break;
+                case 4,5: //sagittal
+                    planeOffsets = new int[][]{{0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1},{0, 1, 1}, {0, -1, 1}, {0, 1, -1}, {0, -1, -1}};
+                    break;
+                default:
+                    return foundBlocks;
+            }
+        }else switch (clickedFace) {
+            case 0: // Bottom face clicked (+Y direction of extrusion) -> plane is XZ (Y is constant)
+            case 1: // Top face clicked (-Y direction of extrusion) -> plane is XZ (Y is constant)
+                planeOffsets = new int[][]{{1, 0, 0}, {-1, 0, 0}, {0, 0, 1}, {0, 0, -1}}; // Check X,Z neighbors
+                break;
+            case 2: // North face clicked (+Z direction of extrusion) -> plane is XY (Z is constant)
+            case 3: // South face clicked (-Z direction of extrusion) -> plane is XY (Z is constant)
+                planeOffsets = new int[][]{{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}}; // Check X,Y neighbors
+                break;
+            case 4: // West face clicked (+X direction of extrusion) -> plane is YZ (X is constant)
+            case 5: // East face clicked (-X direction of extrusion) -> plane is YZ (X is constant)
+                planeOffsets = new int[][]{{0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}}; // Check Y,Z neighbors
+                break;
+            default:
+                return foundBlocks;
+        }
+        while (!queue.isEmpty() && foundBlocks.size() < extrudeLimit) {
+            BlockPos current = queue.poll();
+            foundBlocks.add(current);
+            for (int[] offset : planeOffsets) {
+                int nextX = current.x + offset[0];
+                int nextY = current.y + offset[1];
+                int nextZ = current.z + offset[2];
+                BlockPos neighbor = new BlockPos(nextX, nextY, nextZ);
+                if (nextY < 0 || nextY >= world.getHeight()) {
+                    continue;
+                }
+
+                int newBlockX = nextX;
+                int newBlockY = nextY;
+                int newBlockZ = nextZ;
+
+                switch (clickedFace) {
+                    case 0: newBlockY--; break; // Bottom face: place below
+                    case 1: newBlockY++; break; // Top face: place above
+                    case 2: newBlockZ--; break; // North face: place North
+                    case 3: newBlockZ++; break; // South face: place South
+                    case 4: newBlockX--; break; // West face: place West
+                    case 5: newBlockX++; break; // East face: place East
+                }
+                int targetBlockId = world.getBlockId(newBlockX, newBlockY, newBlockZ);
+                if (!visited.contains(neighbor)&&targetBlockId==0) {
+                    int neighborId = world.getBlockId(nextX, nextY, nextZ);
+                    int neighborMeta = world.getBlockMetadata(nextX, nextY, nextZ);
+                    if (neighborId == referenceBlockId&& neighborMeta == referenceBlockMeta) {
+                        queue.add(neighbor);
+                        visited.add(neighbor);
+                    }
+                }
+            }
+        }
+        return foundBlocks;
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package net.dravigen.tesseractUtils.command;
 
 import net.minecraft.src.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,7 @@ public class CommandWorldEdit extends CommandBase {
         if (strings.length==1) {
             return getListOfStringsMatchingLastWord(strings,"set", "setblock", "shape", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2","tool");
         }
-        MovingObjectPosition blockCoord = UtilsCommand.getInstance().getBlockPlayerIsLooking(par1ICommandSender);
+        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
         if (strings[0].equalsIgnoreCase("pos1") || strings[0].equalsIgnoreCase("pos2")) {
             if (blockCoord != null) {
                 int x = blockCoord.blockX;
@@ -41,18 +42,18 @@ public class CommandWorldEdit extends CommandBase {
             } else return null;
         }
         else if (strings[0].equalsIgnoreCase("setblock")) {
-            if (strings.length == 5) {
+            if (strings.length == 2) {
                 return UtilsCommand.getInstance().getBlockNameList(strings);
             }
             if (blockCoord != null) {
                 int x = blockCoord.blockX;
                 int y = blockCoord.blockY;
                 int z = blockCoord.blockZ;
-                if (strings.length == 2) {
+                if (strings.length == 3) {
                     return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
-                } else if (strings.length == 3) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
                 } else if (strings.length == 4) {
+                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                } else if (strings.length == 5) {
                     return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
                 }
             }
@@ -170,7 +171,8 @@ public class CommandWorldEdit extends CommandBase {
                         y = Integer.parseInt(strings[3]);
                         z = Integer.parseInt(strings[4]);
                     }
-                    BlockInfo result = getBlockInfo(strings[1]);
+                    @NotNull List<BlockInfo> results = getBlockInfo(strings[1]);
+                    BlockInfo result = results.get(0);
                     if (result.id() != 0) {
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
@@ -209,10 +211,11 @@ public class CommandWorldEdit extends CommandBase {
                                 int absX = MathHelper.abs_int(x1 - x2) - l * 2;
                                 int absY = wall ? MathHelper.abs_int(y1 - y2) : MathHelper.abs_int(y1 - y2) - l * 2;
                                 int absZ = MathHelper.abs_int(z1 - z2) - l * 2;
+                                @NotNull List<BlockInfo> results = getBlockInfo(strings[1]);
                                 for (int j = 0; j <= absY; j++) {
                                     for (int i = 0; i <= absX; i++) {
                                         for (int k = 0; k <= absZ; k++) {
-                                            BlockInfo result = getBlockInfo(strings[1]);
+                                            BlockInfo result = getRandomBlockFromOdds(results);
                                             int x = minX + i;
                                             int y = wall ? Math.min(y1, y2) + j : minY + j;
                                             int z = minZ + k;
@@ -243,10 +246,11 @@ public class CommandWorldEdit extends CommandBase {
                                 }
                             }
                         } else {
+                            @NotNull List<BlockInfo> results = getBlockInfo(strings[1]);
                             for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
                                 for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
                                     for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
-                                        BlockInfo result = getBlockInfo(strings[1]);
+                                        BlockInfo result = getRandomBlockFromOdds(results);
                                         int x = Math.min(x1, x2) + i;
                                         int y = Math.min(y1, y2) + j;
                                         int z = Math.min(z1, z2) + k;
@@ -308,7 +312,7 @@ public class CommandWorldEdit extends CommandBase {
                         }
                     }
                     if (centerX == 999999 || centerY == 999999 || centerZ == 999999) {
-                        MovingObjectPosition blockCoord = UtilsCommand.getInstance().getBlockPlayerIsLooking(iCommandSender);
+                        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(iCommandSender);
                         centerX = blockCoord.blockX;
                         centerY = blockCoord.blockY;
                         centerZ = blockCoord.blockZ;
@@ -367,10 +371,15 @@ public class CommandWorldEdit extends CommandBase {
                     if (strings.length > 1) {
                         if (x1 != 9999999 && y1 != 9999999 && z1 != 9999999 && x2 != 9999999 && y2 != 9999999 && z2 != 9999999) {
                             List<SavedBlock> list = new ArrayList<>();
+                            @NotNull List<BlockInfo> results1 = getBlockInfo(strings[1]);
+                            @NotNull List<BlockInfo> results2 = null;
+                            if (strings.length > 2) {
+                                results2 = getBlockInfo(strings[2]);
+                            }
                             for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
                                 for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
                                     for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
-                                        BlockInfo result1 = getBlockInfo(strings[4]);
+                                        BlockInfo result1 = getRandomBlockFromOdds(results1);
                                         if (result1.id() != 0) {
                                             ItemStack itemStack = new ItemStack(result1.id(), 0, 0);
                                             List<ItemStack> subtype = new ArrayList<>();
@@ -380,24 +389,18 @@ public class CommandWorldEdit extends CommandBase {
                                                 return;
                                             }
                                         }
-                                        BlockInfo result2 = null;
-                                        if (strings.length > 2) {
-                                            result2 = getBlockInfo(strings[2]);
-                                        }
                                         int x = Math.min(x1, x2) + i;
                                         int y = Math.min(y1, y2) + j;
                                         int z = Math.min(z1, z2) + k;
                                         if (strings.length > 2) {
-                                            if (result2 != null && world.getBlockId(x, y, z) == result2.id()) {
-                                                String[] idMeta = strings[2].split("/");
-                                                idMeta[0] = idMeta[0].split("\\|")[0];
-                                                if (idMeta.length == 1 || (idMeta.length == 2 && world.getBlockMetadata(x, y, z) == result2.meta())) {
+                                            for (BlockInfo result2:results2) {
+                                                if (result2 != null && world.getBlockId(x, y, z) == result2.id() && world.getBlockMetadata(x, y, z) == result2.meta()) {
                                                     list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                                     world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
                                                     numBlock++;
                                                 }
                                             }
-                                        } else if (!world.isAirBlock(x, y, z)) {
+                                        }else if (!world.isAirBlock(x, y, z)) {
                                             list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                             world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
                                             numBlock++;
@@ -406,7 +409,6 @@ public class CommandWorldEdit extends CommandBase {
                                 }
                             }
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) was replaced"));
-
                             if (!list.isEmpty()) {
                                 undoSaved.add(list);
                                 redoSaved.clear();
@@ -589,9 +591,10 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "undo" -> {
                 try {
-                    boolean messageSent = false;
-                    for (int i = 0; i < (strings.length > 1 ? Integer.parseInt(strings[1]) : 1); i++) {
-                        if (!undoSaved.isEmpty()) {
+                    if (!undoSaved.isEmpty()) {
+                        int count = 0;
+                        for (int i = 0; i < (strings.length > 1 ? Integer.parseInt(strings[1]) : 1); i++) {
+                            if (undoSaved.isEmpty())break;
                             int xa = 9999999;
                             int ya = 9999999;
                             int za = 9999999;
@@ -618,11 +621,9 @@ public class CommandWorldEdit extends CommandBase {
                             z2 = zb;
                             redoSaved.add(list);
                             undoSaved.remove(undoSaved.size() - 1);
-                            if (!messageSent) {
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dPrevious action(s) were reverted"));
-                                messageSent = true;
-                            }
+                            count++;
                         }
+                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dThe last " + (count>1 ? count + " ":"") + "action" + (count>1 ?"s have been" : " has been") + " reverted"));
                     }
                 } catch (Exception e) {
                     throw new WrongUsageException("// undo [count]");
@@ -630,9 +631,10 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "redo" -> {
                 try {
-                    boolean messageSent = false;
-                    for (int j = 0; j < (strings.length > 1 ? Integer.parseInt(strings[1]) : 1); j++) {
-                        if (!redoSaved.isEmpty()) {
+                    int count=0;
+                    if (!redoSaved.isEmpty()) {
+                        for (int j = 0; j < (strings.length > 1 ? Integer.parseInt(strings[1]) : 1); j++) {
+                            if (redoSaved.isEmpty())break;
                             int xa = 9999999;
                             int ya = 9999999;
                             int za = 9999999;
@@ -661,11 +663,8 @@ public class CommandWorldEdit extends CommandBase {
                             z2 = zb;
                             undoSaved.add(list);
                             redoSaved.remove(redoSaved.size() - 1);
-                            if (!messageSent) {
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dPrevious action(s) were redone"));
-                                messageSent = true;
-                            }
                         }
+                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dThe last " + (count > 1 ? count + " " : "") + "action" + (count > 1 ? "s have been" : " has been") + " redone"));
                     }
                 } catch (Exception e) {
                     throw new WrongUsageException("// redo [count]");
@@ -719,7 +718,7 @@ public class CommandWorldEdit extends CommandBase {
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-type of action= §a" + buildingParamsNBT.getString("actionType")));
                             iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
                         }
-                    } else if (strings.length>=4){
+                    } else if (strings.length >= 4) {
                         if (!itemStack.hasTagCompound()) {
                             itemStack.setTagCompound(new NBTTagCompound());
                         }
@@ -751,7 +750,7 @@ public class CommandWorldEdit extends CommandBase {
                         iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-parameters= §a" + buildingParamsNBT.getString("parameters")));
                         iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-type of action= §a" + buildingParamsNBT.getString("actionType")));
                         iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
-                    }else throw new WrongUsageException("// tool <shape> <id> <parameters> [replace] [hollow|open]");
+                    } else throw new WrongUsageException("// tool <shape> <id> <parameters> [replace] [hollow|open]");
                 } catch (Exception e) {
                     throw new WrongUsageException("// tool <shape> <id> <parameters> [replace] [hollow|open]");
                 }
@@ -767,6 +766,7 @@ public class CommandWorldEdit extends CommandBase {
         }
         radius+=0.5f;
         double radiusSquared = (double) radius * radius;
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (float x = -radius; x <= radius; x++) {
             for (float y = -radius; y <= radius; y++) {
                 for (float z = -radius; z <= radius; z++) {
@@ -779,7 +779,7 @@ public class CommandWorldEdit extends CommandBase {
                         int currentBlockY = MathHelper.floor_float (centerY + y);
                         int currentBlockZ = MathHelper.floor_float (centerZ + z);
                         if (replace&&world.getBlockId(currentBlockX, currentBlockY, currentBlockZ)==0)continue;
-                        BlockInfo result = getBlockInfo(string);
+                        BlockInfo result = getRandomBlockFromOdds(results);
                         if (result.id() != 0) {
                             ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                             List<ItemStack> subtype = new ArrayList<>();
@@ -809,6 +809,7 @@ public class CommandWorldEdit extends CommandBase {
         double radiusSquared = (double) radius * radius;
         float innerRadius = radius - thickness;
         double innerRadiusSquared = (double) innerRadius * innerRadius;
+        List<BlockInfo> results = getBlockInfo(string);
         for (float x = -radius; x <= radius; x++) {
             for (float y = -radius; y <= radius; y++) {
                 for (float z = -radius; z <= radius; z++) {
@@ -821,7 +822,7 @@ public class CommandWorldEdit extends CommandBase {
                         int currentBlockY = MathHelper.floor_float (centerY + y);
                         int currentBlockZ = MathHelper.floor_float (centerZ + z);
                         if (replace&&world.getBlockId(currentBlockX, currentBlockY, currentBlockZ)==0)continue;
-                        BlockInfo result = getBlockInfo(string);
+                        BlockInfo result = getRandomBlockFromOdds(results);
                         if (result.id() != 0) {
                             ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                             List<ItemStack> subtype = new ArrayList<>();
@@ -848,6 +849,7 @@ public class CommandWorldEdit extends CommandBase {
         }
         radius+=0.5f;
         double radiusSquared = (double) radius * radius;
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (float x = -radius; x <= radius; x++) {
             for (float z = -radius; z <= radius; z++) {
                 double dx = x - 0.5;
@@ -859,7 +861,7 @@ public class CommandWorldEdit extends CommandBase {
                         int currentBlockZ = MathHelper.floor_float (centerZ + z);
                         int currentBlockY = baseCenterY + y;
                         if (replace&&world.getBlockId(currentBlockX, currentBlockY, currentBlockZ)==0)continue;
-                        BlockInfo result = getBlockInfo(string);
+                        BlockInfo result = getRandomBlockFromOdds(results);
                         if (result.id() != 0) {
                             ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                             List<ItemStack> subtype = new ArrayList<>();
@@ -889,6 +891,7 @@ public class CommandWorldEdit extends CommandBase {
         double radiusSquared = (double) radius * radius;
         float innerRadius = radius - thickness;
         double innerRadiusSquared = (double) innerRadius * innerRadius;
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (float x = -radius; x <= radius; x++) {
             for (float z = -radius; z <= radius; z++) {
                 double dx = x - 0.5;
@@ -903,7 +906,7 @@ public class CommandWorldEdit extends CommandBase {
                         boolean isWallLayer = (y > 0 && y < height - 1);
                         if (isTopOrBottomLayer || (isWallLayer && distanceSquared >= innerRadiusSquared)) {
                             if (replace && world.getBlockId(currentBlockX, currentBlockY, currentBlockZ) == 0) continue;
-                            BlockInfo result = getBlockInfo(string);
+                            BlockInfo result = getRandomBlockFromOdds(results);
                             if (result.id() != 0) {
                                 ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                                 List<ItemStack> subtype = new ArrayList<>();
@@ -934,6 +937,7 @@ public class CommandWorldEdit extends CommandBase {
         double radiusSquared = (double) radius * radius;
         float innerRadius = radius - thickness;
         double innerRadiusSquared = (double) innerRadius * innerRadius;
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (float x = -radius; x <= radius; x++) {
             for (float z = -radius; z <= radius; z++) {
                 double dx = x -0.5;
@@ -945,7 +949,7 @@ public class CommandWorldEdit extends CommandBase {
                         int currentBlockZ = MathHelper.floor_float (centerZ + z);
                         int currentBlockY = baseCenterY + y;
                         if (replace && world.getBlockId(currentBlockX, currentBlockY, currentBlockZ) == 0) continue;
-                        BlockInfo result = getBlockInfo(string);
+                        BlockInfo result = getRandomBlockFromOdds(results);
                         if (result.id() != 0) {
                             ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                             List<ItemStack> subtype = new ArrayList<>();
@@ -974,11 +978,12 @@ public class CommandWorldEdit extends CommandBase {
         int actualStartX = centerX - (sizeX / 2);
         int actualStartY = centerY - (sizeY / 2);
         int actualStartZ = centerZ - (sizeZ / 2);
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (int x = actualStartX; x < actualStartX + sizeX; x++) {
             for (int y = actualStartY; y < actualStartY + sizeY; y++) {
                 for (int z = actualStartZ; z < actualStartZ + sizeZ; z++) {
                     if (replace&&world.getBlockId(x, y, z)==0)continue;
-                    BlockInfo result = getBlockInfo(string);
+                    BlockInfo result = getRandomBlockFromOdds(results);
                     if (result.id() != 0) {
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
@@ -1012,6 +1017,7 @@ public class CommandWorldEdit extends CommandBase {
         int innerEndX = (actualStartX + sizeX) - thickness;
         int innerEndY = (actualStartY + sizeY) - thickness;
         int innerEndZ = (actualStartZ + sizeZ) - thickness;
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (int x = actualStartX; x < actualStartX + sizeX; x++) {
             for (int y = actualStartY; y < actualStartY + sizeY; y++) {
                 for (int z = actualStartZ; z < actualStartZ + sizeZ; z++) {
@@ -1019,7 +1025,7 @@ public class CommandWorldEdit extends CommandBase {
                             (y < innerStartY || y >= innerEndY) ||
                             (z < innerStartZ || z >= innerEndZ);
                     if (replace&&world.getBlockId(x, y, z)==0)continue;
-                    BlockInfo result = getBlockInfo(string);
+                    BlockInfo result = getRandomBlockFromOdds(results);
                     if (result.id() != 0) {
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
@@ -1053,12 +1059,13 @@ public class CommandWorldEdit extends CommandBase {
         int innerStartZ = actualStartZ + thickness;
         int innerEndX = (actualStartX + sizeX) - thickness;
         int innerEndZ = (actualStartZ + sizeZ) - thickness;
+        @NotNull List<BlockInfo> results = getBlockInfo(string);
         for (int x = actualStartX; x < actualStartX + sizeX; x++) {
             for (int y = actualStartY; y < actualStartY + sizeY; y++) {
                 for (int z = actualStartZ; z < actualStartZ + sizeZ; z++) {
                     boolean isPartOfSideWall = (x < innerStartX || x >= innerEndX) || (z < innerStartZ || z >= innerEndZ);
                     if (replace&&world.getBlockId(x, y, z)==0)continue;
-                    BlockInfo result = getBlockInfo(string);
+                    BlockInfo result = getRandomBlockFromOdds(results);
                     if (result.id() != 0) {
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();

@@ -27,14 +27,22 @@ public abstract class NetServerHandlerMixin {
 
     @Redirect(method = "handleBlockDig", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;isBlockProtected(Lnet/minecraft/src/World;IIILnet/minecraft/src/EntityPlayer;)Z"))
     private boolean disableBreak(MinecraftServer instance, World par1World, int x, int y, int z, EntityPlayer par5EntityPlayer) {
-        if (par5EntityPlayer.capabilities.isCreativeMode && par5EntityPlayer.inventory.getCurrentItem() != null) {
-            return par5EntityPlayer.inventory.getCurrentItem().itemID == 271 || par5EntityPlayer.inventory.getCurrentItem().itemID == 1800 || (this.playerEntity.getHeldItem().getTagCompound()!=null&&this.playerEntity.getHeldItem().getTagCompound().hasKey("BuildingParams"));
+        ItemStack heldItem = par5EntityPlayer.inventory.getCurrentItem();
+        if (par5EntityPlayer.capabilities.isCreativeMode && heldItem != null) {
+            int id = heldItem.itemID;
+            if (id==Item.shovelWood.itemID)heldItem.getItem().onBlockDestroyed(heldItem,par1World,0,0,0,0,par5EntityPlayer);
+            return id == Item.shovelWood.itemID  || id == Item.axeWood.itemID || id == 1800 || (this.playerEntity.getHeldItem().getTagCompound()!=null&&this.playerEntity.getHeldItem().getTagCompound().hasKey("BuildingParams"));
         } else return false;
     }
 
     @ModifyConstant(method = "handleBlockDig", constant = @Constant(doubleValue = 36.0))
     private double disableBreakDistanceLimit(double constant) {
-        if (this.playerEntity.getHeldItem()!=null&&(this.playerEntity.getHeldItem().itemID==1800||(this.playerEntity.getHeldItem().getTagCompound()!=null&&this.playerEntity.getHeldItem().getTagCompound().hasKey("BuildingParams")))) return 999999;
+        ItemStack heldItem = this.playerEntity.getHeldItem();
+        if (heldItem != null) {
+            int id = heldItem.itemID;
+            if (id ==1800||id==Item.axeWood.itemID||id==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
+                return 999999;
+        }
         if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
             return 999999;
         } else return constant;

@@ -8,6 +8,7 @@
     "EntityPlayerMixin",
     "EntityPlayerMPMixing",
     "EntityRendererMixin",
+    "ExtrudeItem",
     "MinecraftServerMixin",
     "NetServerHandlerMixin",
     "PlaceAsBlockItemMixin",

@@ -22,6 +22,9 @@ public class GuiUtils {
             case "flightSpeed":
                 flySpeed = (int)(value*32)+1;
                 break;
+            case "extrudeLimit":
+                extrudeLimit = (int)(value*4047)+1;
+                break;
         }
         saveConfig();
 
@@ -32,6 +35,7 @@ public class GuiUtils {
         return switch (property) {
             case "reach" -> "Reach: " + (int) reach;
             case "flightSpeed" -> flySpeed < 32 ? "Flight speed: " + (int) (flySpeed) : "Flight speed: too fast";
+            case "extrudeLimit" -> "Extrude limit: " + (int) extrudeLimit;
             default -> "";
         };
     }
