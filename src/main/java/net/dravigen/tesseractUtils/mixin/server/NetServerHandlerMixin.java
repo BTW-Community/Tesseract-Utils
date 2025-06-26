@@ -1,8 +1,10 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.server;
 
 import btw.item.items.RedstoneItem;
-import net.dravigen.tesseractUtils.TessUConfig;
+import net.dravigen.tesseractUtils.TesseractUtilsAddon.TUChannels;
 import net.dravigen.tesseractUtils.command.CommandWorldEdit;
+import net.dravigen.tesseractUtils.packet.PacketHandlerC2S;
+import net.dravigen.tesseractUtils.packet.PacketSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,9 +12,15 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
+import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
+
+
 @Mixin(NetServerHandler.class)
 public abstract class NetServerHandlerMixin {
 
@@ -20,7 +28,7 @@ public abstract class NetServerHandlerMixin {
 
     @Inject(method = "getCollidingBoundingBoxesIgnoreSpecifiedEntities", at = @At("RETURN"), cancellable = true)
     private void disableCollision(World world, Entity entity, AxisAlignedBB par2AxisAlignedBB, CallbackInfoReturnable<List<AxisAlignedBB>> cir) {
-        if (TessUConfig.enableNoClip && entity instanceof EntityPlayer && ((EntityPlayer) entity).capabilities.isCreativeMode) {
+        if ((boolean) NO_CLIP.getValue() && entity instanceof EntityPlayer && ((EntityPlayer) entity).capabilities.isCreativeMode) {
             cir.setReturnValue(new ArrayList<>());
         }
     }
@@ -43,35 +51,63 @@ public abstract class NetServerHandlerMixin {
             if (id ==1800||id==Item.axeWood.itemID||id==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
                 return 999999;
         }
-        if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
+        if (this.playerEntity.capabilities.isCreativeMode && (int)REACH.getValue() > 5) {
             return 999999;
         } else return constant;
     }
 
     @Inject(method = "handleUseEntity",at = @At("HEAD"), cancellable = true)
-    private void killEntity(Packet7UseEntity packet7UseEntity, CallbackInfo ci){
-        if (this.playerEntity.getHeldItem()!=null&&this.playerEntity.getHeldItem().itemID==1800){
+    private void clickEntity(Packet7UseEntity packet7UseEntity, CallbackInfo ci) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        ItemStack heldItem = this.playerEntity.getHeldItem();
+        if (heldItem != null&&this.playerEntity.capabilities.isCreativeMode) {
             Entity entity = this.playerEntity.worldObj.getEntityByID(packet7UseEntity.targetEntity);
-            if (entity!=null) {
-                entity.setDead();
-                ci.cancel();
+            if (entity != null) {
+                if (heldItem.itemID == Item.swordWood.itemID) {
+                    entity.setDead();
+                    ci.cancel();
+                } else if (heldItem.itemID == Item.hoeWood.itemID) {
+                    if (entity instanceof EntityLiving living){
+                        boolean canDespawn;
+                        try {
+                            Method canDespawnMethod = living.getClass().getDeclaredMethod("canDespawn");
+                            canDespawnMethod.setAccessible(true);
+                            canDespawn = (boolean)canDespawnMethod.invoke(living);
+                        } catch (Exception e) {
+                            Method canDespawnMethod = EntityLiving.class.getDeclaredMethod("canDespawn");
+                            canDespawnMethod.setAccessible(true);
+                            canDespawn = (boolean)canDespawnMethod.invoke(entity);
+                        }
+                        if (!canDespawn||living instanceof EntityWither||living instanceof EntityDragon) {
+                            playerEntity.sendChatToPlayer(ChatMessageComponent.createFromText(living.getTranslatedEntityName() + " already cannot despawn"));
+                        }else {
+                            living.setPersistent(!living.isNoDespawnRequired());
+                            PacketSender.sendServerToClientMessage(this.playerEntity, living.isNoDespawnRequired());
+                            playerEntity.sendChatToPlayer(ChatMessageComponent.createFromText(living.getTranslatedEntityName() + (living.isNoDespawnRequired() ? " is now a permanent mob" : " is now able to despawn")));
+                        }
+                    }
+                }
             }
         }
     }
 
     @Redirect(method = "handleUseEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayerMP;getDistanceSqToEntity(Lnet/minecraft/src/Entity;)D"))
     private double disableDistanceLimitUseEntity(EntityPlayerMP instance, Entity entity) {
-        if (instance.getHeldItem()!=null&&instance.getHeldItem().itemID==1800){
-            return 0;
+        if (this.playerEntity.capabilities.isCreativeMode) {
+            if (instance.getHeldItem() != null) {
+                if (instance.getHeldItem().itemID == Item.swordWood.itemID||instance.getHeldItem().itemID ==Item.hoeWood.itemID) {
+                    return 0;
+                }
+                if ((int) REACH.getValue() > 5) {
+                    return 0;
+                }
+            }
         }
-        if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
-            return 0;
-        } else return this.playerEntity.getDistanceSqToEntity(entity);
+        return this.playerEntity.getDistanceSqToEntity(entity);
     }
 
     @Redirect(method = "handlePlace", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayerMP;getDistanceSq(DDD)D"))
     private double disableDistanceLimitPlace(EntityPlayerMP instance, double x, double y, double z) {
-        if (this.playerEntity.capabilities.isCreativeMode && TessUConfig.reach > 5) {
+        if (this.playerEntity.capabilities.isCreativeMode && (int)REACH.getValue() > 5) {
             return 0;
         } else return this.playerEntity.getDistanceSq(x, y, z);
     }
@@ -133,7 +169,7 @@ public abstract class NetServerHandlerMixin {
     @Redirect(method = "handlePlace", at = @At(value = "INVOKE", target = "Lnet/minecraft/src/ItemInWorldManager;activateBlockOrUseItem(Lnet/minecraft/src/EntityPlayer;Lnet/minecraft/src/World;Lnet/minecraft/src/ItemStack;IIIIFFF)Z"))
     private boolean replaceInsteadOfPlacing(ItemInWorldManager instance, EntityPlayer player, World world, ItemStack itemStack, int x, int y, int z, int side, float offX, float offY, float offZ) {
         if (this.playerEntity.capabilities.isCreativeMode&& itemStack != null) {
-            if (TessUConfig.enableClickReplace && !this.playerEntity.isSneaking()  && (itemStack.getItem() instanceof ItemBlock || itemStack.getItem() instanceof RedstoneItem)) {
+            if ((boolean)CLICK_REPLACE.getValue() && !this.playerEntity.isSneaking()  && (itemStack.getItem() instanceof ItemBlock || itemStack.getItem() instanceof RedstoneItem)) {
                 world.setBlock(x, y, z, 0, 0, 2);
             }
         }return instance.activateBlockOrUseItem(this.playerEntity, world, itemStack, x, y, z, side, offX, offY, offZ);
@@ -144,4 +180,11 @@ public abstract class NetServerHandlerMixin {
         return 512;
     }
 
+    @Inject(method = "handleCustomPayload", at = @At("HEAD"), cancellable = true)
+    private void tu_onCustomPayloadC2S(Packet250CustomPayload packet, CallbackInfo ci) {
+        if (packet.channel.equals(TUChannels.CLIENT_TO_SERVER_CHANNEL)) {
+            PacketHandlerC2S.handle(packet, this.playerEntity);
+            ci.cancel();
+        }
+    }
 }

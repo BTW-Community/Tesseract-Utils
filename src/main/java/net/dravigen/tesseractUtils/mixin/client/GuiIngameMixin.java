@@ -1,8 +1,8 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.client;
 
 import net.dravigen.tesseractUtils.GUI.GuiConfigSettingsScreen;
-import net.dravigen.tesseractUtils.TessUConfig;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.dravigen.tesseractUtils.packet.PacketSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.lwjgl.input.Keyboard;
@@ -15,14 +15,21 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static net.dravigen.tesseractUtils.TesseractUtilsAddon.mspt;
+import static net.dravigen.tesseractUtils.TesseractUtilsAddon.tps;
+import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
+
 @Mixin(GuiIngame.class)
 public class GuiIngameMixin extends Gui {
     @Shadow @Final private Minecraft mc;
 
+    @Unique private static boolean ranOnce = false;
+    @Unique private static int previousEntityID = -1;
+
     @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/GuiIngame;drawString(Lnet/minecraft/src/FontRenderer;Ljava/lang/String;III)V",ordinal = 1))
-    private void addTargetBlockInfo(float par1, boolean par2, int par3, int par4, CallbackInfo ci){
+    private void addTargetBlockInfo(float par1, boolean par2, int par3, int par4, CallbackInfo ci)  {
         EntityClientPlayerMP player = this.mc.thePlayer;
-        if (TessUConfig.enableExtraDebugInfo &&player.capabilities.isCreativeMode) {
+        if ((boolean) EXTRA_DEBUG.getValue()&&player.capabilities.isCreativeMode) {
             FontRenderer fontRenderer = this.mc.fontRenderer;
             ScaledResolution scaledResolution = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
 
@@ -30,8 +37,11 @@ public class GuiIngameMixin extends Gui {
 
             Vec3 var3 = player.getPosition(1);
             Vec3 var4 = player.getLook(1);
-            Vec3 var5 = var3.addVector(var4.xCoord * TessUConfig.reach, var4.yCoord * TessUConfig.reach, var4.zCoord * TessUConfig.reach);
+            Vec3 var5 = var3.addVector(var4.xCoord * (int)REACH.getValue(), var4.yCoord * (int)REACH.getValue(), var4.zCoord * (int)REACH.getValue());
             MovingObjectPosition blockLookedAt = player.worldObj.clip(var3, var5);
+            MovingObjectPosition hitResult = mc.objectMouseOver;
+            int count=0;
+
             if (blockLookedAt != null) {
                 int xBlock = blockLookedAt.blockX;
                 int yBlock = blockLookedAt.blockY;
@@ -46,15 +56,47 @@ public class GuiIngameMixin extends Gui {
                     case 4 -> face = "West";
                     case 5 -> face = "East";
                 }
-                String var20 = "Targeted Block: " + xBlock + " / " + yBlock + " / " + zBlock;
-                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32, 0xE0E0E0);
-                var20 = "-ID: " + mc.theWorld.getBlockId(xBlock, yBlock, zBlock) + ", Metadata: " + mc.theWorld.getBlockMetadata(xBlock, yBlock, zBlock);
-                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 42, 0xE0E0E0);
-                var20 = "-Name: " + Block.blocksList[mc.theWorld.getBlockId(xBlock, yBlock, zBlock)].getLocalizedName();
-                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 52, 0xE0E0E0);
-                var20 = "-Face: " + blockLookedAt.sideHit + " = " + face;
-                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 62, 0xE0E0E0);
+                String var20 = "Targeted Block: §a" + xBlock + " §f/ §a" + yBlock + " §f/ §a" + zBlock;
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                var20 = "-Name: §a" + Block.blocksList[mc.theWorld.getBlockId(xBlock, yBlock, zBlock)].getLocalizedName();
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                var20 = "-ID: §a" + mc.theWorld.getBlockId(xBlock, yBlock, zBlock) + "§f, Metadata: §a" + mc.theWorld.getBlockMetadata(xBlock, yBlock, zBlock);
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                var20 = "-Face: §a" + face + " §f(§a" + blockLookedAt.sideHit + "§f)";
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                count++;
+
             }
+            if (hitResult!=null&&hitResult.typeOfHit == EnumMovingObjectType.ENTITY && hitResult.entityHit instanceof EntityLiving entity) {
+                String var20 = "Targeted Entity: §a" + entity.getTranslatedEntityName();
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                var20 = "-Health: §a" + entity.getHealth() + " §f/ §a" + entity.getMaxHealth();
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                var20 = "-Armor: §a" + entity.getTotalArmorValue();
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                var20 = "-Coords:§a " + String.format("%.1f",entity.posX) + " §f/ §a" + String.format("%.1f",entity.posY) + " §f/ §a" + String.format("%.1f",entity.posZ);
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                if (entity.entityId!=previousEntityID) {
+                    if (!ranOnce) {
+                        PacketSender.sendClientToServerMessage("isEntityPermanent:" + entity.entityId);
+                        ranOnce = true;
+                        previousEntityID=entity.entityId;
+                    }
+                }
+
+                var20 = "-IsPermanent: §a" + (TesseractUtilsAddon.isLookedAtEntityPermanentClientSide);
+                this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
+                count++;
+                count++;
+            }else ranOnce=false;
         }
     }
     @Unique
@@ -168,7 +210,7 @@ public class GuiIngameMixin extends Gui {
                 F4Foolpressed = false;
             }
             this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
-            if (TessUConfig.configMenu.isPressed()) {
+            if (Keyboard.isKeyDown((int)CONFIG_MENU_KEY.getValue())) {
                 this.mc.displayGuiScreen(new GuiConfigSettingsScreen(null));
             }
         }
@@ -176,24 +218,45 @@ public class GuiIngameMixin extends Gui {
 
 
     @Inject(method = "addChunkBoundaryDisplay",at = @At("TAIL"))
-    private void addCoordsToScreen(int iYPos, CallbackInfo ci){
+    private void addExtraInfo(int iYPos, CallbackInfo ci){
         EntityClientPlayerMP player = this.mc.thePlayer;
-        if (TessUConfig.enableExtraDebugInfo &&player.capabilities.isCreativeMode) {
+        if ((boolean) EXTRA_DEBUG.getValue() &&player.capabilities.isCreativeMode) {
             FontRenderer fontRenderer = this.mc.fontRenderer;
-            int x = MathHelper.floor_double(player.posX);
-            int y = MathHelper.floor_double(player.boundingBox.minY);
-            int z = MathHelper.floor_double(player.posZ);
+            String x = String.format("%.1f",player.posX);
+            String y = String.format("%.1f",player.boundingBox.minY);
+            String z = String.format("%.1f",player.posZ);
+            int xInt = MathHelper.floor_double(player.posX);
+            int yInt = MathHelper.floor_double(player.boundingBox.minY);
+            int zInt = MathHelper.floor_double(player.posZ);
             float var2 = MathHelper.cos(-player.rotationYaw * ((float)Math.PI / 180) - (float)Math.PI);
             float var3 = MathHelper.sin(-player.rotationYaw * ((float)Math.PI / 180) - (float)Math.PI);
             float var5 = MathHelper.sin(-player.rotationPitch * ((float)Math.PI / 180));
-            Vec3 direction = player.worldObj.getWorldVec3Pool().getVecFromPool(-var3, var5, -var2);
+            World world = player.worldObj;
+            Vec3 direction = world.getWorldVec3Pool().getVecFromPool(-var3, var5, -var2);
             String facing;
             facing = direction.xCoord>=0 ? (direction.zCoord<=0 ? (direction.xCoord<=0.7 ? "north" : "east") : direction.xCoord<=0.7 ? "south" : "east") : (direction.zCoord<=0 ? (direction.xCoord>=-0.7 ? "north" : "west") : (direction.xCoord<=-0.7 ? "west" : "south"));
-            this.drawString(fontRenderer, String.format("XYZ: " + x + " / " + y + " / " + z), 2, iYPos + 55, 0xE0E0E0);
-            this.drawString(fontRenderer, String.format("Biome: " + player.worldObj.getBiomeGenForCoords(player.chunkCoordX,player.chunkCoordZ).biomeName), 2, iYPos + 65, 0xE0E0E0);
-            this.drawString(fontRenderer, String.format("Light: " + player.worldObj.getBlockLightValue(x,y,z) + " (" + player.worldObj.getBlockNaturalLightValue(x,y,z) + " sky, " + player.worldObj.getBlockLightValueNoSky(x,y,z) + " block)"), 2, iYPos + 75, 0xE0E0E0);
-            this.drawString(fontRenderer, String.format("Facing: " + facing ), 2, iYPos + 85, 0xE0E0E0);
+            this.drawString(fontRenderer, String.format("XYZ: " + x + " / " + y + " / " + z), 2, iYPos + 55, 0xFFFFFF);
+            this.drawString(fontRenderer, String.format("Biome: " + world.getBiomeGenForCoords(player.chunkCoordX,player.chunkCoordZ).biomeName), 2, iYPos + 65, 0xFFFFFF);
+            this.drawString(fontRenderer, String.format("Light: " + world.getBlockLightValue(xInt,yInt,zInt) + " (" + world.getBlockNaturalLightValue(xInt,yInt,zInt) + " sky, " + world.getBlockLightValueNoSky(xInt,yInt,zInt) + " block)"), 2, iYPos + 75, 0xFFFFFF);
+            this.drawString(fontRenderer, String.format("Facing: " + facing ), 2, iYPos + 85, 0xFFFFFF);
+            this.drawString(fontRenderer, "TPS: " + String.format("%.2f", 1000/tps) + ", MSPT: " + mspt, 2, iYPos + 95, 0xFFFFFF);
 
+            WorldServer worldServer = MinecraftServer.getServer().worldServers[player.dimension];
+            int currentHostile = worldServer.countEntitiesThatApplyToSpawnCap(IMob.class);
+            int currentCreature = worldServer.countEntitiesThatApplyToSpawnCap(EntityAnimal.class);
+            int currentAmbient = worldServer.countEntitiesThatApplyToSpawnCap(EntityAmbientCreature.class);
+            int currentWater = worldServer.countEntitiesThatApplyToSpawnCap(EntityWaterMob.class);
+            float constant = worldServer.getActiveChunksCoordsList().size() / 256f;
+            int maxHostile = (int) (90 * constant);
+            int maxCreature = (int) (10*constant);
+            int maxAmbient = (int) (15*constant);
+            int maxWater = (int) (5*constant);
+
+            this.drawString(fontRenderer, "Mobs cap:", 2, iYPos + 115, 0xFFFFFF);
+            this.drawString(fontRenderer, "-Hostile: " + currentHostile + "/" + maxHostile, 2, iYPos + 125, 0xFFFFFF);
+            this.drawString(fontRenderer, "-Creature: " + currentCreature + "/" + maxCreature, 2, iYPos + 135, 0xFFFFFF);
+            this.drawString(fontRenderer, "-Ambient: " + currentAmbient + "/" + maxAmbient, 2, iYPos + 145, 0xFFFFFF);
+            this.drawString(fontRenderer, "-Water: " + currentWater + "/" + maxWater, 2, iYPos + 155, 0xFFFFFF);
         }
     }
 }

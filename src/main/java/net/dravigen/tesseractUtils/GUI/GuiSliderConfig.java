@@ -17,9 +17,9 @@ public class GuiSliderConfig extends GuiButton {
     private final String id;
     private final int notches;
 
-    public GuiSliderConfig(int i, int j, int k, int width, String id, String string, float value, int notches) {
-        super(i, j, k, width, 20, string);
-        this.id = id;
+    public GuiSliderConfig(int id, int posX, int posY, int width, int height, String stringId, String string, float value, int notches) {
+        super(id, posX, posY, width, height, string);
+        this.id = stringId;
         this.sliderValue = value;
         this.notches = notches;
     }

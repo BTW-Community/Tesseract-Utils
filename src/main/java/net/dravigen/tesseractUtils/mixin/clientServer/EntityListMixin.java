@@ -1,4 +1,4 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.clientServer;
 
 import btw.entity.CanvasEntity;
 import btw.entity.DynamiteEntity;

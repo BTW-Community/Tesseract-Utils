@@ -1,7 +1,8 @@
 package net.dravigen.tesseractUtils.GUI;
 
-import static net.dravigen.tesseractUtils.TessUConfig.*;
-import static net.dravigen.tesseractUtils.TessUConfig.flySpeed;
+import net.dravigen.tesseractUtils.configs.EnumConfig;
+
+import static net.dravigen.tesseractUtils.configs.TessUConfig.*;
 
 public class GuiUtils {
 
@@ -15,28 +16,22 @@ public class GuiUtils {
 
     // Handles slider value
     public void setSliderConfig(String property, float value) {
-        switch (property) {
-            case "reach":
-                reach = (int)(value*128);
+        for (EnumConfig config:enumConfigs){
+            if (config.getProperty().equalsIgnoreCase(property)){
+                config.setValue((int)(value*(config.getMaxValue()-1)+1));
                 break;
-            case "flightSpeed":
-                flySpeed = (int)(value*32)+1;
-                break;
-            case "extrudeLimit":
-                extrudeLimit = (int)(value*4047)+1;
-                break;
+            }
         }
         saveConfig();
-
     }
 
     // Gets slider display
     public String getSliderDisplay(String property) {
-        return switch (property) {
-            case "reach" -> "Reach: " + (int) reach;
-            case "flightSpeed" -> flySpeed < 32 ? "Flight speed: " + (int) (flySpeed) : "Flight speed: too fast";
-            case "extrudeLimit" -> "Extrude limit: " + (int) extrudeLimit;
-            default -> "";
-        };
+        for (EnumConfig config:enumConfigs){
+            if (config.getProperty().equalsIgnoreCase(property)){
+                return config.getName()+": "+config.getValue();
+            }
+        }
+        return "";
     }
 }

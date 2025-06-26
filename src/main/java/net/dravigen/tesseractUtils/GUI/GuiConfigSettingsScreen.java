@@ -1,14 +1,14 @@
 package net.dravigen.tesseractUtils.GUI;
 
+import net.dravigen.tesseractUtils.configs.EnumConfig;
 import net.minecraft.src.*;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.dravigen.tesseractUtils.TessUConfig.*;
+import static net.dravigen.tesseractUtils.configs.TessUConfig.*;
 
 public class GuiConfigSettingsScreen extends GuiScreen {
 
@@ -24,30 +24,8 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     private int maxScrollOffset = 0;
     private int scrollAreaPosY, scrollAreaHeight;
     private boolean isScrolling = false;
-    private static final EnumConfig[] enumConfigs;
-
-    static {
-        enumConfigs = new EnumConfig[]{EnumConfig.PLACING_COOLDOWN, EnumConfig.BREAKING_COOLDOWN, EnumConfig.FLIGHT_MOMENTUM, EnumConfig.CLICK_REPLACE, EnumConfig.NO_CLIP, EnumConfig.EXTRA_DEBUG, EnumConfig.VANILLA_NIGHTVIS, EnumConfig.FUZZY_EXTRUDER,
-                EnumConfig.REACH, EnumConfig.FLIGHT_SPEED, EnumConfig.EXTRUDE_LIMIT,
-                EnumConfig.CONFIG_MENU_KEY, EnumConfig.BAR_SWAP_KEY};
-    }
-
-    public final int placeIndex = EnumConfig.PLACING_COOLDOWN.returnEnumOrdinal();
-    public final int breakIndex = EnumConfig.BREAKING_COOLDOWN.returnEnumOrdinal();
-    public final int momentumIndex = EnumConfig.FLIGHT_MOMENTUM.returnEnumOrdinal();
-    public final int replaceIndex = EnumConfig.CLICK_REPLACE.returnEnumOrdinal();
-    public final int clipIndex = EnumConfig.NO_CLIP.returnEnumOrdinal();
-    public final int debugIndex = EnumConfig.EXTRA_DEBUG.returnEnumOrdinal();
-    public final int nightIndex = EnumConfig.VANILLA_NIGHTVIS.returnEnumOrdinal();
-    public final int fuzzyIndex = EnumConfig.FUZZY_EXTRUDER.returnEnumOrdinal();
-
-    public final int reachIndex = EnumConfig.REACH.returnEnumOrdinal();
-    public final int flyIndex = EnumConfig.FLIGHT_SPEED.returnEnumOrdinal();
-    public final int extrudeIndex = EnumConfig.EXTRUDE_LIMIT.returnEnumOrdinal();
-
-    public final int menuKeyIndex = EnumConfig.CONFIG_MENU_KEY.returnEnumOrdinal();
-    public final int barKeyIndex = EnumConfig.BAR_SWAP_KEY.returnEnumOrdinal();
     private int dragStartOffset;
+
 
     public GuiConfigSettingsScreen(GuiScreen parent) {
         this.parentScreen = parent;
@@ -55,14 +33,20 @@ public class GuiConfigSettingsScreen extends GuiScreen {
 
     @Override
     public void initGui() {
+
         super.initGui();
         StringTranslate stringTranslate = StringTranslate.getInstance();
         scrollAreaPosY = this.height / 6 + 29;
         scrollAreaHeight = 11 * 29;
         int count = 1;
         for (EnumConfig item : enumConfigs) {
-            int ordinal = item.returnEnumOrdinal();
-            if (item.getEnumBoolean()) {
+            if (Minecraft.getMinecraft().thePlayer != null) {
+                if (!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode && !item.getBSFriendly()) {
+                    continue;
+                }
+            }
+            int ordinal = item.getIndex();
+            if (item.isBool()) {
                 // Is boolean button
                 GuiButton button = new GuiButtonCustom(ordinal,
                         this.width / 2 + 25,
@@ -70,22 +54,24 @@ public class GuiConfigSettingsScreen extends GuiScreen {
                         150,
                         20,
                         200,
-                        boolToString(ordinal, getBoolValue(ordinal)),
+                        20,
+                        boolToString(getBoolValue(ordinal)),
                         customButtonBar);
                 buttons.add(button);
                 this.buttonList.add(button);
-            } else if (item.getEnumInt()) {
+            } else if (item.isInt()) {
                 // Is int button
                 GuiSliderConfig slider = new GuiSliderConfig(ordinal,
                         (int) (this.width / 2f - 200 + 25),
                         this.height / 6 + (29 * count),
                         (int) ((this.width / 2f + 150 + 25) - (this.width / 2f - 200 + 25)),
-                        item.getEnumProperty(),
-                        GuiUtils.getInstance().getSliderDisplay(item.getEnumProperty()),
+                        20,
+                        item.getProperty(),
+                        GuiUtils.getInstance().getSliderDisplay(item.getProperty()),
                         getFloatValue(ordinal), 0);
                 buttons.add(slider);
                 this.buttonList.add(slider);
-            } else if (item.getKeyBind()) {
+            } else if (item.isKeybind()) {
                 // Is keyBind button
                 GuiButton button = new GuiButtonCustom(ordinal,
                         this.width / 2 + 25,
@@ -93,7 +79,8 @@ public class GuiConfigSettingsScreen extends GuiScreen {
                         150,
                         20,
                         200,
-                        GameSettings.getKeyDisplayString(modBinds[ordinal - 375].keyCode),
+                        20,
+                        GameSettings.getKeyDisplayString((int) item.getValue()),
                         customButtonBar);
                 buttons.add(button);
                 this.buttonList.add(button);
@@ -103,9 +90,10 @@ public class GuiConfigSettingsScreen extends GuiScreen {
                         this.width / 6,
                         this.height / 6 + (29 * count),
                         150,
-                        item.getEnumProperty(),
-                        GuiUtils.getInstance().getSliderDisplay(item.getEnumProperty()),
-                        getFloatValue(ordinal), item.getEnumFloatNotches());
+                        20,
+                        item.getProperty(),
+                        GuiUtils.getInstance().getSliderDisplay(item.getProperty()),
+                        getFloatValue(ordinal), 0);
                 buttons.add(slider);
                 this.buttonList.add(slider);
             }
@@ -113,6 +101,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
             GuiButton resetButton = new GuiButtonCustom(ordinal + 100,
                     this.width / 2 + 25 + 154,
                     this.height / 6 + 29 * (count),
+                    20,
                     20,
                     20,
                     20,
@@ -124,11 +113,12 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         }
         // Add a "Done" button
         GuiButton doneButton = new GuiButtonCustom(100,
-                this.width / 2 - 100,
-                this.height / 6 + (29 * 13) + 10,
+                width / 2 - 100,
+                height / 6 + (29 * 13) + 10,
                 200,
                 20,
                 200,
+                20,
                 stringTranslate.translateKey("gui.done"),
                 customButtonBar);
         miscButtons.add(doneButton);
@@ -139,6 +129,9 @@ public class GuiConfigSettingsScreen extends GuiScreen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+
+
+
         drawDefaultBackground();
         for (int i = 0; i < buttons.size(); i++) {
             GuiButton button = buttons.get(i);
@@ -202,9 +195,14 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         int var6 = 0xffffff;
         int count = 0;
         for (EnumConfig config : enumConfigs) {
+            if (Minecraft.getMinecraft().thePlayer != null) {
+                if (!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode && !config.getBSFriendly()) {
+                    continue;
+                }
+            }
             int buttonDrawY = scrollAreaPosY + (count * 29) - scrollOffset;
             if (buttonDrawY + buttons.get(count).height >= scrollAreaPosY && buttonDrawY < scrollAreaPosY + scrollAreaHeight) {
-                String name = config.getEnumName();
+                String name = config.getName();
                 GL11.glEnable(3042);
                 GL11.glDisable(3553);
                 GL11.glEnable(GL11.GL_BLEND);
@@ -224,7 +222,87 @@ public class GuiConfigSettingsScreen extends GuiScreen {
             count++;
         }
     }
+    @Override
+    protected void actionPerformed(GuiButton button) {
+        currentButton = button;
+        for (EnumConfig config:enumConfigs){
+            if (button.id == config.getIndex()) {
+                if (config.isBool()) {
+                    config.setValue(!(boolean) config.getValue());
+                    button.displayString = (boolean) config.getValue() ? "Enabled" : "Disabled";
+                    this.mc.displayGuiScreen(new GuiConfigSettingsScreen(parentScreen));
+                }else if (config.isKeybind()) {
+                    this.buttonId = button.id;
+                    String var1 = button.displayString;
+                    button.displayString = "> " + var1 + " <";
+                }
+                break;
+            }else if (button.id == config.getIndex() + 100) {
+                if (!config.getValue().equals(config.getBaseValue())) {
+                    config.setValue(config.getBaseValue());
+                    if (config.isKeybind()){
+                        button.displayString = GameSettings.getKeyDisplayString((int)config.getValue());
+                        properties.put(config.getProperty(), config.getBaseValue());
+                        KeyBinding.resetKeyBindingArrayAndHash();
+                    }
+                }
+                this.mc.displayGuiScreen(new GuiConfigSettingsScreen(parentScreen));
+                break;
+            }
+        }
+        saveConfig();
 
+        if (button.id == 100) {
+            if (this.parentScreen == null) {
+                this.mc.displayGuiScreen(null);
+                this.mc.setIngameFocus();
+                this.mc.sndManager.resumeAllSounds();
+            } else this.mc.displayGuiScreen(this.parentScreen);
+        }
+    }
+
+    @Override
+    protected void keyTyped(char par1, int par2) {
+        for (EnumConfig config:enumConfigs){
+            if (this.buttonId == config.getIndex()){
+                config.setValue(par2);
+                currentButton.displayString = GameSettings.getKeyDisplayString(par2);
+                properties.put(config.getProperty(), par2);
+                this.buttonId = -1;
+                KeyBinding.resetKeyBindingArrayAndHash();
+                return;
+            }
+        }
+        super.keyTyped(par1, par2);
+    }
+
+    private boolean getBoolValue(int ordinal) {
+        for(EnumConfig config : enumConfigs){
+            if (config.getIndex()==ordinal){
+                return (boolean) config.getValue();
+            }
+        }
+        return false;
+    }
+
+    private float getFloatValue(int ordinal) {
+        for (EnumConfig config:enumConfigs){
+            if (ordinal== config.getIndex()){
+                return (float) (config.getIntValue()-1) /config.getMaxValue();
+            }
+        }
+        return 1.0f;
+    }
+
+    private String boolToString(boolean bool) {
+        return bool ? "Enabled" : "Disabled";
+    }
+/*
+    private String intToString(int ordinal, int value) {
+        String res = "";
+
+        return StatCollector.translateToLocal(res);
+    }*/
     @Override
     public void handleMouseInput() {
         super.handleMouseInput();
@@ -249,11 +327,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
                 scrollOffset = MathHelper.clamp_int(scrollOffset, 0, maxScrollOffset);
             }
         }
-        if (this.buttonId == menuKeyIndex || this.buttonId == barKeyIndex) {
-            this.updateBind(mouseButton);
-        } else {
-            super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
+        super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     private int getCalculatedThumbHeight() {
@@ -294,193 +368,6 @@ public class GuiConfigSettingsScreen extends GuiScreen {
             scrollOffset = (int) (scrollProgress * maxScrollOffset);
             scrollOffset = MathHelper.clamp_int(scrollOffset, 0, maxScrollOffset);
         }
-    }
-
-    @Override
-    protected void actionPerformed(GuiButton button) {
-        currentButton = button;
-        if (button.id == placeIndex) {
-            disablePlaceCooldown = !disablePlaceCooldown;
-            button.displayString = disablePlaceCooldown ? "Disabled" : "Enabled";
-        }
-        if (button.id == breakIndex) {
-            disableBreakCooldown = !disableBreakCooldown;
-            button.displayString = disableBreakCooldown ? "Disabled" : "Enabled";
-        }
-        if (button.id == momentumIndex) {
-            disableMomentum = !disableMomentum;
-            button.displayString = disableMomentum ? "Disabled" : "Enabled";
-        }
-        if (button.id == replaceIndex) {
-            enableClickReplace = !enableClickReplace;
-            button.displayString = !enableClickReplace ? "Disabled" : "Enabled";
-        }
-        if (button.id == clipIndex) {
-            enableNoClip = !enableNoClip;
-            button.displayString = !enableNoClip ? "Disabled" : "Enabled";
-        }
-        if (button.id == debugIndex) {
-            enableExtraDebugInfo = !enableExtraDebugInfo;
-            button.displayString = !enableExtraDebugInfo ? "Disabled" : "Enabled";
-        }
-        if (button.id == nightIndex) {
-            enableVanillaNightVis = !enableVanillaNightVis;
-            button.displayString = !enableVanillaNightVis ? "Disabled" : "Enabled";
-        }
-        if (button.id == fuzzyIndex) {
-            enableFuzzyExtruder = !enableFuzzyExtruder;
-            button.displayString = !enableFuzzyExtruder ? "Disabled" : "Enabled";
-        }
-        if (button.id == menuKeyIndex || button.id == barKeyIndex) {
-            this.buttonId = button.id;
-            String var10001 = button.displayString;
-            button.displayString = "> " + var10001 + " <";
-        }
-        if (button.id == placeIndex + 100) {
-            if (disablePlaceCooldown) {
-                disablePlaceCooldown = false;
-            }
-        }
-        if (button.id == breakIndex + 100) {
-            if (disableBreakCooldown) {
-                disableBreakCooldown = false;
-            }
-        }
-        if (button.id == momentumIndex + 100) {
-            if (disableMomentum) {
-                disableMomentum = false;
-            }
-        }
-        if (button.id == replaceIndex + 100) {
-            if (enableClickReplace) {
-                enableClickReplace = false;
-            }
-        }
-        if (button.id == clipIndex + 100) {
-            if (enableNoClip) {
-                enableNoClip = false;
-            }
-        }
-        if (button.id == debugIndex + 100) {
-            if (enableExtraDebugInfo) {
-                enableExtraDebugInfo = false;
-            }
-        }
-        if (button.id == nightIndex + 100) {
-            if (enableVanillaNightVis) {
-                enableVanillaNightVis = false;
-            }
-        }
-        if (button.id == fuzzyIndex + 100) {
-            if (enableFuzzyExtruder) {
-                enableFuzzyExtruder = false;
-            }
-        }
-        if (button.id == reachIndex + 100) {
-            if (reach != 5) {
-                reach = 5;
-            }
-        }
-        if (button.id == flyIndex + 100) {
-            if (flySpeed != 2) {
-                flySpeed = 2;
-            }
-        }
-        if (button.id == extrudeIndex+100){
-            if (extrudeLimit != 128) {
-                extrudeLimit = 128;
-            }
-        }
-        if (button.id == menuKeyIndex + 100) {
-            modBinds[0].keyCode = Keyboard.KEY_F6;
-            button.displayString = GameSettings.getKeyDisplayString(configMenu.keyCode);
-            properties.put(configMenu.keyDescription, Keyboard.KEY_F6);
-            KeyBinding.resetKeyBindingArrayAndHash();
-        }
-        if (button.id == barKeyIndex + 100) {
-            modBinds[1].keyCode = Keyboard.KEY_H;
-            button.displayString = GameSettings.getKeyDisplayString(hotbarSwap.keyCode);
-            properties.put(hotbarSwap.keyDescription, Keyboard.KEY_H);
-            KeyBinding.resetKeyBindingArrayAndHash();
-        }
-
-        if (button.id != reachIndex && button.id != extrudeIndex && button.id != flyIndex && button.id != menuKeyIndex && button.id != barKeyIndex) {
-            this.mc.displayGuiScreen(new GuiConfigSettingsScreen(parentScreen));
-        }
-
-        saveConfig();
-
-        if (button.id == 100) {
-            if (this.parentScreen == null) {
-                this.mc.displayGuiScreen(null);
-                this.mc.setIngameFocus();
-                this.mc.sndManager.resumeAllSounds();
-            } else this.mc.displayGuiScreen(this.parentScreen);
-        }
-    }
-
-    @Override
-    protected void keyTyped(char par1, int par2) {
-        if (this.buttonId == menuKeyIndex || this.buttonId == barKeyIndex) {
-            this.updateBind(par2);
-        } else {
-            super.keyTyped(par1, par2);
-        }
-
-    }
-
-    public void updateBind(int scancode) {
-        this.buttonId -= menuKeyIndex;
-        modBinds[this.buttonId].keyCode = scancode;
-        currentButton.displayString = GameSettings.getKeyDisplayString(modBinds[this.buttonId].keyCode);
-        properties.put(modBinds[this.buttonId].keyDescription, modBinds[this.buttonId].keyCode);
-        this.buttonId = -1;
-        KeyBinding.resetKeyBindingArrayAndHash();
-    }
-
-    private boolean getBoolValue(int ordinal) {
-        int var1 = ordinal - 300;
-        return switch (var1) {
-            case 0 -> disablePlaceCooldown;
-            case 1 -> disableBreakCooldown;
-            case 2 -> disableMomentum;
-            case 3 -> enableClickReplace;
-            case 4 -> enableNoClip;
-            case 5 -> enableExtraDebugInfo;
-            case 6 -> enableVanillaNightVis;
-            case 7 -> enableFuzzyExtruder;
-            default -> false;
-        };
-    }
-
-    private int getIntValue(int ordinal) {
-
-        return -1;
-    }
-
-    private float getFloatValue(int ordinal) {
-        if (ordinal == reachIndex)
-            return (reach / 128);
-        if (ordinal == flyIndex)
-            return ((flySpeed - 1) / 32);
-        if (ordinal == extrudeIndex)
-            return ((extrudeLimit-1)/4096);
-        return 1.0f;
-    }
-
-    private String boolToString(int ordinal, boolean bool) {
-        int var1 = ordinal - 300;
-        return switch (var1) {
-            case 0, 1, 2 -> bool ? "Disabled" : "Enabled";
-            case 3, 4, 5, 6,7 -> bool ? "Enabled" : "Disabled";
-            default -> throw new IllegalStateException("Unexpected value: " + ordinal);
-        };
-    }
-
-    private String intToString(int ordinal, int value) {
-        String res = "";
-
-        return StatCollector.translateToLocal(res);
     }
 
 }

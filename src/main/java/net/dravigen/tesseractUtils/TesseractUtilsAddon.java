@@ -7,9 +7,11 @@ import net.dravigen.tesseractUtils.inventory.InventoryDataManager;
 import net.dravigen.tesseractUtils.inventory.ModDirectories;
 import net.dravigen.tesseractUtils.inventory.SavedInventoriesList;
 import net.dravigen.tesseractUtils.item.DeleteEntityItem;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.src.*;
 
-import static net.dravigen.tesseractUtils.TessUConfig.*;
+import static net.dravigen.tesseractUtils.configs.TessUConfig.*;
 
 public class TesseractUtilsAddon extends BTWAddon {
 
@@ -22,18 +24,29 @@ public class TesseractUtilsAddon extends BTWAddon {
     public static int modeState;
     public static Language listLanguage;
     public static Item deleteEntityItem;
+    public static long mspt;
+    public static float tps;
+
+    @Environment(EnvType.CLIENT)
+    public static boolean isLookedAtEntityPermanentClientSide = false;
 
     public static TesseractUtilsAddon getInstance() {
         return instance == null ? (new TesseractUtilsAddon()) : instance;
     }
+    public static class TUChannels {
+        public static final String CLIENT_TO_SERVER_CHANNEL = "T-U:C2S";
 
+        public static final String SERVER_TO_CLIENT_CHANNEL = "T-U:S2C";
+    }
     @Override
     public void initialize() {
         AddonHandler.logMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
         loadConfig();
         registerNewCommands();
+
         deleteEntityItem=new DeleteEntityItem(1800-256).setCreativeTab(CreativeTabs.tabTools);
     }
+
 
     private void registerNewCommands(){
         registerAddonCommand(new CommandInv());
@@ -42,6 +55,7 @@ public class TesseractUtilsAddon extends BTWAddon {
         registerAddonCommand(new CommandNewKill());
         registerAddonCommand(new CommandNewGive());
         registerAddonCommand(new CommandNewEffect());
+        registerAddonCommand(new CommandPlaysoundNew());
     }
 
     @Override

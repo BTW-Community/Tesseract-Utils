@@ -1,6 +1,5 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.client;
 
-import net.dravigen.tesseractUtils.TessUConfig;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.dravigen.tesseractUtils.command.UtilsCommand;
 import net.minecraft.src.*;
@@ -13,13 +12,14 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
+
 @Mixin(PlayerControllerMP.class)
 public abstract class PlayerControllerMPMixin {
 
     @Shadow private EnumGameType currentGameType;
     @Shadow @Final private Minecraft mc;
     @Shadow private int blockHitDelay;
-    @Shadow public abstract void setGameType(EnumGameType par1EnumGameType);
 
     @ModifyConstant(method = "getBlockReachDistance", constant = @Constant(floatValue = 5.0f))
     private float modifyCreativeReach(float constant) {
@@ -29,7 +29,7 @@ public abstract class PlayerControllerMPMixin {
             if (id ==1800|| id ==Item.axeWood.itemID|| id ==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
                 return 128;
         }
-        if (this.currentGameType.isCreative()) return TessUConfig.reach;
+        if (this.currentGameType.isCreative()) return (int)REACH.getValue();
         else return constant;
     }
 
@@ -75,24 +75,33 @@ public abstract class PlayerControllerMPMixin {
 
     @Redirect(method = "onPlayerDamageBlock",at = @At(value = "FIELD", target = "Lnet/minecraft/src/PlayerControllerMP;blockHitDelay:I",opcode = Opcodes.GETFIELD))
     private int disableBreakCooldown(PlayerControllerMP instance, int value){
-        return this.currentGameType.isCreative()&& TessUConfig.disableBreakCooldown ? 0 : this.blockHitDelay;
+        return this.currentGameType.isCreative()&& (boolean)BREAKING_COOLDOWN.getValue() ? 0 : this.blockHitDelay;
     }
 
     @Inject(method = "setGameType",at = @At("TAIL"))
      private void setGameType(EnumGameType par1EnumGameType, CallbackInfo ci){
-         if (par1EnumGameType == EnumGameType.SURVIVAL && TessUConfig.enableNoClip){
-             TessUConfig.enableNoClip=false;
+         if (par1EnumGameType == EnumGameType.SURVIVAL && (boolean) NO_CLIP.getValue()){
+             NO_CLIP.setValue(false);
              this.mc.thePlayer.noClip=false;
-             this.setGameType(EnumGameType.CREATIVE);
-             this.setGameType(EnumGameType.SURVIVAL);
-
          }
      }
 
     @Inject(method = "updateController",at = @At("TAIL"))
     private void getModeState(CallbackInfo ci){
         EnumGameType type = this.currentGameType;
-        TesseractUtilsAddon.modeState = type == EnumGameType.CREATIVE ?  (TessUConfig.enableNoClip ? 2 : 0) : type == EnumGameType.SURVIVAL ? 1 : 3;
+        TesseractUtilsAddon.modeState = type == EnumGameType.CREATIVE ?  ((boolean) NO_CLIP.getValue() ? 2 : 0) : type == EnumGameType.SURVIVAL ? 1 : 3;
     }
 
+    @Inject(method = "func_78768_b",at = @At("HEAD"), cancellable = true)
+    private void clickOnEntity(EntityPlayer playerEntity, Entity entity, CallbackInfoReturnable<Boolean> cir){
+        ItemStack heldItem = playerEntity.getHeldItem();
+        if (heldItem != null&&playerEntity.capabilities.isCreativeMode) {
+            if (entity != null) {
+                if (heldItem.itemID == Item.swordWood.itemID) {
+                    entity.setDead();
+                    cir.cancel();
+                }
+            }
+        }
+    }
 }

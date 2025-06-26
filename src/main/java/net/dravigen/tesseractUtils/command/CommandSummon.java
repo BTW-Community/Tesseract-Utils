@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.entityShowNameList;
 
 public class CommandSummon extends CommandBase {
@@ -22,9 +23,9 @@ public class CommandSummon extends CommandBase {
     @Override
     public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
         if (strings.length==1){
-            return UtilsCommand.getInstance().getEntityName(strings);
+            return getInstance().getEntityName(strings);
         }
-        MovingObjectPosition blockCoord = UtilsCommand.getInstance().getBlockPlayerIsLooking(par1ICommandSender);
+        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
         if (strings.length>=3) {
             if (blockCoord != null) {
                 int x = blockCoord.blockX;
@@ -77,8 +78,7 @@ public class CommandSummon extends CommandBase {
             for (String entity1 :entitiesName) {
                 for (String name : entityShowNameList){
                     if (name.equalsIgnoreCase(entity1)){
-                        System.out.println(UtilsCommand.entityTrueNameList.get(entityShowNameList.indexOf(name)));
-                        entities.add(EntityList.createEntityByName(UtilsCommand.entityTrueNameList.get(entityShowNameList.indexOf(name)), sender.getEntityWorld()));
+                        entities.add(EntityList.createEntityByName(entityTrueNameList.get(entityShowNameList.indexOf(name)), sender.getEntityWorld()));
                         break;
                     }
                 }

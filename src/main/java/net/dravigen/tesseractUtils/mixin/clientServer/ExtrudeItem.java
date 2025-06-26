@@ -1,4 +1,4 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.clientServer;
 
 import btw.item.items.ShovelItem;
 import btw.item.items.ToolItem;
@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.dravigen.tesseractUtils.TessUConfig.enableFuzzyExtruder;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.findConnectedBlocksInPlane;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.undoSaved;
+import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
 
 @Mixin(ShovelItem.class)
 public abstract class ExtrudeItem extends ToolItem {
@@ -23,7 +23,7 @@ public abstract class ExtrudeItem extends ToolItem {
 
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int i, int j, int k, int iFacing, float fClickX, float fClickY, float fClickZ) {
-        if (stack.itemID==Item.shovelWood.itemID) {
+        if (stack.itemID==Item.shovelWood.itemID&&player.capabilities.isCreativeMode) {
             return false;
         }else return super.onItemUse(stack,player,world,i,j,k,iFacing,fClickX,fClickY,fClickZ);
     }
@@ -31,7 +31,8 @@ public abstract class ExtrudeItem extends ToolItem {
     @Override
     public boolean onBlockDestroyed(ItemStack itemStack, World world, int iBlockID, int i, int j, int k, EntityLivingBase entity) {
         if (itemStack.itemID==Item.shovelWood.itemID) {
-            if (!(entity instanceof EntityPlayer player))return false;
+            if (!(entity instanceof EntityPlayer player))return super.onBlockDestroyed(itemStack,world,iBlockID,i,j,k,entity);
+            if (!player.capabilities.isCreativeMode)return super.onBlockDestroyed(itemStack,world,iBlockID,i,j,k,entity);
             List<SavedBlock> list = new ArrayList<>();
             MovingObjectPosition mop = getBlockPlayerIsLooking(player);
             if (mop == null || mop.typeOfHit != EnumMovingObjectType.TILE) {
@@ -45,7 +46,7 @@ public abstract class ExtrudeItem extends ToolItem {
             int referenceBlockId = world.getBlockId(clickedX, clickedY, clickedZ);
             int referenceBlockMeta = world.getBlockMetadata(clickedX, clickedY, clickedZ);
 
-            List<BlockPos> connectedBlocks = findConnectedBlocksInPlane(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta, clickedFace,enableFuzzyExtruder);
+            List<BlockPos> connectedBlocks = findConnectedBlocksInPlane(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta, clickedFace,(boolean)FUZZY_EXTRUDER.getValue());
 
             if (connectedBlocks.isEmpty()) {
                 player.addChatMessage("§cNo connected blocks of the same type found.");
@@ -70,12 +71,12 @@ public abstract class ExtrudeItem extends ToolItem {
             } else {
                 player.addChatMessage("§cNo blocks could be placed.");
             }
-        }return false;
+        }return super.onBlockDestroyed(itemStack,world,iBlockID,i,j,k,entity);
     }
 
     @Override
     public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player) {
-        if (itemStack.itemID==Item.shovelWood.itemID) {
+        if (itemStack.itemID==Item.shovelWood.itemID&&player.capabilities.isCreativeMode) {
             if (world.isRemote) {
                 return itemStack;
             }
@@ -98,7 +99,7 @@ public abstract class ExtrudeItem extends ToolItem {
                 player.addChatMessage("§cCannot extend from air!");
                 return itemStack;
             }
-            List<BlockPos> connectedBlocks = findConnectedBlocksInPlane(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta, clickedFace,enableFuzzyExtruder);
+            List<BlockPos> connectedBlocks = findConnectedBlocksInPlane(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta, clickedFace,(boolean)FUZZY_EXTRUDER.getValue());
 
             if (connectedBlocks.isEmpty()) {
                 player.addChatMessage("§cNo connected blocks of the same type found.");

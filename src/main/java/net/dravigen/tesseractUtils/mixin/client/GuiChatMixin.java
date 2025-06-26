@@ -1,4 +1,4 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.client;
 
 import net.minecraft.src.GuiChat;
 import net.minecraft.src.GuiTextField;

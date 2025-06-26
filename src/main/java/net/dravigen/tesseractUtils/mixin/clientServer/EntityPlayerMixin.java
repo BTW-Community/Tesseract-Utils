@@ -1,12 +1,12 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.clientServer;
 
-import net.dravigen.tesseractUtils.TessUConfig;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
 
 @Mixin(EntityPlayer.class)
 public abstract class EntityPlayerMixin extends EntityLivingBase{
@@ -24,12 +24,12 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @ModifyConstant(method = "moveEntityWithHeading",constant = @Constant(floatValue = 2.0F))
     private float modifySprintFlightSpeed(float constant){
-        return this.capabilities.isCreativeMode ? TessUConfig.flySpeed : constant;
+        return this.capabilities.isCreativeMode ? (int)FLIGHT_SPEED.getValue() : constant;
     }
 
     @Redirect(method = "moveEntityWithHeading",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayer;isSprinting()Z"))
     private boolean isSprinting(EntityPlayer instance){
-        if (this.capabilities.isCreativeMode&&this.capabilities.isFlying&& TessUConfig.flySpeed!=2) {
+        if (this.capabilities.isCreativeMode&&this.capabilities.isFlying&& (int)FLIGHT_SPEED.getValue()!=2) {
             if (sprintKey == null) {
                 sprintKey = gameSettings.keyBindSpecial;
             }
@@ -39,7 +39,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @Inject(method = "moveEntityWithHeading",at = @At("TAIL"))
     private void handleDisabledMomentum(float par1, float par2, CallbackInfo ci){
-        if (this.capabilities.isCreativeMode&&this.moveStrafing==0 && this.moveForward==0&&this.capabilities.isFlying&& TessUConfig.disableMomentum) {
+        if (this.capabilities.isCreativeMode&&this.moveStrafing==0 && this.moveForward==0&&this.capabilities.isFlying&& (boolean)FLIGHT_MOMENTUM.getValue()) {
             this.motionX *= 0.3;
             this.motionY *= 0.75;
             this.motionZ *= 0.3;
@@ -54,7 +54,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
                     this.motionY = 0;
                 }
             }
-            if (TessUConfig.enableNoClip) {
+            if ((boolean)NO_CLIP.getValue()) {
                 this.onGround = false;
                 this.capabilities.isFlying = true;
                 this.noClip = true;
@@ -66,15 +66,15 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
                 flyDownKey = gameSettings.keyBindSneak;
                 sprintKey = gameSettings.keyBindSpecial;
             }
-            if (sprintKey.pressed && TessUConfig.flySpeed != 2) {
+            if (sprintKey.pressed && (int)FLIGHT_SPEED.getValue() != 2) {
                 if (flyUpKey.pressed) {
-                    this.motionY += 0.12D * TessUConfig.flySpeed;
+                    this.motionY += 0.12D * (int)FLIGHT_SPEED.getValue();
                 }
                 if (flyDownKey.pressed) {
-                    this.motionY -= 0.12D * TessUConfig.flySpeed;
+                    this.motionY -= 0.12D * (int)FLIGHT_SPEED.getValue();
                 }
             }
-            if (TessUConfig.disableMomentum&&!sprintKey.pressed) {
+            if ((boolean) FLIGHT_MOMENTUM.getValue()&&!sprintKey.pressed) {
                 if (flyUpKey.pressed) {
                     this.motionY += 0.05D;
                 }
@@ -87,7 +87,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @Redirect(method = "isEntityInsideOpaqueBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityLivingBase;isEntityInsideOpaqueBlock()Z"))
     private boolean disableBlockOcclusion(EntityLivingBase instance){
-        if (TessUConfig.enableNoClip&&this.capabilities.isCreativeMode) {
+        if ((boolean) NO_CLIP.getValue()&&this.capabilities.isCreativeMode) {
             return false;
         }else return super.isEntityInsideOpaqueBlock();
     }

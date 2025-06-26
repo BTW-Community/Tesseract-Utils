@@ -1,4 +1,4 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.client;
 
 import net.dravigen.tesseractUtils.GUI.GuiConfigSettingsScreen;
 import net.minecraft.src.GuiScreen;

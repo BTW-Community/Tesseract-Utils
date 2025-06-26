@@ -2,10 +2,8 @@ package net.dravigen.tesseractUtils.command;
 
 import net.minecraft.src.*;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
-
-import static net.dravigen.tesseractUtils.TessUConfig.extrudeLimit;
+import static net.dravigen.tesseractUtils.configs.EnumConfig.EXTRUDE_LIMIT;
 import static net.minecraft.src.CommandBase.getPlayer;
 
 public class UtilsCommand {
@@ -464,7 +462,7 @@ public class UtilsCommand {
             default:
                 return foundBlocks;
         }
-        while (!queue.isEmpty() && foundBlocks.size() < extrudeLimit) {
+        while (!queue.isEmpty() && foundBlocks.size() < (int)EXTRUDE_LIMIT.getValue()) {
             BlockPos current = queue.poll();
             foundBlocks.add(current);
             for (int[] offset : planeOffsets) {

@@ -1,4 +1,4 @@
-package net.dravigen.tesseractUtils.mixin;
+package net.dravigen.tesseractUtils.mixin.server;
 
 import net.dravigen.tesseractUtils.command.UtilsCommand;
 import net.minecraft.server.MinecraftServer;
