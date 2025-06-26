@@ -6,7 +6,6 @@ import net.dravigen.tesseractUtils.command.*;
 import net.dravigen.tesseractUtils.inventory.InventoryDataManager;
 import net.dravigen.tesseractUtils.inventory.ModDirectories;
 import net.dravigen.tesseractUtils.inventory.SavedInventoriesList;
-import net.dravigen.tesseractUtils.item.DeleteEntityItem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.src.*;
@@ -23,7 +22,6 @@ public class TesseractUtilsAddon extends BTWAddon {
     public static SavedInventoriesList globalSavedInventories;
     public static int modeState;
     public static Language listLanguage;
-    public static Item deleteEntityItem;
     public static long mspt;
     public static float tps;
 
@@ -43,8 +41,6 @@ public class TesseractUtilsAddon extends BTWAddon {
         AddonHandler.logMessage(this.getName() + " Version " + this.getVersionString() + " Initializing...");
         loadConfig();
         registerNewCommands();
-
-        deleteEntityItem=new DeleteEntityItem(1800-256).setCreativeTab(CreativeTabs.tabTools);
     }
 
 

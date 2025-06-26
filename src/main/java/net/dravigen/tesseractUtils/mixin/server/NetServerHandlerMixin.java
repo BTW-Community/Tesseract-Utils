@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +38,7 @@ public abstract class NetServerHandlerMixin {
         if (par5EntityPlayer.capabilities.isCreativeMode && heldItem != null) {
             int id = heldItem.itemID;
             if (id==Item.shovelWood.itemID)heldItem.getItem().onBlockDestroyed(heldItem,par1World,0,0,0,0,par5EntityPlayer);
-            return id == Item.shovelWood.itemID  || id == Item.axeWood.itemID || id == 1800 || (this.playerEntity.getHeldItem().getTagCompound()!=null&&this.playerEntity.getHeldItem().getTagCompound().hasKey("BuildingParams"));
+            return id == Item.shovelWood.itemID  || id == Item.axeWood.itemID || id == Item.swordWood.itemID || (this.playerEntity.getHeldItem().getTagCompound()!=null&&this.playerEntity.getHeldItem().getTagCompound().hasKey("BuildingParams"));
         } else return false;
     }
 
@@ -48,7 +47,7 @@ public abstract class NetServerHandlerMixin {
         ItemStack heldItem = this.playerEntity.getHeldItem();
         if (heldItem != null) {
             int id = heldItem.itemID;
-            if (id ==1800||id==Item.axeWood.itemID||id==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
+            if (id ==Item.swordWood.itemID||id==Item.axeWood.itemID||id==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
                 return 999999;
         }
         if (this.playerEntity.capabilities.isCreativeMode && (int)REACH.getValue() > 5) {
@@ -57,7 +56,7 @@ public abstract class NetServerHandlerMixin {
     }
 
     @Inject(method = "handleUseEntity",at = @At("HEAD"), cancellable = true)
-    private void clickEntity(Packet7UseEntity packet7UseEntity, CallbackInfo ci) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private void clickEntity(Packet7UseEntity packet7UseEntity, CallbackInfo ci) {
         ItemStack heldItem = this.playerEntity.getHeldItem();
         if (heldItem != null&&this.playerEntity.capabilities.isCreativeMode) {
             Entity entity = this.playerEntity.worldObj.getEntityByID(packet7UseEntity.targetEntity);
@@ -73,9 +72,13 @@ public abstract class NetServerHandlerMixin {
                             canDespawnMethod.setAccessible(true);
                             canDespawn = (boolean)canDespawnMethod.invoke(living);
                         } catch (Exception e) {
-                            Method canDespawnMethod = EntityLiving.class.getDeclaredMethod("canDespawn");
-                            canDespawnMethod.setAccessible(true);
-                            canDespawn = (boolean)canDespawnMethod.invoke(entity);
+                            try {
+                                Method canDespawnMethod = EntityLiving.class.getDeclaredMethod("canDespawn");
+                                canDespawnMethod.setAccessible(true);
+                                canDespawn = (boolean) canDespawnMethod.invoke(entity);
+                            } catch (Exception ex) {
+                                canDespawn=true;
+                            }
                         }
                         if (!canDespawn||living instanceof EntityWither||living instanceof EntityDragon) {
                             playerEntity.sendChatToPlayer(ChatMessageComponent.createFromText(living.getTranslatedEntityName() + " already cannot despawn"));

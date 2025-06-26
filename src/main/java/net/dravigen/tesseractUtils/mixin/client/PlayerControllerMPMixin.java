@@ -26,7 +26,7 @@ public abstract class PlayerControllerMPMixin {
         ItemStack heldItem = this.mc.thePlayer.getHeldItem();
         if (heldItem != null) {
             int id = heldItem.itemID;
-            if (id ==1800|| id ==Item.axeWood.itemID|| id ==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
+            if (id ==Item.swordWood.itemID|| id ==Item.axeWood.itemID|| id ==Item.shovelWood.itemID||(heldItem.getTagCompound()!=null&& heldItem.getTagCompound().hasKey("BuildingParams")))
                 return 128;
         }
         if (this.currentGameType.isCreative()) return (int)REACH.getValue();

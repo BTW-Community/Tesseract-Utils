@@ -3,7 +3,6 @@ package net.dravigen.tesseractUtils.packet;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import net.minecraft.src.Entity;
@@ -46,15 +45,19 @@ public class PacketHandlerC2S {
                            canDespawnMethod.setAccessible(true);
                            canDespawn = (boolean)canDespawnMethod.invoke(living);
                        } catch (Exception e) {
-                           Method canDespawnMethod = EntityLiving.class.getDeclaredMethod("canDespawn");
-                           canDespawnMethod.setAccessible(true);
-                           canDespawn = (boolean)canDespawnMethod.invoke(entity);
+                           try {
+                               Method canDespawnMethod = EntityLiving.class.getDeclaredMethod("canDespawn");
+                               canDespawnMethod.setAccessible(true);
+                               canDespawn = (boolean) canDespawnMethod.invoke(entity);
+                           }catch (Exception ex) {
+                               canDespawn=true;
+                           }
                        }
                        PacketSender.sendServerToClientMessage(player, living.isNoDespawnRequired()||!canDespawn);
                    }
                 }
 
-            } catch (IOException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (IOException e) {
                 System.err.println("SERVER: Error handling C2S message packet: " + e.getMessage());
                 e.printStackTrace();
             }

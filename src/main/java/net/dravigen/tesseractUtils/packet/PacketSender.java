@@ -35,7 +35,7 @@ public class PacketSender {
 
             // Add the packet to the client's send queue
             Minecraft.getMinecraft().getNetHandler().addToSendQueue(packet);
-            System.out.println("CLIENT: Sent C2S message: " + message);
+            //System.out.println("CLIENT: Sent C2S message: " + message);
 
         } catch (IOException e) {
             System.err.println("CLIENT: Error sending C2S message: " + e.getMessage());
@@ -66,7 +66,7 @@ public class PacketSender {
             Packet250CustomPayload packet = new Packet250CustomPayload(TUChannels.SERVER_TO_CLIENT_CHANNEL, bos.toByteArray());
             // Send the packet to the specified player
             player.playerNetServerHandler.sendPacketToPlayer(packet);
-            System.out.println("SERVER: Sent S2C message to " + player.getCommandSenderName() + ": " + message);
+            //System.out.println("SERVER: Sent S2C message to " + player.getCommandSenderName() + ": " + message);
 
         } catch (IOException e) {
             System.err.println("SERVER: Error sending S2C message to " + player.getCommandSenderName() + ": " + e.getMessage());
