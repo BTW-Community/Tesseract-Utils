@@ -9,11 +9,11 @@ public class DeleteItem extends ItemSword {
     public DeleteItem(int par1, EnumToolMaterial par2EnumToolMaterial) {
         super(par1, par2EnumToolMaterial);
     }
+
     @Override
-    public boolean hitEntity(ItemStack stack, EntityLivingBase defendEntity, EntityLivingBase attackEntity) {
-        if (defendEntity!=null&&stack.itemID==Item.swordWood.itemID&&attackEntity instanceof EntityPlayer player&&player.capabilities.isCreativeMode) {
-            defendEntity.setDead();
-            return false;
-        }else return super.hitEntity(stack,defendEntity,attackEntity);
+    public ItemStack onItemRightClick(ItemStack stack, World par2World, EntityPlayer par3EntityPlayer) {
+        if (par3EntityPlayer.capabilities.isCreativeMode&&stack.itemID==Item.swordWood.itemID) {
+            return stack;
+        }else return super.onItemRightClick(stack,par2World,par3EntityPlayer);
     }
 }

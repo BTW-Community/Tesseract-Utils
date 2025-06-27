@@ -17,11 +17,12 @@ import static net.dravigen.tesseractUtils.command.UtilsCommand.initEntityList;
 public abstract class MinecraftMixin {
     @Shadow public PlayerControllerMP playerController;
     @Shadow private int rightClickDelayTimer;
+    @Shadow public EntityClientPlayerMP thePlayer;
     @Unique long prevTime;
     @Unique int delay;
 
     @Inject(method = "runTick",at = @At("HEAD"))
-    private void tick(CallbackInfo ci) {
+    private void tickHead(CallbackInfo ci) {
 
         if (delay==0){
             TesseractUtilsAddon.tps = System.currentTimeMillis() - prevTime;
@@ -29,8 +30,9 @@ public abstract class MinecraftMixin {
         prevTime = System.currentTimeMillis();
 
     }
+
     @Inject(method = "runTick",at = @At("TAIL"))
-    private void tick1(CallbackInfo ci) {
+    private void tickTail(CallbackInfo ci) {
         if (delay==0){
             TesseractUtilsAddon.mspt = System.currentTimeMillis() - prevTime;
             delay=10;
@@ -44,7 +46,16 @@ public abstract class MinecraftMixin {
     private void disableRightClickCooldown(CallbackInfo ci){
         if (this.playerController!=null&&this.playerController.isInCreativeMode()){
             this.rightClickDelayTimer = (boolean) EnumConfig.PLACING_COOLDOWN.getValue() ? 0 : this.rightClickDelayTimer;
+            if (this.rightClickDelayTimer!=0&&this.thePlayer!=null){
+                if (this.thePlayer.getHeldItem()!=null){
+                    this.rightClickDelayTimer = this.thePlayer.getHeldItem().itemID==Item.swordWood.itemID ? 0 : this.rightClickDelayTimer;
+                }
+            }
         }
+    }
+
+    @Inject(method = "runTick",at = @At("HEAD"))
+    private void initLists(CallbackInfo ci){
         if (listLanguage!= Minecraft.getMinecraft().getLanguageManager().getCurrentLanguage()){
             itemNameList.clear();
             entityShowNameList.clear();

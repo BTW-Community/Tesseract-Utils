@@ -81,7 +81,7 @@ public abstract class NetServerHandlerMixin {
                             }
                         }
                         if (!canDespawn||living instanceof EntityWither||living instanceof EntityDragon) {
-                            playerEntity.sendChatToPlayer(ChatMessageComponent.createFromText(living.getTranslatedEntityName() + " already cannot despawn"));
+                            playerEntity.sendChatToPlayer(ChatMessageComponent.createFromText(living.getTranslatedEntityName() + " cannot despawn already"));
                         }else {
                             living.setPersistent(!living.isNoDespawnRequired());
                             PacketSender.sendServerToClientMessage(this.playerEntity, living.isNoDespawnRequired());

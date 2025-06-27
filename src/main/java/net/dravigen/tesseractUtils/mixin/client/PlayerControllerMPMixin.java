@@ -92,6 +92,7 @@ public abstract class PlayerControllerMPMixin {
         TesseractUtilsAddon.modeState = type == EnumGameType.CREATIVE ?  ((boolean) NO_CLIP.getValue() ? 2 : 0) : type == EnumGameType.SURVIVAL ? 1 : 3;
     }
 
+    /*
     @Inject(method = "func_78768_b",at = @At("HEAD"), cancellable = true)
     private void clickOnEntity(EntityPlayer playerEntity, Entity entity, CallbackInfoReturnable<Boolean> cir){
         ItemStack heldItem = playerEntity.getHeldItem();
@@ -103,5 +104,5 @@ public abstract class PlayerControllerMPMixin {
                 }
             }
         }
-    }
+    }*/
 }
