@@ -1,8 +1,11 @@
 package net.dravigen.tesseractUtils.mixin.server;
 
 import btw.item.items.RedstoneItem;
+import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon.TUChannels;
+import net.dravigen.tesseractUtils.advanced_edit.EnumBuildMode;
 import net.dravigen.tesseractUtils.command.CommandWorldEdit;
+import net.dravigen.tesseractUtils.command.UtilsCommand;
 import net.dravigen.tesseractUtils.packet.PacketHandlerC2S;
 import net.dravigen.tesseractUtils.packet.PacketSender;
 import net.minecraft.server.MinecraftServer;
@@ -16,6 +19,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import static net.dravigen.tesseractUtils.TesseractUtilsAddon.currentBuildingMode;
 import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
 import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
 
@@ -27,8 +32,8 @@ public abstract class NetServerHandlerMixin {
 
     @Inject(method = "getCollidingBoundingBoxesIgnoreSpecifiedEntities", at = @At("RETURN"), cancellable = true)
     private void disableCollision(World world, Entity entity, AxisAlignedBB par2AxisAlignedBB, CallbackInfoReturnable<List<AxisAlignedBB>> cir) {
-        if ((boolean) NO_CLIP.getValue() && entity instanceof EntityPlayer && ((EntityPlayer) entity).capabilities.isCreativeMode) {
-            cir.setReturnValue(new ArrayList<>());
+        if (NO_CLIP.getBoolValue() && entity instanceof EntityPlayer && ((EntityPlayer) entity).capabilities.isCreativeMode) {
+            cir.setReturnValue(null);
         }
     }
 
@@ -37,9 +42,12 @@ public abstract class NetServerHandlerMixin {
         ItemStack heldItem = par5EntityPlayer.inventory.getCurrentItem();
         if (par5EntityPlayer.capabilities.isCreativeMode && heldItem != null) {
             int id = heldItem.itemID;
-            if (id==Item.shovelWood.itemID)heldItem.getItem().onBlockDestroyed(heldItem,par1World,0,0,0,0,par5EntityPlayer);
+            if (id==Item.shovelWood.itemID||id==Item.axeWood.itemID)heldItem.getItem().onBlockDestroyed(heldItem,par1World,par1World.getBlockId(x,y,z),x,y,z,par5EntityPlayer);
             return id == Item.shovelWood.itemID  || id == Item.axeWood.itemID || id == Item.swordWood.itemID || (this.playerEntity.getHeldItem().getTagCompound()!=null&&this.playerEntity.getHeldItem().getTagCompound().hasKey("BuildingParams"));
-        } else return false;
+        } else {
+            int mode = TesseractUtilsAddon.currentBuildingMode;
+            return mode!= 8 && mode!=5;
+        }
     }
 
     @ModifyConstant(method = "handleBlockDig", constant = @Constant(doubleValue = 36.0))
@@ -90,6 +98,152 @@ public abstract class NetServerHandlerMixin {
                     }
                 }
             }
+        }
+    }
+
+    @Inject(method = "handlePlace",at = @At("HEAD"))
+    private void extrudeExpand(Packet15Place packet, CallbackInfo ci) {
+        EntityPlayer player = this.playerEntity;
+        World world = player.worldObj;
+        if (!player.capabilities.isCreativeMode || currentBuildingMode != EnumBuildMode.EXTRUDE_MODE.getIndex()) return;
+        List<SavedBlock> list = new ArrayList<>();
+
+        int clickedX = packet.getXPosition();
+        int clickedY = packet.getYPosition();
+        int clickedZ = packet.getZPosition();
+        int clickedFace = packet.getDirection();
+
+        int referenceBlockId = world.getBlockId(clickedX, clickedY, clickedZ);
+        int referenceBlockMeta = world.getBlockMetadata(clickedX, clickedY, clickedZ);
+        if (referenceBlockId == 0) {
+            player.addChatMessage("§cCannot extend from air!");
+            return;
+        }
+        List<BlockPos> connectedBlocks = findConnectedBlocksInPlane(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta, clickedFace,(boolean)FUZZY_EXTRUDER.getValue());
+
+        if (connectedBlocks.isEmpty()) {
+            player.addChatMessage("§cNo connected blocks of the same type found.");
+            return;
+        }
+        int blocksPlaced = 0;
+        for (BlockPos blockPos : connectedBlocks) {
+            int newBlockX = blockPos.x;
+            int newBlockY = blockPos.y;
+            int newBlockZ = blockPos.z;
+            switch (clickedFace) {
+                case 0:
+                    newBlockY--;
+                    break; // Bottom face: place below
+                case 1:
+                    newBlockY++;
+                    break; // Top face: place above
+                case 2:
+                    newBlockZ--;
+                    break; // North face: place North
+                case 3:
+                    newBlockZ++;
+                    break; // South face: place South
+                case 4:
+                    newBlockX--;
+                    break; // West face: place West
+                case 5:
+                    newBlockX++;
+                    break; // East face: place East
+            }
+            int targetBlockId = world.getBlockId(newBlockX, newBlockY, newBlockZ);
+            if (targetBlockId == 0) {
+                list.add(new SavedBlock(newBlockX, newBlockY, newBlockZ, targetBlockId, 0));
+                world.setBlock(newBlockX, newBlockY, newBlockZ, referenceBlockId, referenceBlockMeta, 2);
+                blocksPlaced++;
+            }
+        }
+        if (blocksPlaced > 0) {
+            undoSaved.add(list);
+            player.addChatMessage("§d" + blocksPlaced + " block(s) have been placed");
+        } else {
+            player.addChatMessage("§cNo blocks could be placed.");
+        }
+    }
+
+    @Inject(method = "handleBlockDig",at = @At("HEAD"))
+    private void extrudeShrink(Packet14BlockDig packet, CallbackInfo ci){
+        EntityPlayer player = this.playerEntity;
+        World world = player.worldObj;
+        if (!player.capabilities.isCreativeMode||currentBuildingMode!=EnumBuildMode.EXTRUDE_MODE.getIndex())return;
+        List<UtilsCommand.SavedBlock> list = new ArrayList<>();
+
+        int clickedX = packet.xPosition;
+        int clickedY = packet.yPosition;
+        int clickedZ = packet.zPosition;
+        int clickedFace = packet.face;
+        int referenceBlockId = world.getBlockId(clickedX, clickedY, clickedZ);
+        int referenceBlockMeta = world.getBlockMetadata(clickedX, clickedY, clickedZ);
+
+        List<UtilsCommand.BlockPos> connectedBlocks = findConnectedBlocksInPlane(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta, clickedFace,(boolean)FUZZY_EXTRUDER.getValue());
+
+        if (connectedBlocks.isEmpty()) {
+            player.addChatMessage("§cNo connected blocks of the same type found.");
+            return;
+        }
+        int blocksPlaced = 0;
+        for (UtilsCommand.BlockPos blockPos : connectedBlocks) {
+            int newBlockX = blockPos.x;
+            int newBlockY = blockPos.y;
+            int newBlockZ = blockPos.z;
+            int targetBlockId = world.getBlockId(newBlockX, newBlockY, newBlockZ);
+            int targetBlockMeta = world.getBlockMetadata(newBlockX, newBlockY, newBlockZ);
+            if (targetBlockId != 0) {
+                list.add(new UtilsCommand.SavedBlock(newBlockX, newBlockY, newBlockZ, targetBlockId, targetBlockMeta));
+                world.setBlockToAir(newBlockX, newBlockY, newBlockZ);
+                blocksPlaced++;
+            }
+        }
+        if (blocksPlaced > 0) {
+            undoSaved.add(list);
+            player.addChatMessage("§d" + blocksPlaced + " block(s) have been placed");
+        } else {
+            player.addChatMessage("§cNo blocks could be placed.");
+        }
+    }
+
+    @Inject(method = "handleBlockDig",at = @At("HEAD"))
+    private void delete(Packet14BlockDig packet, CallbackInfo ci){
+        EntityPlayer player = this.playerEntity;
+        World world = player.worldObj;
+        if (!player.capabilities.isCreativeMode||player.isSneaking()||currentBuildingMode!=EnumBuildMode.DELETE_MODE.getIndex())return;
+        List<UtilsCommand.SavedBlock> list = new ArrayList<>();
+
+        int clickedX = packet.xPosition;
+        int clickedY = packet.yPosition;
+        int clickedZ = packet.zPosition;
+        int clickedFace = packet.face;
+        int referenceBlockId = world.getBlockId(clickedX, clickedY, clickedZ);
+        int referenceBlockMeta = world.getBlockMetadata(clickedX, clickedY, clickedZ);
+
+        List<UtilsCommand.BlockPos> connectedBlocks = findConnectedBlocksIn3D(world, clickedX, clickedY, clickedZ, referenceBlockId, referenceBlockMeta,(boolean)FUZZY_EXTRUDER.getValue());
+
+        if (connectedBlocks.isEmpty()) {
+            player.addChatMessage("§cNo connected blocks of the same type found.");
+            return;
+        }
+        int blocksBroken = 0;
+        for (UtilsCommand.BlockPos blockPos : connectedBlocks) {
+            int newBlockX = blockPos.x;
+            int newBlockY = blockPos.y;
+            int newBlockZ = blockPos.z;
+            int targetBlockId = world.getBlockId(newBlockX, newBlockY, newBlockZ);
+            int targetBlockMeta = world.getBlockMetadata(newBlockX, newBlockY, newBlockZ);
+            if (targetBlockId != 0) {
+                list.add(new UtilsCommand.SavedBlock(newBlockX, newBlockY, newBlockZ, targetBlockId, targetBlockMeta));
+                world.setBlockToAir(newBlockX, newBlockY, newBlockZ);
+                blocksBroken++;
+            }
+        }
+        if (blocksBroken > 0) {
+            undoSaved.add(list);
+            player.addChatMessage("§d" + blocksBroken + " block(s) have been placed");
+        } else {
+            player.addChatMessage("§cNo blocks could be placed.");
         }
     }
 
@@ -190,4 +344,5 @@ public abstract class NetServerHandlerMixin {
             ci.cancel();
         }
     }
+
 }

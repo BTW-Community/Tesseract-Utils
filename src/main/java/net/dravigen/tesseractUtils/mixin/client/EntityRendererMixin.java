@@ -7,8 +7,7 @@ import org.spongepowered.asm.mixin.injection.*;
 import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
 
 import java.util.Arrays;
-
-@Mixin(EntityRenderer.class)
+@Mixin(value = EntityRenderer.class)
 public abstract class EntityRendererMixin {
     @Shadow private Minecraft mc;
 

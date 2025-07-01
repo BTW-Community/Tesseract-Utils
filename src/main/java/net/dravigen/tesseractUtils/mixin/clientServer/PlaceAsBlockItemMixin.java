@@ -14,7 +14,7 @@ public class PlaceAsBlockItemMixin {
 
     @Inject(method = "canPlaceItemBlockOnSide",at = @At("RETURN"), cancellable = true)
     private void allow(World world, int i, int j, int k, int iFacing, EntityPlayer player, ItemStack stack, CallbackInfoReturnable<Boolean> cir){
-        if (player.capabilities.isCreativeMode&& ((boolean)NO_CLIP.getValue()||(boolean)CLICK_REPLACE.getValue())){
+        if (player.capabilities.isCreativeMode&& (NO_CLIP.getBoolValue()||(boolean)CLICK_REPLACE.getValue())){
             cir.setReturnValue(true);
         }
     }

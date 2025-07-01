@@ -26,10 +26,9 @@ public enum EnumConfig {
     private final String property;
     private final int index;
     private final int type;
-    private Object enumValue;
     private final Object baseValue;
     private final int maxValue;
-    private int intValue;
+    private Object enumValue;
     private final boolean survivalFriendly;
 
     public int getIndex() {
@@ -42,17 +41,36 @@ public enum EnumConfig {
         return this.property;
     }
     public Object getValue(){return this.enumValue;}
-    public boolean getBSFriendly(){return this.survivalFriendly;}
+    public boolean  getBSFriendly(){return this.survivalFriendly;}
     public void setValue(Object value){
-        if (this.isInt()){
-            this.intValue= (int) value;
-        }
+
         this.enumValue =value;
     }
     public Object getBaseValue(){return this.baseValue;}
     public int getMaxValue(){return this.maxValue;}
-    public int getIntValue(){return this.intValue;}
-
+    public int getIntValue(){return (int) this.enumValue;}
+    public boolean getBoolValue(){return (boolean) this.enumValue;}
+/*
+    EnumConfig(String name, String property, int index, int valueType, Object value, int max, boolean bFriendly) {
+        this.name = name;
+        this.property = property;
+        this.index = index;
+        this.enumValue = value;
+        this.type = valueType;
+        this.baseValue = value;
+        this.maxValue = max;
+        this.survivalFriendly = bFriendly;
+    }*/
+    EnumConfig(String name, String property, int index, int valueType, int value, int max, boolean bFriendly) {
+        this.name = name;
+        this.property = property;
+        this.index = index;
+        this.enumValue = value;
+        this.type = valueType;
+        this.baseValue = value;
+        this.maxValue = max;
+        this.survivalFriendly = bFriendly;
+    }
     EnumConfig(String name, String property, int index, int valueType, boolean value, int max, boolean bFriendly) {
         this.name = name;
         this.property = property;
@@ -63,18 +81,7 @@ public enum EnumConfig {
         this.maxValue = max;
         this.survivalFriendly = bFriendly;
     }
-    EnumConfig(String name, String property, int index, int valueType, int value, int max, boolean bFriendly) {
-        this.name = name;
-        this.property = property;
-        this.index = index;
-        this.enumValue = value;
-        this.intValue = value;
-        this.type = valueType;
-        this.baseValue = value;
-        this.maxValue = max;
-        this.survivalFriendly = bFriendly;
 
-    }
     public boolean isBool() {
         return this.type==0;
     }

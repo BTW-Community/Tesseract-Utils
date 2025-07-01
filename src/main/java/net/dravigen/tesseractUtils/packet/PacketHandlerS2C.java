@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.minecraft.src.Minecraft;
 import net.minecraft.src.Packet250CustomPayload;
 
 import net.dravigen.tesseractUtils.TesseractUtilsAddon.*;
@@ -22,11 +22,18 @@ public class PacketHandlerS2C {
             try {
                 ByteArrayInputStream bis = new ByteArrayInputStream(packet.data);
                 DataInputStream dis = new DataInputStream(bis);
-                // Read the string message
+
+                String receivedMessage = dis.readUTF();
 
                 // --- DO STUFF ON CLIENT HERE ---
-
-                TesseractUtilsAddon.isLookedAtEntityPermanentClientSide= Boolean.parseBoolean(dis.readUTF());
+                Minecraft mc = Minecraft.getMinecraft();
+                String[] splitText = receivedMessage.split(":");
+                String subChannel = splitText[0];
+                String property = splitText[1];
+                switch (subChannel){
+                    case "isPermanent" -> PacketUtils.isLookedAtEntityPermanentClientSide = Boolean.parseBoolean(splitText[1]);
+                    case "isPlayerOP" -> PacketUtils.isPlayerOP= Boolean.parseBoolean(splitText[1]);
+                }
 
             } catch (IOException e) {
                 System.err.println("CLIENT: Error handling S2C message packet: " + e.getMessage());

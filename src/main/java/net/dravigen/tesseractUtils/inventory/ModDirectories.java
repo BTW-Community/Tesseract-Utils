@@ -1,21 +1,16 @@
 package net.dravigen.tesseractUtils.inventory;
 
-import net.minecraft.src.Minecraft;
-
 import java.io.File;
 
 public class ModDirectories {
     public static File configDir;
 
     public static void init() {
-        configDir=getGlobalConfigDir();
-        System.out.println("Mod config directory: " + configDir.getAbsolutePath());
+        configDir= getInventoryConfigDir();
     }
 
-    public static File getGlobalConfigDir() {
-        File mcDir = Minecraft.getMinecraft().mcDataDir;
-        File configBase = new File(mcDir, "config");
-        File modConfigDir = new File(configBase, "tesseract_utils");
+    public static File getInventoryConfigDir() {
+        File modConfigDir = new File("tesseract_utils", "inventories");
         if (!modConfigDir.exists()) {
             modConfigDir.mkdirs();
         }

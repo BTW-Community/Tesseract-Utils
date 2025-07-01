@@ -6,8 +6,7 @@
   "mixins": [
     "accessor.SoundManagerAccessor",
     "accessor.SoundPoolAccessor",
-    "client.EntityRendererMixin",
-    "client.PlayerControllerMPMixin",
+    "client.RenderGlobalMixin",
     "client.SoundManagerMixin",
     "clientServer.DeleteItem",
     "clientServer.EntityListMixin",
@@ -15,18 +14,18 @@
     "clientServer.ExtrudeItem",
     "clientServer.ItemStackMixin",
     "clientServer.PlaceAsBlockItemMixin",
+    "clientServer.PlayerControllerMPMixin",
     "server.EntityLivingMixin",
-    "server.EntityPlayerMPMixing",
     "server.MinecraftServerMixin",
     "server.NetServerHandlerMixin"
   ],
   "client": [
+    "client.EntityRendererMixin",
     "client.EntityPlayerSPMixin",
     "client.GuiChatMixin",
     "client.GuiInGameMenuMixin",
     "client.GuiIngameMixin",
     "client.GuiMainMenuMixin",
-    "client.GuiScreenMixin",
     "client.MinecraftMixin",
     "client.NetClientHandlerMixin"
   ],

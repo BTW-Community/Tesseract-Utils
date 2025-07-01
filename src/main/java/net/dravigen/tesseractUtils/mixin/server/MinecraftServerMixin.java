@@ -1,5 +1,7 @@
 package net.dravigen.tesseractUtils.mixin.server;
 
+import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.dravigen.tesseractUtils.advanced_edit.BlockSelectionManager;
 import net.dravigen.tesseractUtils.command.UtilsCommand;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,5 +15,7 @@ public class MinecraftServerMixin {
     private void clearLists(CallbackInfo ci){
         UtilsCommand.undoSaved.clear();
         UtilsCommand.redoSaved.clear();
+        BlockSelectionManager.clear();
+        TesseractUtilsAddon.currentBuildingMode=8;
     }
 }

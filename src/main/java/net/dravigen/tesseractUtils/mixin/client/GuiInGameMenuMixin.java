@@ -2,7 +2,6 @@ package net.dravigen.tesseractUtils.mixin.client;
 
 import net.dravigen.tesseractUtils.GUI.GuiButtonCustom;
 import net.dravigen.tesseractUtils.GUI.GuiConfigSettingsScreen;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,11 +16,7 @@ public abstract class GuiInGameMenuMixin extends GuiScreen {
 
     @Inject(method = "initGui", at = @At("RETURN"))
     private void addCustomButton(CallbackInfo ci) {
-        MinecraftServer server = MinecraftServer.getServer();
-        if (server==null)return;
-        if (server.getConfigurationManager().isPlayerOpped(this.mc.thePlayer.getCommandSenderName())) {
-            this.buttonList.add(new GuiButtonCustom(TESSERACT_SETTINGS_BUTTON_ID, this.width / 2 + 100 + 4, this.height / 4 + 80, 20, 20, 20,20, "", new ResourceLocation("tesseract_utils:textures/gui/tesseract.png")));
-        }
+        this.buttonList.add(new GuiButtonCustom(TESSERACT_SETTINGS_BUTTON_ID, this.width / 2 + 100 + 4, this.height / 4 + 80, 20, 20, 20,20, "", new ResourceLocation("tesseract_utils:textures/gui/tesseract.png")));
     }
     @Inject(method = "actionPerformed", at = @At("HEAD"))
     private void onActionPerformed(GuiButton button, CallbackInfo ci) {

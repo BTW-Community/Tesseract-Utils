@@ -496,12 +496,8 @@ public class CommandWorldEdit extends CommandBase {
                                     yb = Math.max(finalY, yb);
                                     zb = Math.max(finalZ, zb);
                                 }
-                                x1 = xa;
-                                y1 = ya;
-                                z1 = za;
-                                x2 = xb;
-                                y2 = yb;
-                                z2 = zb;
+                                setCoord1(xa,ya,za);
+                                setCoord2(xb,yb,zb);
                             }
                             list1.addAll(list);
                             if (!list1.isEmpty()) {

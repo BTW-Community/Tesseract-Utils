@@ -31,9 +31,7 @@ public class TessUConfig {
                 if (config.isBool()) {
                     config.setValue(Boolean.parseBoolean(properties.getProperty(config.getProperty())));
                 }else config.setValue(Integer.parseInt(properties.getProperty(config.getProperty())));
-
             }
-
         } catch (Throwable e) {
             if (configFile.delete()) {
                 try {

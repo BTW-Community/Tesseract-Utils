@@ -1,6 +1,7 @@
 package net.dravigen.tesseractUtils.GUI;
 
 import net.dravigen.tesseractUtils.configs.EnumConfig;
+import net.dravigen.tesseractUtils.packet.PacketUtils;
 import net.minecraft.src.*;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -31,6 +32,8 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         this.parentScreen = parent;
     }
 
+
+
     @Override
     public void initGui() {
 
@@ -41,7 +44,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         int count = 1;
         for (EnumConfig item : enumConfigs) {
             if (Minecraft.getMinecraft().thePlayer != null) {
-                if (!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode && !item.getBSFriendly()) {
+                if ((!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode||!PacketUtils.isPlayerOP) && !item.getBSFriendly()) {
                     continue;
                 }
             }
@@ -130,8 +133,6 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 
-
-
         drawDefaultBackground();
         for (int i = 0; i < buttons.size(); i++) {
             GuiButton button = buttons.get(i);
@@ -196,7 +197,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         int count = 0;
         for (EnumConfig config : enumConfigs) {
             if (Minecraft.getMinecraft().thePlayer != null) {
-                if (!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode && !config.getBSFriendly()) {
+                if ((!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode || !PacketUtils.isPlayerOP) && !config.getBSFriendly()) {
                     continue;
                 }
             }

@@ -1,8 +1,11 @@
 package net.dravigen.tesseractUtils.mixin.client;
 
+import net.dravigen.tesseractUtils.GUI.GuiBuildingModeScreen;
 import net.dravigen.tesseractUtils.GUI.GuiConfigSettingsScreen;
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.dravigen.tesseractUtils.advanced_edit.EnumBuildMode;
 import net.dravigen.tesseractUtils.packet.PacketSender;
+import net.dravigen.tesseractUtils.packet.PacketUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import org.lwjgl.input.Keyboard;
@@ -29,7 +32,7 @@ public class GuiIngameMixin extends Gui {
     @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/GuiIngame;drawString(Lnet/minecraft/src/FontRenderer;Ljava/lang/String;III)V",ordinal = 1))
     private void addTargetBlockInfo(float par1, boolean par2, int par3, int par4, CallbackInfo ci)  {
         EntityClientPlayerMP player = this.mc.thePlayer;
-        if ((boolean) EXTRA_DEBUG.getValue()&&player.capabilities.isCreativeMode) {
+        if ((boolean) EXTRA_DEBUG.getValue()&&player.capabilities.isCreativeMode&&PacketUtils.isPlayerOP) {
             FontRenderer fontRenderer = this.mc.fontRenderer;
             ScaledResolution scaledResolution = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
 
@@ -92,7 +95,7 @@ public class GuiIngameMixin extends Gui {
                     }
                 }
 
-                var20 = "-IsPermanent: §a" + (TesseractUtilsAddon.isLookedAtEntityPermanentClientSide);
+                var20 = "-IsPermanent: §a" + (PacketUtils.isLookedAtEntityPermanentClientSide);
                 this.drawString(fontRenderer, String.format(var20), var6 - fontRenderer.getStringWidth(var20) - 2, 32+10*count, 0xFFFFFF);
                 count++;
                 count++;
@@ -119,15 +122,38 @@ public class GuiIngameMixin extends Gui {
 
 
     @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",ordinal = 9,remap = false))
+    private void render(float par1, boolean par2, int par3, int par4, CallbackInfo ci){
+        ScaledResolution var5 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
+        int width = var5.getScaledWidth();
+        int height = var5.getScaledHeight();
+        FontRenderer font = Minecraft.getMinecraft().fontRenderer;
+        this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
+        if (Keyboard.isKeyDown((int) CONFIG_MENU_KEY.getValue())) {
+            this.mc.displayGuiScreen(new GuiConfigSettingsScreen(null));
+        }
+        if (this.mc.thePlayer != null) {
+            if (this.mc.thePlayer.capabilities.isCreativeMode && PacketUtils.isPlayerOP) {
+                if (TesseractUtilsAddon.currentBuildingMode != 8) {
+                    this.drawCenteredString(font, "§cBuilder Mode ON: §f" + EnumBuildMode.getEnumFromIndex(TesseractUtilsAddon.currentBuildingMode).getName(), width / 2, 4, 0xFFFFFF);
+                }
+                if (Keyboard.isKeyDown(56)) {
+                    if (!(this.mc.currentScreen instanceof GuiBuildingModeScreen)) {
+                        this.mc.displayGuiScreen(new GuiBuildingModeScreen());
+                    }
+                }
+            }
+        }
+    }
+
+
+    @Inject(method = "renderGameOverlay",at = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glEnable(I)V",ordinal = 9,remap = false))
     private void modeSwapOverlay(float par1, boolean par2, int par3, int par4, CallbackInfo ci) {
         ScaledResolution var5 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
         int width = var5.getScaledWidth();
         int height = var5.getScaledHeight();
-
+        FontRenderer font = Minecraft.getMinecraft().fontRenderer;
         this.mc.mcProfiler.startSection("modeSwap");
-        MinecraftServer server = MinecraftServer.getServer();
-        if (server==null)return;
-        if (server.getConfigurationManager().isPlayerOpped(this.mc.thePlayer.getCommandSenderName())) {
+        if (PacketUtils.isPlayerOP) {
             if (!Keyboard.isKeyDown(61) && Keyboard.isKeyDown(62)) {
                 F4Foolpressed = true;
             }
@@ -187,7 +213,6 @@ public class GuiIngameMixin extends Gui {
                         var2.addVertexWithUV(width / 2f - 12 - 32 + 32 * i, height / 2f - 12, 0.0, 1 / 3f * i, 0 + (chosenMode == i ? 0.5 : 0));
                         var2.draw();
                     }
-                    FontRenderer font = Minecraft.getMinecraft().fontRenderer;
                     font.drawString("[ F4 ]       ", (int) (width / 2f) - font.getStringWidth("[ F4 ]      ") / 2, (int) (height / 2f + 38 - 15), 0x00E1FF, false);
                     font.drawString("         Next", (int) (width / 2f) - font.getStringWidth("        Next") / 2, (int) (height / 2f + 38 - 15), 0xffffff, false);
 
@@ -201,6 +226,11 @@ public class GuiIngameMixin extends Gui {
                 previousCalled = false;
                 if (TesseractUtilsAddon.modeState != chosenMode) {
                     previousMode = TesseractUtilsAddon.modeState;
+                    TesseractUtilsAddon.modeState=chosenMode;
+                    EntityClientPlayerMP player = this.mc.thePlayer;
+                    player.setGameType(chosenMode == 1 ? EnumGameType.SURVIVAL : EnumGameType.CREATIVE);
+                    PacketSender.sendClientToServerMessage("updateModeState:"+TesseractUtilsAddon.modeState);
+                    NO_CLIP.setValue(chosenMode == 2);
                 }
                 chosenMode = TesseractUtilsAddon.modeState;
             } else {
@@ -209,18 +239,13 @@ public class GuiIngameMixin extends Gui {
             if (!Keyboard.isKeyDown(61) && !Keyboard.isKeyDown(62)) {
                 F4Foolpressed = false;
             }
-            this.mc.mcProfiler.startSection("TesseractUtilsOverlay");
-            if (Keyboard.isKeyDown((int)CONFIG_MENU_KEY.getValue())) {
-                this.mc.displayGuiScreen(new GuiConfigSettingsScreen(null));
-            }
         }
     }
-
 
     @Inject(method = "addChunkBoundaryDisplay",at = @At("TAIL"))
     private void addExtraInfo(int iYPos, CallbackInfo ci){
         EntityClientPlayerMP player = this.mc.thePlayer;
-        if ((boolean) EXTRA_DEBUG.getValue() &&player.capabilities.isCreativeMode) {
+        if ((boolean) EXTRA_DEBUG.getValue() &&player.capabilities.isCreativeMode&&PacketUtils.isPlayerOP) {
             FontRenderer fontRenderer = this.mc.fontRenderer;
             String x = String.format("%.1f",player.posX);
             String y = String.format("%.1f",player.boundingBox.minY);

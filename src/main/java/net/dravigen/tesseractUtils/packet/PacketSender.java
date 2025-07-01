@@ -18,7 +18,7 @@ public class PacketSender {
      *
      * @param message The string message to send.
      */
-    public static void sendClientToServerMessage(String message) {
+    public static void sendClientToServerMessage(Object message) {
         if (!Minecraft.getMinecraft().theWorld.isRemote) {
             System.err.println("Attempted to send C2S packet from server-side!");
             return;
@@ -28,7 +28,7 @@ public class PacketSender {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
 
-            dos.writeUTF(message);
+            dos.writeUTF(String.valueOf(message));
 
             Packet250CustomPayload packet = new Packet250CustomPayload(TUChannels.CLIENT_TO_SERVER_CHANNEL, bos.toByteArray());
 
@@ -48,7 +48,7 @@ public class PacketSender {
      * @param player The player to send the message to.
      * @param message The string/boolean message to send.
      */
-    public static void sendServerToClientMessage(EntityPlayerMP player, boolean message) {
+    public static void sendServerToClientMessage(EntityPlayerMP player, Object message) {
         if (player.worldObj.isRemote) {
             System.err.println("Attempted to send S2C packet from client-side!");
             return;

@@ -1,12 +1,14 @@
 package net.dravigen.tesseractUtils.command;
 
-import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.dravigen.tesseractUtils.inventory.InventoryDataManager;
 import net.dravigen.tesseractUtils.inventory.InventoryEntry;
 import net.minecraft.src.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
+
+import static net.dravigen.tesseractUtils.TesseractUtilsAddon.*;
 
 public class CommandInv extends CommandBase {
 
@@ -23,11 +25,20 @@ public class CommandInv extends CommandBase {
             for (String s:new String[]{"load", "remove"}){
                 if (strings[0].equalsIgnoreCase(s)){
                     List<String> invList = new ArrayList<>();
-                    for (InventoryEntry inv: TesseractUtilsAddon.globalSavedInventories.getInventories()){
+                    for (InventoryEntry inv: savedInventories.getInventories()){
                         invList.add(inv.getName());
                     }
+                    Collections.sort(invList);
                     if (!invList.isEmpty()) return getListOfStringsFromIterableMatchingLastWord(strings,invList);
                 }
+            }
+            if (strings[0].equalsIgnoreCase("preset")){
+                List<String> presetsList = new ArrayList<>();
+                for (InventoryEntry inv: inventoryPresets.getInventories()){
+                    presetsList.add(inv.getName());
+                }
+                Collections.sort(presetsList);
+                if (!presetsList.isEmpty()) return getListOfStringsFromIterableMatchingLastWord(strings,presetsList);
             }
         }
         return null;
@@ -53,10 +64,13 @@ public class CommandInv extends CommandBase {
                     savePlayerInventory(player, inventoryName);
                     break;
                 case "load":
-                    loadPlayerInventory(player, inventoryName);
+                    loadPlayerInventory(player, inventoryName,false);
                     break;
                 case "remove":
                     removeSavedInventoryWithName(player, inventoryName);
+                    break;
+                case "preset":
+                    loadPlayerInventory(player,inventoryName,true);
                     break;
                 default:
                     throw new WrongUsageException(getCommandUsage(sender));
@@ -74,16 +88,16 @@ public class CommandInv extends CommandBase {
 
         InventoryEntry newEntry = new InventoryEntry(name, currentInventory);
 
-        TesseractUtilsAddon.globalSavedInventories.removeInventoryByName(name);
-        TesseractUtilsAddon.globalSavedInventories.addInventory(newEntry);
+        savedInventories.removeInventoryByName(name);
+        savedInventories.addInventory(newEntry);
 
-        InventoryDataManager.saveInventories(TesseractUtilsAddon.globalSavedInventories);
+        InventoryDataManager.saveInventories(savedInventories, false);
 
         player.sendChatToPlayer(ChatMessageComponent.createFromText("§aInventory '" + name + "' saved successfully!")); // §a for green text
     }
 
-    private void loadPlayerInventory(EntityPlayerMP player, String name) {
-        InventoryEntry entryToLoad = TesseractUtilsAddon.globalSavedInventories.getInventoryByName(name);
+    private void loadPlayerInventory(EntityPlayerMP player, String name, boolean isPreset) {
+        InventoryEntry entryToLoad = isPreset ? inventoryPresets.getInventoryByName(name) :  savedInventories.getInventoryByName(name);
 
         if (entryToLoad == null) {
             player.sendChatToPlayer(ChatMessageComponent.createFromText("§cInventory '" + name + "' not found!"));
@@ -96,16 +110,16 @@ public class CommandInv extends CommandBase {
 
         player.inventory.onInventoryChanged();
 
-        player.sendChatToPlayer(ChatMessageComponent.createFromText("§aInventory '" + name + "' loaded successfully!"));
+        player.sendChatToPlayer(ChatMessageComponent.createFromText((isPreset ? "§aInventory preset '" : "§aInventory '") + name + "' loaded successfully!"));
     }
 
     private void removeSavedInventoryWithName(EntityPlayerMP player, String name){
-        InventoryEntry entryToLoad = TesseractUtilsAddon.globalSavedInventories.getInventoryByName(name);
+        InventoryEntry entryToLoad = savedInventories.getInventoryByName(name);
         if (entryToLoad == null) {
             player.sendChatToPlayer(ChatMessageComponent.createFromText("§cInventory '" + name + "' not found!"));
         }else {
-            TesseractUtilsAddon.globalSavedInventories.removeInventoryByName(name);
-            InventoryDataManager.saveInventories(TesseractUtilsAddon.globalSavedInventories);
+            savedInventories.removeInventoryByName(name);
+            InventoryDataManager.saveInventories(savedInventories, false);
             player.sendChatToPlayer(ChatMessageComponent.createFromText("§aInventory '" + name + "' removed successfully!")); // §a for green text
         }
     }

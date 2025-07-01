@@ -41,16 +41,21 @@ public class CommandNewGive extends CommandBase {
         EntityPlayerMP player;
         if (strings.length >= 2) {
             player = CommandGive.getPlayer(par1ICommandSender, strings[0]);
-            ItemInfo itemInfo = getItemInfo(strings);
+            ItemInfo itemInfo;
+            if (strings.length==4) {
+                itemInfo = getItemInfo(new String[]{"",strings[1]+"/"+strings[3]});
+            }else {
+                itemInfo = getItemInfo(strings);
+            }
             id = itemInfo.id();
             count = 1;
+            if (strings.length >= 3) {
+                count = CommandGive.parseIntBounded(par1ICommandSender, strings[2], 1, 64);
+            }
             meta = itemInfo.meta();
             name = itemInfo.itemName();
             if (Item.itemsList[id] == null) {
                 throw new NumberInvalidException("commands.give.notFound", id);
-            }
-            if (strings.length >= 3) {
-                count = CommandGive.parseIntBounded(par1ICommandSender, strings[2], 1, 64);
             }
             ItemStack var7 = new ItemStack(id, count, meta);
             var7.getItem().initializeStackOnGiveCommand(player.worldObj.rand, var7);

@@ -1,5 +1,6 @@
 package net.dravigen.tesseractUtils.command;
 
+import net.dravigen.tesseractUtils.advanced_edit.BlockSelectionManager;
 import net.minecraft.src.*;
 import org.jetbrains.annotations.NotNull;
 import java.util.*;
@@ -28,6 +29,18 @@ public class UtilsCommand {
     public static int y2=9999999;
     public static int z2=9999999;
 
+    public static void setCoord1(int x, int y, int z){
+        x1=x;
+        y1=y;
+        z1=z;
+        BlockSelectionManager.setBlock1(x,y,z);
+    }
+    public static void setCoord2(int x, int y, int z){
+        x2=x;
+        y2=y;
+        z2=z;
+        BlockSelectionManager.setBlock2(x,y,z);
+    }
     public static UtilsCommand instance;
 
     public static UtilsCommand getInstance() {
@@ -414,13 +427,7 @@ public class UtilsCommand {
         }
     }
 
-    public static List<BlockPos> findConnectedBlocksInPlane(
-            World world,
-            int startX, int startY, int startZ,
-            int referenceBlockId,
-            int referenceBlockMeta,
-            int clickedFace,
-            boolean fuzzy) {
+    public static List<BlockPos> findConnectedBlocksInPlane(World world, int startX, int startY, int startZ, int referenceBlockId, int referenceBlockMeta, int clickedFace, boolean fuzzy) {
 
         List<BlockPos> foundBlocks = new ArrayList<>();
         Queue<BlockPos> queue = new LinkedList<>();
@@ -500,5 +507,68 @@ public class UtilsCommand {
         return foundBlocks;
     }
 
+    // Define standard 6-directional (cardinal) neighbors for 3D flood fill
+    private static final int[][] CARDINAL_OFFSETS = {
+            {1, 0, 0}, {-1, 0, 0}, // X-axis
+            {0, 1, 0}, {0, -1, 0}, // Y-axis
+            {0, 0, 1}, {0, 0, -1}  // Z-axis
+    };
+
+    // Define all 26 neighbors (including diagonals, edges, and corners) for fuzzy 3D flood fill
+    private static final int[][] FUZZY_3D_OFFSETS;
+
+    static {
+        List<int[]> offsetsList = new ArrayList<>();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    offsetsList.add(new int[]{dx, dy, dz});
+                }
+            }
+        }
+        FUZZY_3D_OFFSETS = offsetsList.toArray(new int[0][]);
+    }
+
+    public static List<BlockPos> findConnectedBlocksIn3D(World world, int startX, int startY, int startZ, int referenceBlockId, int referenceBlockMeta, boolean fuzzy) {
+
+        List<BlockPos> foundBlocks = new ArrayList<>();
+        Queue<BlockPos> queue = new LinkedList<>();
+        Set<BlockPos> visited = new HashSet<>();
+
+        BlockPos startPos = new BlockPos(startX, startY, startZ);
+
+        queue.add(startPos);
+        visited.add(startPos);
+
+        int[][] neighborsOffsets = fuzzy ? FUZZY_3D_OFFSETS : CARDINAL_OFFSETS;
+
+        while (!queue.isEmpty() && foundBlocks.size() < (int)EXTRUDE_LIMIT.getValue()) {
+            BlockPos current = queue.poll();
+            foundBlocks.add(current);
+            for (int[] offset : neighborsOffsets) {
+                int nextX = current.x + offset[0];
+                int nextY = current.y + offset[1];
+                int nextZ = current.z + offset[2];
+                BlockPos neighbor = new BlockPos(nextX, nextY, nextZ);
+                if (nextY < 0 || nextY >= world.getHeight()) {
+                    continue;
+                }
+
+                if (!visited.contains(neighbor)) {
+                    int neighborId = world.getBlockId(nextX, nextY, nextZ);
+                    int neighborMeta = world.getBlockMetadata(nextX, nextY, nextZ);
+
+                    if (neighborId == referenceBlockId && neighborMeta == referenceBlockMeta) {
+                        queue.add(neighbor); // Add to queue for further exploration
+                        visited.add(neighbor); // Mark as visited
+                    }
+                }
+            }
+        }
+        return foundBlocks;
+    }
 
 }
