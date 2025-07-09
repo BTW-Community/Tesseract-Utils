@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.src.EntityPlayerMP;
 import net.minecraft.src.Minecraft;
 import net.minecraft.src.Packet250CustomPayload;
@@ -18,7 +19,7 @@ public class PacketSender {
      *
      * @param message The string message to send.
      */
-    public static void sendClientToServerMessage(String message) {
+    public static void sendClientToServerMessage(Object message) {
         if (!Minecraft.getMinecraft().theWorld.isRemote) {
             System.err.println("Attempted to send C2S packet from server-side!");
             return;
@@ -28,7 +29,7 @@ public class PacketSender {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
 
-            dos.writeUTF(message);
+            dos.writeUTF(String.valueOf(message));
 
             Packet250CustomPayload packet = new Packet250CustomPayload(TUChannels.CLIENT_TO_SERVER_CHANNEL, bos.toByteArray());
 
@@ -48,17 +49,25 @@ public class PacketSender {
      * @param player The player to send the message to.
      * @param message The string/boolean message to send.
      */
-    public static void sendServerToClientMessage(EntityPlayerMP player, boolean message) {
+    public static void sendServerToClientMessage(EntityPlayerMP player, Object message) {
         if (player.worldObj.isRemote) {
             System.err.println("Attempted to send S2C packet from client-side!");
             return;
         }
-
         try {
+
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
 
-            dos.writeUTF(String.valueOf(message));
+            String string = message.toString();
+
+            Object clientHaveTU = PacketUtils.clientHaveTU.get(player.getEntityName());
+            boolean initPacket = string.startsWith("isPlayerOP")||string.startsWith("haveTU")||string.startsWith("sendNamesLists")||string.startsWith("updatePlayerInfo");
+            if (!initPacket&&clientHaveTU!=null&&!(boolean) clientHaveTU)return;
+
+            dos.writeUTF(string);
+
+
 
             Packet250CustomPayload packet = new Packet250CustomPayload(TUChannels.SERVER_TO_CLIENT_CHANNEL, bos.toByteArray());
             player.playerNetServerHandler.sendPacketToPlayer(packet);

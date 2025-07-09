@@ -1,12 +1,17 @@
 package net.dravigen.tesseractUtils.mixin.clientServer;
 
+import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
+
+
+import static net.dravigen.tesseractUtils.enums.EnumConfig.*;
 
 @Mixin(EntityPlayer.class)
 public abstract class EntityPlayerMixin extends EntityLivingBase{
@@ -17,80 +22,79 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @Shadow public PlayerCapabilities capabilities;
 
-    @Unique private GameSettings gameSettings=Minecraft.getMinecraft().gameSettings; // Replace 'gameSettings' with the actual obfuscated field name
-    @Unique private KeyBinding flyUpKey;
-    @Unique private KeyBinding flyDownKey;
-    @Unique private KeyBinding sprintKey;
+    @Shadow public abstract boolean isUsingSpecialKey();
 
-    @ModifyConstant(method = "moveEntityWithHeading",constant = @Constant(floatValue = 2.0F))
-    private float modifySprintFlightSpeed(float constant){
-        return this.capabilities.isCreativeMode ? (int)FLIGHT_SPEED.getValue() : constant;
+    @Redirect(method = "moveEntityWithHeading",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/PlayerCapabilities;getFlySpeed()F"))
+    private float modifySprintFlightSpeed(PlayerCapabilities instance){
+        return this.capabilities.isCreativeMode&&FLIGHT_SPEED.getIntValue()!=2&&this.isUsingSpecialKey() ? FLIGHT_MOMENTUM.getBoolValue() ? FLIGHT_SPEED.getIntValue()*0.35f : FLIGHT_SPEED.getIntValue()*0.1f: instance.getFlySpeed();
     }
 
     @Redirect(method = "moveEntityWithHeading",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayer;isSprinting()Z"))
     private boolean isSprinting(EntityPlayer instance){
-        if (this.capabilities.isCreativeMode&&this.capabilities.isFlying&& (int)FLIGHT_SPEED.getValue()!=2) {
-            if (sprintKey == null) {
-                sprintKey = gameSettings.keyBindSpecial;
-            }
-            return sprintKey.pressed;
-        }else return instance.isSprinting();
+        if(FLIGHT_SPEED.getIntValue()!=2){
+            return false;
+        }
+        return instance.isSprinting();
     }
 
-    @Inject(method = "moveEntityWithHeading",at = @At("TAIL"))
+    @Inject(method = "moveEntityWithHeading",at = @At("HEAD"))
     private void handleDisabledMomentum(float par1, float par2, CallbackInfo ci){
-        if (this.capabilities.isCreativeMode&&this.moveStrafing==0 && this.moveForward==0&&this.capabilities.isFlying&& (boolean)FLIGHT_MOMENTUM.getValue()) {
-            this.motionX *= 0.3;
-            this.motionY *= 0.75;
-            this.motionZ *= 0.3;
+        if (this.capabilities.isCreativeMode&&this.capabilities.isFlying&& (boolean)FLIGHT_MOMENTUM.getValue()) {
+            if (!this.isUsingSpecialKey()){
+                this.motionY = this.motionY > FLIGHT_SPEED.getIntValue() ? 0.37 : this.motionY < -FLIGHT_SPEED.getIntValue() ? -0.37 : this.motionY;
+            }
+            if ((FLIGHT_SPEED.getIntValue()!=2&&this.isUsingSpecialKey())||(this.moveStrafing == 0 && this.moveForward == 0 && !this.isJumping&&!this.isSneaking())) {
+                this.motionX *= 0.3;
+                this.motionY *= 0.3;
+                this.motionZ *= 0.3;
+            }
         }
     }
 
+    @Environment(EnvType.CLIENT)
     @Inject(method = "onUpdate",at = @At(value = "HEAD"))
     private void processTUConfigs(CallbackInfo ci){
         if (this.capabilities.isCreativeMode) {
             if (this.boundingBox.minY < -3) {
-                if (this.motionY < 0) {
-                    this.motionY = 0;
-                }
+                this.motionY = 0.2;
+            } else if (this.boundingBox.minY >= -3 && this.boundingBox.minY <=-2.8) {
+                this.motionY = 0;
             }
-            if ((boolean)NO_CLIP.getValue()) {
+            if (TesseractUtilsAddon.modeState==2) {
                 this.onGround = false;
                 this.capabilities.isFlying = true;
                 this.noClip = true;
             } else this.noClip = false;
         }
         if (this.capabilities.isCreativeMode&&this.capabilities.isFlying) {
-            if (flyUpKey == null || flyDownKey == null || sprintKey == null) {
-                flyUpKey = gameSettings.keyBindJump;
-                flyDownKey = gameSettings.keyBindSneak;
-                sprintKey = gameSettings.keyBindSpecial;
-            }
-            if (sprintKey.pressed && (int)FLIGHT_SPEED.getValue() != 2) {
-                if (flyUpKey.pressed) {
-                    this.motionY += 0.12D * (int)FLIGHT_SPEED.getValue();
+            if (this.isUsingSpecialKey() && FLIGHT_SPEED.getIntValue() != 2) {
+                if (this.isJumping&&!this.isSneaking()) {
+                    if (FLIGHT_MOMENTUM.getBoolValue()) {
+                        this.motionY = FLIGHT_SPEED.getIntValue();
+                    }else this.motionY = FLIGHT_SPEED.getIntValue()*0.3;
                 }
-                if (flyDownKey.pressed) {
-                    this.motionY -= 0.12D * (int)FLIGHT_SPEED.getValue();
+                if (this.isSneaking()&&!this.isJumping) {
+                    if (FLIGHT_MOMENTUM.getBoolValue()) {
+                        this.motionY = -FLIGHT_SPEED.getIntValue();
+                    }else this.motionY = -FLIGHT_SPEED.getIntValue()*0.3;
                 }
-            }
-            if ((boolean) FLIGHT_MOMENTUM.getValue()&&!sprintKey.pressed) {
-                if (flyUpKey.pressed) {
-                    this.motionY += 0.05D;
-                }
-                if (flyDownKey.pressed) {
-                    this.motionY -= 0.05D;
-                }
+                /*
+                if (gameSettings.keyBindForward.pressed){
+                    Vec3 direction = this.getLook(TesseractUtilsAddon.partialTick);
+                    float add = (int)FLIGHT_SPEED.getValue();
+                    this.moveEntity(direction.xCoord*add,0,direction.zCoord*add);
+                }*/
             }
         }
     }
 
     @Redirect(method = "isEntityInsideOpaqueBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityLivingBase;isEntityInsideOpaqueBlock()Z"))
     private boolean disableBlockOcclusion(EntityLivingBase instance){
-        if ((boolean) NO_CLIP.getValue()&&this.capabilities.isCreativeMode) {
+        if (this.capabilities.isCreativeMode&&TesseractUtilsAddon.modeState==2) {
             return false;
         }else return super.isEntityInsideOpaqueBlock();
     }
 
-
+    @Unique
+    private static final String NBT_KEY_SAVED_GAMEMODE = "modeState";
 }

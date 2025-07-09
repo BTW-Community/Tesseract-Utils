@@ -1,5 +1,7 @@
 package net.dravigen.tesseractUtils.configs;
 
+import net.dravigen.tesseractUtils.enums.EnumConfig;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,13 +12,7 @@ public class TessUConfig {
 
     private static final File configFile = new File("config/tesseract_utils.properties");
     public static final Properties properties = new Properties();
-    public static final EnumConfig[] enumConfigs;
-
-    static {
-        enumConfigs = new EnumConfig[]{EnumConfig.PLACING_COOLDOWN, EnumConfig.BREAKING_COOLDOWN, EnumConfig.FLIGHT_MOMENTUM, EnumConfig.CLICK_REPLACE, EnumConfig.NO_CLIP, EnumConfig.EXTRA_DEBUG, EnumConfig.VANILLA_NIGHTVIS, EnumConfig.FUZZY_EXTRUDER,
-                EnumConfig.REACH, EnumConfig.FLIGHT_SPEED, EnumConfig.EXTRUDE_LIMIT,
-                EnumConfig.CONFIG_MENU_KEY, EnumConfig.BAR_SWAP_KEY, EnumConfig.START_MUSIC_KEY,EnumConfig.STOP_MUSIC_KEY};
-    }
+    public static final EnumConfig[] enumConfigs = EnumConfig.values();
 
     public static void loadConfig() {
         try (FileInputStream fis = new FileInputStream(configFile)) {
@@ -31,9 +27,7 @@ public class TessUConfig {
                 if (config.isBool()) {
                     config.setValue(Boolean.parseBoolean(properties.getProperty(config.getProperty())));
                 }else config.setValue(Integer.parseInt(properties.getProperty(config.getProperty())));
-
             }
-
         } catch (Throwable e) {
             if (configFile.delete()) {
                 try {

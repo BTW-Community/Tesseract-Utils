@@ -1,12 +1,17 @@
 package net.dravigen.tesseractUtils.command;
 
+import net.dravigen.tesseractUtils.enums.EnumConfig;
+import net.dravigen.tesseractUtils.utils.ShapeGen;
+import net.dravigen.tesseractUtils.utils.interfaces.IClientStatusCallback;
+import net.dravigen.tesseractUtils.packet.ClientRequestManager;
+import net.dravigen.tesseractUtils.packet.PacketSender;
+import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.src.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
+import static net.dravigen.tesseractUtils.utils.ListsUtils.*;
 
 public class CommandWorldEdit extends CommandBase {
 
@@ -22,140 +27,150 @@ public class CommandWorldEdit extends CommandBase {
     }
 
     @Override
-    public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
+    public List addTabCompletionOptions(ICommandSender sender, String[] strings) {
+        String username = sender.getCommandSenderName();
         if (strings.length==1) {
-            return getListOfStringsMatchingLastWord(strings,"set", "setblock", "shape", "replace", "move", "undo", "redo", "copy", "paste", "pos1", "pos2","tool");
+            return getListOfStringsMatchingLastWord(strings,"set", "setblock", "shape", "replace", "line", "plane", "move", "undo", "redo", "copy", "paste", "pos1", "pos2","tool");
         }
-        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
-        if (strings[0].equalsIgnoreCase("pos1") || strings[0].equalsIgnoreCase("pos2")) {
-            if (blockCoord != null) {
-                int x = blockCoord.blockX;
-                int y = blockCoord.blockY;
-                int z = blockCoord.blockZ;
+        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(sender);
+        switch (strings[0].toLowerCase()){
+            case "pos1","pos2"->{
+                if (blockCoord != null) {
+                    int x = blockCoord.blockX;
+                    int y = blockCoord.blockY;
+                    int z = blockCoord.blockZ;
+                    if (strings.length == 2) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                    } else if (strings.length == 3) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                    } else if (strings.length == 4) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    }
+                } else return null;
+            }
+            case "setblock"->{
                 if (strings.length == 2) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
-                } else if (strings.length == 3) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
-                } else if (strings.length == 4) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    return getBlockNameList(strings, username);
                 }
-            } else return null;
-        }
-        else if (strings[0].equalsIgnoreCase("setblock")) {
-            if (strings.length == 2) {
-                return UtilsCommand.getInstance().getBlockNameList(strings);
-            }
-            if (blockCoord != null) {
-                int x = blockCoord.blockX;
-                int y = blockCoord.blockY;
-                int z = blockCoord.blockZ;
-                if (strings.length == 3) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
-                } else if (strings.length == 4) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
-                } else if (strings.length == 5) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                if (blockCoord != null) {
+                    int x = blockCoord.blockX;
+                    int y = blockCoord.blockY;
+                    int z = blockCoord.blockZ;
+                    if (strings.length == 3) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                    } else if (strings.length == 4) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                    } else if (strings.length == 5) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    }
                 }
             }
-        }
-        else if (strings[0].equalsIgnoreCase("shape")) {
-            if (strings.length == 2) {
-                return UtilsCommand.getInstance().getBlockNameList(strings);
-            }
-            if (blockCoord != null) {
-                int x = blockCoord.blockX;
-                int y = blockCoord.blockY;
-                int z = blockCoord.blockZ;
-                if (strings.length == 5) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
-                } else if (strings.length == 6) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
-                } else if (strings.length ==7) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
-                }
-            }
-            if (strings.length==3){
-                return getListOfStringsMatchingLastWord(strings, "sphere","cylinder", "cube");
-            }
-        }
-        else if (strings[0].equalsIgnoreCase("set")) {
-            if (strings.length == 2) {
-                return UtilsCommand.getInstance().getBlockNameList(strings);
-            } else if (strings.length == 3) {
-                return getListOfStringsMatchingLastWord(strings, "hollow", "wall");
-            }
-        }
-        else if (strings[0].equalsIgnoreCase("replace")) {
-            if (strings.length == 2 || strings.length == 3) {
-                return UtilsCommand.getInstance().getBlockNameList(strings);
-            }
-        }
-        else if (strings[0].equalsIgnoreCase("copy")) return getListOfStringsMatchingLastWord(strings, "ignoreAir");
-        else if (strings[0].equalsIgnoreCase("paste")){
-            if (blockCoord != null) {
-                int x = blockCoord.blockX;
-                int y = blockCoord.blockY;
-                int z = blockCoord.blockZ;
+            case "shape"->{
                 if (strings.length == 2) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                    return getBlockNameList(strings,username);
+                }
+                if (blockCoord != null) {
+                    int x = blockCoord.blockX;
+                    int y = blockCoord.blockY;
+                    int z = blockCoord.blockZ;
+                    if (strings.length == 5) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                    } else if (strings.length == 6) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                    } else if (strings.length ==7) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    }
+                }
+                if (strings.length==3){
+                    return getListOfStringsMatchingLastWord(strings, "sphere","cylinder", "cube", "pyramid");
+                }
+            }
+            case "set"->{
+                if (strings.length == 2) {
+                    return getBlockNameList(strings,username);
                 } else if (strings.length == 3) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
-                } else if (strings.length == 4) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    return getListOfStringsMatchingLastWord(strings, "hollow", "wall");
                 }
-            } else return null;
-        }
-        else if (strings[0].equalsIgnoreCase("move")) {
-            if (strings.length == 2) {
-                return getListOfStringsMatchingLastWord(strings, "to", "add");
             }
-            if (blockCoord != null&&strings[1].equalsIgnoreCase("to")) {
-                int x = blockCoord.blockX;
-                int y = blockCoord.blockY;
-                int z = blockCoord.blockZ;
-                if (strings.length == 3) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
-                } else if (strings.length == 4) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+            case "replace"->{
+                if (strings.length == 2 || strings.length == 3) {
+                    return getBlockNameList(strings,username);
+                }
+            }
+            case "copy"->{
+                return getListOfStringsMatchingLastWord(strings, "ignoreAir");
+            }
+            case "paste"->{
+                if (blockCoord != null) {
+                    int x = blockCoord.blockX;
+                    int y = blockCoord.blockY;
+                    int z = blockCoord.blockZ;
+                    if (strings.length == 2) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                    } else if (strings.length == 3) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                    } else if (strings.length == 4) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    }
+                } else return null;
+            }
+            case "move"->{
+                if (strings.length == 2) {
+                    return getListOfStringsMatchingLastWord(strings, "to", "add");
+                }
+                if (blockCoord != null&&strings[1].equalsIgnoreCase("to")) {
+                    int x = blockCoord.blockX;
+                    int y = blockCoord.blockY;
+                    int z = blockCoord.blockZ;
+                    if (strings.length == 3) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(x));
+                    } else if (strings.length == 4) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(y));
+                    } else if (strings.length == 5) {
+                        return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    }
+                }
+            }
+            case "tool"->{
+                if (strings.length==2){
+                    return getListOfStringsMatchingLastWord(strings, "sphere", "cylinder","cube", "pyramid", "plane");
+                } else if (strings.length==3){
+                    return getBlockNameList(strings,username);
+                }else if (strings.length == 4) {
+                    return getListOfStringsMatchingLastWord(strings, "1:1:1:1");
                 } else if (strings.length == 5) {
-                    return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
+                    return getListOfStringsMatchingLastWord(strings, "hollow", "open");
+                }
+            }
+            case "line"->{
+                if (strings.length == 2) {
+                    return getBlockNameList(strings,username);
+                }
+            }
+            case "plane"->{
+                if (strings.length == 2) {
+                    return getBlockNameList(strings,username);
+                } else if (strings.length == 3) {
+                    return getListOfStringsMatchingLastWord(strings, "x", "z");
                 }
             }
         }
-        else if (strings[0].equalsIgnoreCase("tool")) {
-            if (strings.length==2){
-                return getListOfStringsMatchingLastWord(strings, "sphere", "cylinder","cube");
-            } else if (strings.length==3){
-                return UtilsCommand.getInstance().getBlockNameList(strings);
-            }else if (strings.length == 4) {
-                return getListOfStringsMatchingLastWord(strings, "1:1:1:1");
-            } else if (strings.length == 5) {
-                return getListOfStringsMatchingLastWord(strings,"replace");
-            }else if (strings.length == 6) {
-                return getListOfStringsMatchingLastWord(strings, "hollow", "open");
-            }
-        }
+
         return null;
     }
 
-    private static int numBlock=0;
+    public static int numBlock=0;
 
     @Override
-    public void processCommand(ICommandSender iCommandSender, String[] strings) {
-        World world = iCommandSender.getEntityWorld();
+    public void processCommand(ICommandSender sender, String[] strings) {
+        EntityPlayerMP player = getPlayer(sender, sender.getCommandSenderName());
+        World world = sender.getEntityWorld();
         numBlock = 0;
-        boolean ignoreAir = false;
-        int flag = 2;
-        for (String string : strings) {
-            if (!ignoreAir) {
-                ignoreAir = string.equalsIgnoreCase("ignoreAir");
-            }
-            if (flag == 2) {
-                flag = string.equalsIgnoreCase("causeUpdate") ? 3 : flag;
-            }
-        }
-        if (strings.length==0)throw new WrongUsageException("Invalid command");
-        else switch (strings[0]) {
+        if (strings.length == 0) player.sendChatToPlayer(ChatMessageComponent.createFromText("§cInvalid command"));
+        boolean ignoreAir = Boolean.parseBoolean(PacketUtils.playersInfoServer.get(player.getEntityName()).get(EnumConfig.IGNORE_AIR.ordinal()));
+        int flag = Boolean.parseBoolean(PacketUtils.playersInfoServer.get(player.getEntityName()).get(EnumConfig.NO_UPDATE.ordinal())) ? 2 : 3;
+        switch (strings[0]) {
+            /// doesn't need pos update
             case "setblock" -> {
                 try {
                     List<SavedBlock> list = new ArrayList<>();
@@ -163,121 +178,39 @@ public class CommandWorldEdit extends CommandBase {
                     int y;
                     int z;
                     try {
-                        x = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posX, strings[2]));
-                        y = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posY, strings[3]));
-                        z = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posZ, strings[4]));
+                        x = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posX, strings[2]));
+                        y = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posY, strings[3]));
+                        z = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posZ, strings[4]));
                     } catch (Exception ignored) {
                         x = Integer.parseInt(strings[2]);
                         y = Integer.parseInt(strings[3]);
                         z = Integer.parseInt(strings[4]);
                     }
-                    @NotNull List<BlockInfo> results = getBlockInfo(strings[1]);
+                    List<BlockInfo> results = getBlockInfo(strings[1],sender.getCommandSenderName());
+                    if (results==null){
+
+                        getPlayer(sender,sender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
+                        return;
+                    }
                     BlockInfo result = results.get(0);
                     if (result.id() != 0) {
+
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
                         itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
                         if (result.meta() > subtype.size() - 1) {
-                            getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
+                            player.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
                             return;
                         }
                     }
 
                     list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                     world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                    undoSaved.add(list);
-                    redoSaved.clear();
-                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dPlaced " + result.blockName().replace("_", " ") + " at: " + x + ", " + y + ", " + z));
+                    addToUndoListServer(list, player);
+                    clearRedoListServer(player);
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§dPlaced " + result.blockName().replace("_", " ") + " at: " + x + ", " + y + ", " + z));
                 } catch (Exception e) {
-                    throw new WrongUsageException("// setblock <id/metadata> <x> <y> <z>");
-                }
-            }
-            case "set" -> {
-                try {
-                    boolean hollow = strings.length > 2 && strings[2].equalsIgnoreCase("hollow");
-                    boolean wall = strings.length > 2 && strings[2].equalsIgnoreCase("wall");
-                    if (x1 != 9999999 && y1 != 9999999 && z1 != 9999999 && x2 != 9999999 && y2 != 9999999 && z2 != 9999999) {
-                        List<SavedBlock> list = new ArrayList<>();
-                        if (hollow || wall) {
-                            int thickness = 1;
-                            thickness = strings.length > 3 ? strings[3].equalsIgnoreCase("ignoreAir") || strings[3].equalsIgnoreCase("causeUpdate") ? thickness : Integer.parseInt(strings[3]) : thickness;
-                            for (int l = 0; l < thickness; l++) {
-                                int maxX = Math.max(x1, x2) - l;
-                                int minX = Math.min(x1, x2) + l;
-                                int maxY = Math.max(y1, y2) - l;
-                                int minY = Math.min(y1, y2) + l;
-                                int maxZ = Math.max(z1, z2) - l;
-                                int minZ = Math.min(z1, z2) + l;
-                                int absX = MathHelper.abs_int(x1 - x2) - l * 2;
-                                int absY = wall ? MathHelper.abs_int(y1 - y2) : MathHelper.abs_int(y1 - y2) - l * 2;
-                                int absZ = MathHelper.abs_int(z1 - z2) - l * 2;
-                                @NotNull List<BlockInfo> results = getBlockInfo(strings[1]);
-                                for (int j = 0; j <= absY; j++) {
-                                    for (int i = 0; i <= absX; i++) {
-                                        for (int k = 0; k <= absZ; k++) {
-                                            BlockInfo result = getRandomBlockFromOdds(results);
-                                            int x = minX + i;
-                                            int y = wall ? Math.min(y1, y2) + j : minY + j;
-                                            int z = minZ + k;
-                                            if (result.id() != 0) {
-                                                ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                                                List<ItemStack> subtype = new ArrayList<>();
-                                                itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                                                if (result.meta() > subtype.size() - 1) {
-                                                    getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                                    return;
-                                                }
-                                            }
-                                            if (x == maxX || z == maxZ || x == minX || z == minZ) {
-                                                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                                world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                                                numBlock++;
-                                            } else if ((y == maxY || y == minY) && hollow) {
-                                                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                                world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                                                numBlock++;
-                                            } else if (!ignoreAir) {
-                                                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                                world.setBlock(x, y, z, 0, 0, flag);
-                                                numBlock++;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            @NotNull List<BlockInfo> results = getBlockInfo(strings[1]);
-                            for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
-                                for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
-                                    for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
-                                        BlockInfo result = getRandomBlockFromOdds(results);
-                                        int x = Math.min(x1, x2) + i;
-                                        int y = Math.min(y1, y2) + j;
-                                        int z = Math.min(z1, z2) + k;
-                                        if (result.id() != 0) {
-                                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                                            List<ItemStack> subtype = new ArrayList<>();
-                                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                                            if (result.meta() > subtype.size() - 1) {
-                                                getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                                return;
-                                            }
-                                        }
-                                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                        world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                                        numBlock++;
-                                    }
-                                }
-                            }
-                        }
-                        if (!list.isEmpty()) {
-                            undoSaved.add(list);
-                            redoSaved.clear();
-                        }
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
-                    } else throw new WrongUsageException("You need to select an area");
-                } catch (Exception e) {
-                    throw new WrongUsageException("// set <id/metadata>");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// setblock <id/metadata> <x> <y> <z>"));
                 }
             }
             case "shape" -> {
@@ -302,9 +235,9 @@ public class CommandWorldEdit extends CommandBase {
                     }
                     if (strings.length >= 7) {
                         try {
-                            centerX = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posX, strings[4]));
-                            centerY = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posY, strings[5]));
-                            centerZ = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posZ, strings[6]));
+                            centerX = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posX, strings[4]));
+                            centerY = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posY, strings[5]));
+                            centerZ = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posZ, strings[6]));
                         } catch (Exception ignored) {
                             centerX = Integer.parseInt(strings[4]);
                             centerY = Integer.parseInt(strings[5]);
@@ -312,685 +245,535 @@ public class CommandWorldEdit extends CommandBase {
                         }
                     }
                     if (centerX == 999999 || centerY == 999999 || centerZ == 999999) {
-                        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(iCommandSender);
+                        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(sender);
                         centerX = blockCoord.blockX;
                         centerY = blockCoord.blockY;
                         centerZ = blockCoord.blockZ;
                     }
-
-                    centerY = var2 < 0 ? centerY + var2 : centerY;
-                    var2 = var2 < 0 ? var2 * (-1) : var2;
-                    List<SavedBlock> list;
+                    List<SavedBlock> list = new ArrayList<>();
+                    final int replaceYIfNegative = var2 < 0 ? centerY + var2 : centerY;
                     switch (strings[2].toLowerCase()) {
                         case "sphere" -> {
                             if (hollow) {
-                                list = generateHollowSphere(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, replace);
+                                list = ShapeGen.generateHollowSphere(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, replace, player);
                             } else
-                                list = generateSphere(world, centerX, centerY, centerZ, strings[1], flag, var1, replace);
-                            if (!list.isEmpty()) {
-                                undoSaved.add(list);
-                                redoSaved.clear();
-                            }
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
+                                list = ShapeGen.generateSphere(world, centerX, centerY, centerZ, strings[1], flag, var1, replace, player);
                         }
                         case "cylinder" -> {
-
+                            centerY = replaceYIfNegative;
+                            var2 = var2 < 0 ? var2 * (-1) : var2;
                             if (hollow)
-                                list = generateHollowCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, var3, replace);
+                                list = ShapeGen.generateHollowCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, var3, replace, player);
                             else if (open)
-                                list = generateOpenCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, var3, replace);
+                                list = ShapeGen.generateOpenCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, var3, replace, player);
                             else
-                                list = generateCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, replace);
-                            if (!list.isEmpty()) {
-                                undoSaved.add(list);
-                                redoSaved.clear();
-                            }
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
+                                list = ShapeGen.generateCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, replace, player);
                         }
                         case "cube" -> {
+                            centerY = replaceYIfNegative;
+                            var2 = var2 < 0 ? var2 * (-1) : var2;
                             if (hollow)
-                                list = generateHollowCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace);
+                                list = ShapeGen.generateHollowCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace, player);
                             else if (open)
-                                list = generateOpenCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace);
+                                list = ShapeGen.generateOpenCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace, player);
                             else
-                                list = generateCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, replace);
-                            if (!list.isEmpty()) {
-                                undoSaved.add(list);
-                                redoSaved.clear();
-                            }
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
-
+                                list = ShapeGen.generateCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, replace, player);
+                        }
+                        case "pyramid" -> {
+                            if (hollow)
+                                list = ShapeGen.generateHollowPyramid(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace, player);
+                            else
+                                list = ShapeGen.generatePyramid(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, replace, player);
                         }
                     }
-                } catch (Exception e) {
-                    throw new WrongUsageException("// shape <type> <id> <parameters> <x> <y> <z> [hollow|open] [replace]");
-                }
-            }
-            case "replace" -> {
-                try {
-                    if (strings.length > 1) {
-                        if (x1 != 9999999 && y1 != 9999999 && z1 != 9999999 && x2 != 9999999 && y2 != 9999999 && z2 != 9999999) {
-                            List<SavedBlock> list = new ArrayList<>();
-                            @NotNull List<BlockInfo> results1 = getBlockInfo(strings[1]);
-                            @NotNull List<BlockInfo> results2 = null;
-                            if (strings.length > 2) {
-                                results2 = getBlockInfo(strings[2]);
-                            }
-                            for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
-                                for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
-                                    for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
-                                        BlockInfo result1 = getRandomBlockFromOdds(results1);
-                                        if (result1.id() != 0) {
-                                            ItemStack itemStack = new ItemStack(result1.id(), 0, 0);
-                                            List<ItemStack> subtype = new ArrayList<>();
-                                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                                            if (result1.meta() > subtype.size() - 1) {
-                                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result1.meta() + " out of bounds for length " + (subtype.size())));
-                                                return;
-                                            }
-                                        }
-                                        int x = Math.min(x1, x2) + i;
-                                        int y = Math.min(y1, y2) + j;
-                                        int z = Math.min(z1, z2) + k;
-                                        if (strings.length > 2) {
-                                            for (BlockInfo result2:results2) {
-                                                if (result2 != null && world.getBlockId(x, y, z) == result2.id() && world.getBlockMetadata(x, y, z) == result2.meta()) {
-                                                    list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                                    world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
-                                                    numBlock++;
-                                                }
-                                            }
-                                        }else if (!world.isAirBlock(x, y, z)) {
-                                            list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                            world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
-                                            numBlock++;
-                                        }
-                                    }
-                                }
-                            }
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) was replaced"));
-                            if (!list.isEmpty()) {
-                                undoSaved.add(list);
-                                redoSaved.clear();
-                            }
-                        } else throw new WrongUsageException("You need to select an area");
-                    } else throw new WrongUsageException("// replace <id> [id replaced]");
-                } catch (Exception e) {
-                    throw new WrongUsageException("// replace <id> [id replaced]");
-                }
-            }
-            case "move" -> {
-                try {
-                    if (strings.length > 1) {
-                        List<SavedBlock> list = new ArrayList<>();
-                        List<SavedBlock> list1 = new ArrayList<>();
-                        int xPos = 0;
-                        int yPos = 0;
-                        int zPos = 0;
-                        if (strings[1].equalsIgnoreCase("to")) {
-                            if (strings.length > 4) {
-                                try {
-                                    xPos = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posX, strings[2]));
-                                    yPos = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posY, strings[3]));
-                                    zPos = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posZ, strings[4]));
-                                } catch (Exception ignored) {
-                                    xPos = Integer.parseInt(strings[2]);
-                                    yPos = Integer.parseInt(strings[3]);
-                                    zPos = Integer.parseInt(strings[4]);
-                                }
-                            } else {
-                                xPos = iCommandSender.getPlayerCoordinates().posX;
-                                yPos = iCommandSender.getPlayerCoordinates().posY;
-                                zPos = iCommandSender.getPlayerCoordinates().posZ;
-                            }
-                        } else if (strings[1].equalsIgnoreCase("add")) {
-                            if (strings.length > 4) {
-                                xPos = Integer.parseInt(strings[2]);
-                                yPos = Integer.parseInt(strings[3]);
-                                zPos = Integer.parseInt(strings[4]);
-                            }
-                        }
-                        if (x1 != 9999999 && y1 != 9999999 && z1 != 9999999 && x2 != 9999999 && y2 != 9999999 && z2 != 9999999 && (strings[1].equalsIgnoreCase("to") || strings[1].equalsIgnoreCase("add"))) {
-                            for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
-                                for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
-                                    for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
-                                        int x = Math.min(x1, x2) + i;
-                                        int y = Math.min(y1, y2) + j;
-                                        int z = Math.min(z1, z2) + k;
-                                        if (ignoreAir) {
-                                            if (!world.isAirBlock(x, y, z)) {
-                                                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                                world.setBlock(x, y, z, 0, 0, flag);
-                                                numBlock++;
-                                            }
-                                        } else {
-                                            list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                            world.setBlock(x, y, z, 0, 0, flag);
-                                            numBlock++;
-                                        }
-                                    }
-                                }
-                            }
-                            if (!list.isEmpty()) {
-                                int xa = 9999999;
-                                int ya = 9999999;
-                                int za = 9999999;
-                                int yb = -9999999;
-                                int xb = -9999999;
-                                int zb = -9999999;
-                                for (SavedBlock block : list) {
-                                    int finalX = xPos + block.x();
-                                    int finalY = yPos + block.y();
-                                    int finalZ = zPos + block.z();
-                                    if (strings[1].equalsIgnoreCase("to")) {
-                                        finalX -= Math.max(x1, x2);
-                                        finalY -= Math.min(y1, y2);
-                                        finalZ -= Math.max(z1, z2);
-                                    }
-                                    list1.add(new SavedBlock(finalX, finalY, finalZ, world.getBlockId(finalX, finalY, finalZ), world.getBlockMetadata(finalX, finalY, finalZ)));
-                                    world.setBlock(finalX, finalY, finalZ, block.id(), block.meta(), flag);
-                                    xa = Math.min(finalX, xa);
-                                    ya = Math.min(finalY, ya);
-                                    za = Math.min(finalZ, za);
-                                    xb = Math.max(finalX, xb);
-                                    yb = Math.max(finalY, yb);
-                                    zb = Math.max(finalZ, zb);
-                                }
-                                x1 = xa;
-                                y1 = ya;
-                                z1 = za;
-                                x2 = xb;
-                                y2 = yb;
-                                z2 = zb;
-                            }
-                            list1.addAll(list);
-                            if (!list1.isEmpty()) {
-                                undoSaved.add(list1);
-                                redoSaved.clear();
-                                iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been moved"));
-                            }
-                        }
+                    if (!list.isEmpty()) {
+                        addToUndoListServer(list, player);
+                        clearRedoListServer(player);
+                        sender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
                     }
                 } catch (Exception e) {
-                    throw new WrongUsageException("// move <to|add> <x> <y> <z>");
-                }
-            }
-            case "copy" -> {
-                try {
-                    copySaved.clear();
-                    if (x1 != 9999999 && y1 != 9999999 && z1 != 9999999 && x2 != 9999999 && y2 != 9999999 && z2 != 9999999) {
-                        for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
-                            for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
-                                for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
-                                    int x = Math.min(x1, x2) + i;
-                                    int y = Math.min(y1, y2) + j;
-                                    int z = Math.min(z1, z2) + k;
-
-                                    if (ignoreAir) {
-                                        if (!world.isAirBlock(x, y, z)) {
-                                            copySaved.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                            numBlock++;
-                                        }
-                                    } else {
-                                        copySaved.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                                        numBlock++;
-                                    }
-                                }
-                            }
-                        }
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been copied"));
-                    } else throw new WrongUsageException("You need to select an area");
-                } catch (Exception e) {
-                    throw new WrongUsageException("// copy");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// shape <type> <id> <parameters> <x> <y> <z> [hollow|open] [replace]"));
                 }
             }
             case "paste" -> {
                 try {
-                    List<SavedBlock> list = new ArrayList<>();
-                    int x;
-                    int y;
-                    int z;
-                    if (strings.length > 1) {
-                        try {
-                            x = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posX, strings[1]));
-                            y = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posY, strings[2]));
-                            z = MathHelper.floor_double(CommandBase.func_110666_a(iCommandSender, iCommandSender.getPlayerCoordinates().posZ, strings[3]));
-                        } catch (Exception ignored) {
-                            x = Integer.parseInt(strings[1]);
-                            y = Integer.parseInt(strings[2]);
-                            z = Integer.parseInt(strings[3]);
-                        }
-                    } else {
-                        x = iCommandSender.getPlayerCoordinates().posX;
-                        y = iCommandSender.getPlayerCoordinates().posY;
-                        z = iCommandSender.getPlayerCoordinates().posZ;
-                    }
-                    if (!copySaved.isEmpty()) {
-                        for (SavedBlock block : copySaved) {
-                            if (ignoreAir) {
-                                if (block.id() != 0) {
-                                    list.add(new SavedBlock(block.x() + x, block.y() + y, block.z() + z, world.getBlockId(block.x() + x, block.y() + y, block.z() + z), world.getBlockMetadata(block.x() + x, block.y() + y, block.z() + z)));
-                                    world.setBlock(block.x() + x, block.y() + y, block.z() + z, block.id(), block.meta(), flag);
-                                    numBlock++;
-                                }
-                            } else {
-                                list.add(new SavedBlock(block.x() + x, block.y() + y, block.z() + z, world.getBlockId(block.x() + x, block.y() + y, block.z() + z), world.getBlockMetadata(block.x() + x, block.y() + y, block.z() + z)));
-                                world.setBlock(block.x() + x, block.y() + y, block.z() + z, block.id(), block.meta(), flag);
-                                numBlock++;
-                            }
-                        }
-                    }
-                    if (!list.isEmpty()) {
-                        undoSaved.add(list);
-                        redoSaved.clear();
-                    }
-                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been pasted"));
+                    paste(sender, strings, player, ignoreAir, world, flag);
                 } catch (Exception e) {
-                    throw new WrongUsageException("// paste [x] [y] [z]");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// paste [x] [y] [z]"));
                 }
             }
             case "undo" -> {
                 try {
-                    if (!undoSaved.isEmpty()) {
-                        int count = 0;
-                        for (int i = 0; i < (strings.length > 1 ? Integer.parseInt(strings[1]) : 1); i++) {
-                            if (undoSaved.isEmpty())break;
-                            int xa = 9999999;
-                            int ya = 9999999;
-                            int za = 9999999;
-                            int yb = -9999999;
-                            int xb = -9999999;
-                            int zb = -9999999;
-                            List<SavedBlock> list = new ArrayList<>();
-                            for (SavedBlock block : undoSaved.get(undoSaved.size() - 1)) {
-                                list.add(new SavedBlock(block.x(), block.y(), block.z(), world.getBlockId(block.x(), block.y(), block.z()), world.getBlockMetadata(block.x(), block.y(), block.z())));
-                                world.setBlock(block.x(), block.y(), block.z(), block.id(), block.meta(), flag);
-                                xa = Math.min(block.x(), xa);
-                                ya = Math.min(block.y(), ya);
-                                za = Math.min(block.z(), za);
-                                xb = Math.max(block.x(), xb);
-                                yb = Math.max(block.y(), yb);
-                                zb = Math.max(block.z(), zb);
-                                numBlock++;
-                            }
-                            x1 = xa;
-                            y1 = ya;
-                            z1 = za;
-                            x2 = xb;
-                            y2 = yb;
-                            z2 = zb;
-                            redoSaved.add(list);
-                            undoSaved.remove(undoSaved.size() - 1);
-                            count++;
-                        }
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dThe last " + (count>1 ? count + " ":"") + "action" + (count>1 ?"s have been" : " has been") + " reverted"));
-                    }
+                    int num = strings.length > 1 ? Integer.parseInt(strings[1]) : 1;
+                    undo(num, player, world, flag);
                 } catch (Exception e) {
-                    throw new WrongUsageException("// undo [count]");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// undo [count]"));
                 }
             }
             case "redo" -> {
                 try {
-                    int count=0;
-                    if (!redoSaved.isEmpty()) {
-                        for (int j = 0; j < (strings.length > 1 ? Integer.parseInt(strings[1]) : 1); j++) {
-                            if (redoSaved.isEmpty())break;
-                            int xa = 9999999;
-                            int ya = 9999999;
-                            int za = 9999999;
-                            int yb = -9999999;
-                            int xb = -9999999;
-                            int zb = -9999999;
-                            List<SavedBlock> list = new ArrayList<>();
-                            for (SavedBlock undoBlock : redoSaved.get(redoSaved.size() - 1)) {
-                                list.add(new SavedBlock(undoBlock.x(), undoBlock.y(), undoBlock.z(), world.getBlockId(undoBlock.x(), undoBlock.y(), undoBlock.z()), world.getBlockMetadata(undoBlock.x(), undoBlock.y(), undoBlock.z())));
-                            }
-                            for (int i = redoSaved.get(redoSaved.size() - 1).size() - 1; i >= 0; i--) {
-                                SavedBlock block = redoSaved.get(redoSaved.size() - 1).get(i);
-                                world.setBlock(block.x(), block.y(), block.z(), block.id(), block.meta(), flag);
-                                xa = Math.min(block.x(), xa);
-                                ya = Math.min(block.y(), ya);
-                                za = Math.min(block.z(), za);
-                                xb = Math.max(block.x(), xb);
-                                yb = Math.max(block.y(), yb);
-                                zb = Math.max(block.z(), zb);
-                            }
-                            x1 = xa;
-                            y1 = ya;
-                            z1 = za;
-                            x2 = xb;
-                            y2 = yb;
-                            z2 = zb;
-                            undoSaved.add(list);
-                            redoSaved.remove(redoSaved.size() - 1);
-                        }
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dThe last " + (count > 1 ? count + " " : "") + "action" + (count > 1 ? "s have been" : " has been") + " redone"));
-                    }
+                    int num = strings.length > 1 ? Integer.parseInt(strings[1]) : 1;
+                    redo(num, player, world, flag);
                 } catch (Exception e) {
-                    throw new WrongUsageException("// redo [count]");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// redo [count]"));
                 }
             }
             case "pos1" -> {
                 try {
+                    int x;
+                    int y;
+                    int z;
                     if (strings.length == 4) {
-                        x1 = Integer.parseInt(strings[1]);
-                        y1 = Integer.parseInt(strings[2]);
-                        z1 = Integer.parseInt(strings[3]);
+                        x = Integer.parseInt(strings[1]);
+                        y = Integer.parseInt(strings[2]);
+                        z = Integer.parseInt(strings[3]);
                     } else {
-                        x1 = iCommandSender.getPlayerCoordinates().posX;
-                        y1 = iCommandSender.getPlayerCoordinates().posY;
-                        z1 = iCommandSender.getPlayerCoordinates().posZ;
+                        ChunkCoordinates coords = sender.getPlayerCoordinates();
+                        x =coords.posX;
+                        y =coords.posY;
+                        z =coords.posZ;
                     }
-                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dFirst position set to (" + x1 + ", " + y1 + ", " + z1 + ")."));
+                    PacketSender.sendServerToClientMessage(player,"updatePos1:"+x+","+y+","+z);
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§dFirst position set to (" + x + ", " + y + ", " + z + ")."));
                 } catch (Exception e) {
-                    throw new WrongUsageException("// pos1 [x] [y] [z]");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// pos1 [x] [y] [z]"));
                 }
             }
             case "pos2" -> {
                 try {
+                    int x;
+                    int y;
+                    int z;
                     if (strings.length == 4) {
-                        x2 = Integer.parseInt(strings[1]);
-                        y2 = Integer.parseInt(strings[2]);
-                        z2 = Integer.parseInt(strings[3]);
+                        x = Integer.parseInt(strings[1]);
+                        y = Integer.parseInt(strings[2]);
+                        z = Integer.parseInt(strings[3]);
                     } else {
-                        x2 = iCommandSender.getPlayerCoordinates().posX;
-                        y2 = iCommandSender.getPlayerCoordinates().posY;
-                        z2 = iCommandSender.getPlayerCoordinates().posZ;
+                        ChunkCoordinates coords = sender.getPlayerCoordinates();
+                        x =coords.posX;
+                        y =coords.posY;
+                        z =coords.posZ;
                     }
-                    iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dSecond position set to (" + x2 + ", " + y2 + ", " + z2 + ")."));
-                }catch (Exception e) {
-                    throw new WrongUsageException("// pos2 [x] [y] [z]");
+                    PacketSender.sendServerToClientMessage(player,"updatePos2:"+x+","+y+","+z);
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§dSecond position set to (" + x + ", " + y + ", " + z + ")."));
+                } catch (Exception e) {
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// pos2 [x] [y] [z]"));
                 }
             }
             case "tool" -> {
                 try {
-                    ItemStack itemStack = getPlayer(iCommandSender, iCommandSender.getCommandSenderName()).getHeldItem();
+                    ItemStack itemStack = player.getHeldItem();
                     if (itemStack == null) return;
                     if (strings.length == 1 && itemStack.hasTagCompound()) {
                         NBTTagCompound nbt = itemStack.getTagCompound();
                         NBTTagCompound buildingParamsNBT;
                         if (nbt.hasKey("BuildingParams")) {
                             buildingParamsNBT = nbt.getCompoundTag("BuildingParams");
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dCurrent item is a building tool with the characteristics:"));
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-shape= §a" + buildingParamsNBT.getString("shape")));
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-block(s)= §a" + buildingParamsNBT.getString("blockUsed")));
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-parameters= §a" + buildingParamsNBT.getString("parameters")));
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-type of action= §a" + buildingParamsNBT.getString("actionType")));
-                            iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
+                            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§dCurrent item is a building tool with the characteristics:"));
+                            sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-shape= §a" + buildingParamsNBT.getString("shape")));
+                            sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-block(s)= §a" + buildingParamsNBT.getString("blockUsed")));
+                            sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-parameters= §a" + buildingParamsNBT.getString("parameters")));
+                            sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
                         }
                     } else if (strings.length >= 4) {
-                        if (!itemStack.hasTagCompound()) {
-                            itemStack.setTagCompound(new NBTTagCompound());
-                        }
-                        NBTTagCompound nbt = itemStack.getTagCompound();
-                        NBTTagCompound buildingParamsNBT;
-                        if (nbt.hasKey("BuildingParams")) {
-                            buildingParamsNBT = nbt.getCompoundTag("BuildingParams");
-                        } else {
-                            buildingParamsNBT = new NBTTagCompound();
-                            nbt.setCompoundTag("BuildingParams", buildingParamsNBT);
-                        }
-
-                        buildingParamsNBT.setString("shape", strings[1]);
-                        buildingParamsNBT.setString("blockUsed", strings[2]);
-                        buildingParamsNBT.setString("parameters", strings[3]);
-                        buildingParamsNBT.setString("actionType", "place");
-                        buildingParamsNBT.setString("volume", "full");
-
-                        for (String s : strings) {
-                            switch (s) {
-                                case "replace" -> buildingParamsNBT.setString("actionType", "replace");
-                                case "hollow" -> buildingParamsNBT.setString("volume", "hollow");
-                                case "open" -> buildingParamsNBT.setString("volume", "open");
-                            }
-                        }
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("§dCurrent item got transformed into a building tool with the characteristics:"));
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-shape= §a" + buildingParamsNBT.getString("shape")));
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-block(s)= §a" + buildingParamsNBT.getString("blockUsed")));
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-parameters= §a" + buildingParamsNBT.getString("parameters")));
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-type of action= §a" + buildingParamsNBT.getString("actionType")));
-                        iCommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
-                    } else throw new WrongUsageException("// tool <shape> <id> <parameters> [replace] [hollow|open]");
+                        saveShapeTool(sender, strings, itemStack);
+                    } else player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// tool <shape> <id> <parameters> [hollow|open]"));
                 } catch (Exception e) {
-                    throw new WrongUsageException("// tool <shape> <id> <parameters> [replace] [hollow|open]");
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// tool <shape> <id> <parameters> [hollow|open]"));
                 }
             }
-        }
-    }
 
-    public static List<SavedBlock> generateSphere(World world, int centerX, int centerY, int centerZ, String string, int flag, float radius, boolean replace) {
-        List<SavedBlock> list = new ArrayList<>();
-        if (world == null || radius <= 0) {
-            System.err.println("Cannot generate sphere: Invalid world or radius.");
-            return list;
-        }
-        radius+=0.5f;
-        double radiusSquared = (double) radius * radius;
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (float x = -radius; x <= radius; x++) {
-            for (float y = -radius; y <= radius; y++) {
-                for (float z = -radius; z <= radius; z++) {
-                    double dx = x-0.5;
-                    double dy = y-0.5;
-                    double dz = z-0.5;
-                    double distanceSquared = (dx * dx) + (dy * dy) + (dz * dz);
-                    if (distanceSquared <= radiusSquared) {
-                        int currentBlockX = MathHelper.floor_float (centerX + x);
-                        int currentBlockY = MathHelper.floor_float (centerY + y);
-                        int currentBlockZ = MathHelper.floor_float (centerZ + z);
-                        if (replace&&world.getBlockId(currentBlockX, currentBlockY, currentBlockZ)==0)continue;
-                        BlockInfo result = getRandomBlockFromOdds(results);
-                        if (result.id() != 0) {
-                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                            List<ItemStack> subtype = new ArrayList<>();
-                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                            if (result.meta() > subtype.size() - 1) {
-                                Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                return list;
+            /// need pos update
+            case "set", "move", "replace", "copy", "line", "plane" -> {
+                IClientStatusCallback continuationCode = (int[] block1, int[] block2) -> {
+                    final int x1 = block1[0];
+                    final int y1 = block1[1];
+                    final int z1 = block1[2];
+                    final int x2 = block2[0];
+                    final int y2 = block2[1];
+                    final int z2 = block2[2];
+                    final boolean isPosValid = x1 != 9999999 && y1 != 9999999 && z1 != 9999999 && x2 != 9999999 && y2 != 9999999 && z2 != 9999999;
+                    List<SavedBlock> list = new ArrayList<>();
+                    boolean replace=false;
+                    for (String s : strings) {
+                        if (s.equalsIgnoreCase("replace")) {
+                            replace = true;
+                            break;
+                        }
+                    }
+                    switch (strings[0]) {
+                        case "set" -> {
+                            try {
+                                boolean hollow = strings.length > 2 && strings[2].equalsIgnoreCase("hollow");
+                                boolean wall = strings.length > 2 && strings[2].equalsIgnoreCase("wall");
+                                if (isPosValid) {
+                                    if (hollow || wall) {
+                                        int thickness = 1;
+                                        thickness = strings.length > 3 ? strings[3].equalsIgnoreCase("ignoreAir") || strings[3].equalsIgnoreCase("causeUpdate") ? thickness : Integer.parseInt(strings[3]) : thickness;
+                                        for (int l = 0; l < thickness; l++) {
+                                            int maxX = Math.max(x1, x2) - l;
+                                            int minX = Math.min(x1, x2) + l;
+                                            int maxY = Math.max(y1, y2) - l;
+                                            int minY = Math.min(y1, y2) + l;
+                                            int maxZ = Math.max(z1, z2) - l;
+                                            int minZ = Math.min(z1, z2) + l;
+                                            int absX = MathHelper.abs_int(x1 - x2) - l * 2;
+                                            int absY = wall ? MathHelper.abs_int(y1 - y2) : MathHelper.abs_int(y1 - y2) - l * 2;
+                                            int absZ = MathHelper.abs_int(z1 - z2) - l * 2;
+                                            List<BlockInfo> results = getBlockInfo(strings[1],player.getCommandSenderName());
+                                            if (results==null){
+                                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
+                                                return;
+                                            }for (int j = 0; j <= absY; j++) {
+                                                for (int i = 0; i <= absX; i++) {
+                                                    for (int k = 0; k <= absZ; k++) {
+                                                        BlockInfo result = getRandomBlockFromOdds(results);
+                                                        int x = minX + i;
+                                                        int y = wall ? (Math.min(y1, y2) + j) : minY + j;
+                                                        int z = minZ + k;
+                                                        if (result.id() != 0) {
+                                                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
+                                                            List<ItemStack> subtype = new ArrayList<>();
+                                                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
+                                                            if (result.meta() > subtype.size() - 1) {
+                                                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
+                                                            }
+                                                        }
+                                                        if (x == maxX || z == maxZ || x == minX || z == minZ) {
+                                                            list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                                            world.setBlock(x, y, z, result.id(), result.meta(), flag);
+                                                            numBlock++;
+                                                        } else if ((y == maxY || y == minY) && hollow) {
+                                                            list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                                            world.setBlock(x, y, z, result.id(), result.meta(), flag);
+                                                            numBlock++;
+                                                        } else if (!ignoreAir) {
+                                                            list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                                            world.setBlock(x, y, z, 0, 0, flag);
+                                                            numBlock++;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (!list.isEmpty()) {
+                                            addToUndoListServer(list, player);
+                                            clearRedoListServer(player);
+                                        }
+                                        player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
+                                    } else setArea(strings, y1, y2, x1, x2, z1, z2, player, world, flag);
+                                } else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
+                            } catch (Exception e) {
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // set <id/metadata:odds"));
                             }
                         }
-                        list.add(new SavedBlock(currentBlockX, currentBlockY, currentBlockZ, world.getBlockId(currentBlockX, currentBlockY, currentBlockZ), world.getBlockMetadata(currentBlockX, currentBlockY, currentBlockZ)));
-                        world.setBlock(currentBlockX, currentBlockY, currentBlockZ, result.id(), result.meta(), flag);
-                        numBlock++;
-                    }
-                }
-            }
-        }
-        return list;
-    }
-
-    public static List<SavedBlock> generateHollowSphere(World world, int centerX, int centerY, int centerZ, String string, int flag, float radius, int thickness, boolean replace) {
-        List<SavedBlock> list = new ArrayList<>();
-        if (world == null || radius <= 0 || thickness <= 0 || thickness > radius) {
-            System.err.println("Cannot generate hollow sphere: Invalid world, radius, or thickness.");
-            return list;
-        }
-        radius+=0.5f;
-        double radiusSquared = (double) radius * radius;
-        float innerRadius = radius - thickness;
-        double innerRadiusSquared = (double) innerRadius * innerRadius;
-        List<BlockInfo> results = getBlockInfo(string);
-        for (float x = -radius; x <= radius; x++) {
-            for (float y = -radius; y <= radius; y++) {
-                for (float z = -radius; z <= radius; z++) {
-                    double dx = x - 0.5;
-                    double dy = y - 0.5;
-                    double dz = z - 0.5;
-                    double distanceSquared = (dx * dx) + (dy * dy) + (dz * dz);
-                    if (distanceSquared < radiusSquared && distanceSquared >= innerRadiusSquared) {
-                        int currentBlockX = MathHelper.floor_float (centerX + x);
-                        int currentBlockY = MathHelper.floor_float (centerY + y);
-                        int currentBlockZ = MathHelper.floor_float (centerZ + z);
-                        if (replace&&world.getBlockId(currentBlockX, currentBlockY, currentBlockZ)==0)continue;
-                        BlockInfo result = getRandomBlockFromOdds(results);
-                        if (result.id() != 0) {
-                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                            List<ItemStack> subtype = new ArrayList<>();
-                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                            if (result.meta() > subtype.size() - 1) {
-                                Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                return list;
-                            }
-                        }
-                        list.add(new SavedBlock(currentBlockX, currentBlockY, currentBlockZ, world.getBlockId(currentBlockX, currentBlockY, currentBlockZ), world.getBlockMetadata(currentBlockX, currentBlockY, currentBlockZ)));
-                        world.setBlock(currentBlockX, currentBlockY, currentBlockZ, result.id(), result.meta(), flag);
-                        numBlock++;
-                    }
-                }
-            }
-        }
-        return list;
-    }
-
-    public static List<SavedBlock> generateCylinder(World world, int centerX, int baseCenterY, int centerZ, String string, int flag, float radius, int height, boolean replace) {
-        List<SavedBlock> list = new ArrayList<>();
-        if (world == null || radius <= 0 || height <= 0) {
-            return list;
-        }
-        radius+=0.5f;
-        double radiusSquared = (double) radius * radius;
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (float x = -radius; x <= radius; x++) {
-            for (float z = -radius; z <= radius; z++) {
-                double dx = x - 0.5;
-                double dz = z - 0.5;
-                double distanceSquared = (dx * dx) + (dz * dz);
-                if (distanceSquared < radiusSquared) {
-                    for (int y = 0; y < height; y++) {
-                        int currentBlockX = MathHelper.floor_float (centerX + x);
-                        int currentBlockZ = MathHelper.floor_float (centerZ + z);
-                        int currentBlockY = baseCenterY + y;
-                        if (replace&&world.getBlockId(currentBlockX, currentBlockY, currentBlockZ)==0)continue;
-                        BlockInfo result = getRandomBlockFromOdds(results);
-                        if (result.id() != 0) {
-                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                            List<ItemStack> subtype = new ArrayList<>();
-                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                            if (result.meta() > subtype.size() - 1) {
-                                Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                return list;
-                            }
-                        }
-                        list.add(new SavedBlock(currentBlockX, currentBlockY, currentBlockZ, world.getBlockId(currentBlockX, currentBlockY, currentBlockZ), world.getBlockMetadata(currentBlockX, currentBlockY, currentBlockZ)));
-                        world.setBlock(currentBlockX, currentBlockY, currentBlockZ, result.id(), result.meta(), flag);
-                        numBlock++;
-                    }
-                }
-            }
-        }
-        return list;
-    }
-
-    public static List<SavedBlock> generateHollowCylinder(World world, int centerX, int baseCenterY, int centerZ, String string, int flag, float radius, int height, int thickness, boolean replace) {
-        List<SavedBlock> list = new ArrayList<>();
-        if (world == null || radius <= 0 || height <= 0 || thickness <= 0 || thickness >= radius) {
-            System.err.println("Cannot generate hollow cylinder: Invalid parameters.");
-            return list;
-        }
-        radius+=0.5f;
-        double radiusSquared = (double) radius * radius;
-        float innerRadius = radius - thickness;
-        double innerRadiusSquared = (double) innerRadius * innerRadius;
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (float x = -radius; x <= radius; x++) {
-            for (float z = -radius; z <= radius; z++) {
-                double dx = x - 0.5;
-                double dz = z - 0.5;
-                double distanceSquared = (dx * dx) + (dz * dz);
-                if (distanceSquared < radiusSquared) {
-                    for (int y = 0; y < height; y++) {
-                        int currentBlockX = MathHelper.floor_float (centerX + x);
-                        int currentBlockZ = MathHelper.floor_float (centerZ + z);
-                        int currentBlockY = baseCenterY + y;
-                        boolean isTopOrBottomLayer = (y == 0 || y == height - 1);
-                        boolean isWallLayer = (y > 0 && y < height - 1);
-                        if (isTopOrBottomLayer || (isWallLayer && distanceSquared >= innerRadiusSquared)) {
-                            if (replace && world.getBlockId(currentBlockX, currentBlockY, currentBlockZ) == 0) continue;
-                            BlockInfo result = getRandomBlockFromOdds(results);
-                            if (result.id() != 0) {
-                                ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                                List<ItemStack> subtype = new ArrayList<>();
-                                itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                                if (result.meta() > subtype.size() - 1) {
-                                    Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                    return list;
+                        case "move" -> {
+                            try {
+                                if (strings.length > 1) {
+                                    List<SavedBlock> list1 = new ArrayList<>();
+                                    int xPos = 0;
+                                    int yPos = 0;
+                                    int zPos = 0;
+                                    if (strings[1].equalsIgnoreCase("to")) {
+                                        if (strings.length > 4) {
+                                            try {
+                                                xPos = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posX, strings[2]));
+                                                yPos = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posY, strings[3]));
+                                                zPos = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posZ, strings[4]));
+                                            } catch (Exception ignored) {
+                                                xPos = Integer.parseInt(strings[2]);
+                                                yPos = Integer.parseInt(strings[3]);
+                                                zPos = Integer.parseInt(strings[4]);
+                                            }
+                                        } else {
+                                            xPos = sender.getPlayerCoordinates().posX;
+                                            yPos = sender.getPlayerCoordinates().posY;
+                                            zPos = sender.getPlayerCoordinates().posZ;
+                                        }
+                                    } else if (strings[1].equalsIgnoreCase("add")) {
+                                        if (strings.length > 4) {
+                                            xPos = Integer.parseInt(strings[2]);
+                                            yPos = Integer.parseInt(strings[3]);
+                                            zPos = Integer.parseInt(strings[4]);
+                                        }
+                                    }
+                                    if (isPosValid && (strings[1].equalsIgnoreCase("to") || strings[1].equalsIgnoreCase("add"))) {
+                                        for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
+                                            for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
+                                                for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
+                                                    int x = Math.min(x1, x2) + i;
+                                                    int y = Math.min(y1, y2) + j;
+                                                    int z = Math.min(z1, z2) + k;
+                                                    if (ignoreAir) {
+                                                        if (!world.isAirBlock(x, y, z)) {
+                                                            list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                                            world.setBlock(x, y, z, 0, 0, flag);
+                                                            numBlock++;
+                                                        }
+                                                    } else {
+                                                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                                        world.setBlock(x, y, z, 0, 0, flag);
+                                                        numBlock++;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (!list.isEmpty()) {
+                                            int xa = 9999999;
+                                            int ya = 9999999;
+                                            int za = 9999999;
+                                            int yb = -9999999;
+                                            int xb = -9999999;
+                                            int zb = -9999999;
+                                            for (SavedBlock block : list) {
+                                                int finalX = xPos + block.x();
+                                                int finalY = yPos + block.y();
+                                                int finalZ = zPos + block.z();
+                                                if (strings[1].equalsIgnoreCase("to")) {
+                                                    finalX -= Math.max(x1, x2);
+                                                    finalY -= Math.min(y1, y2);
+                                                    finalZ -= Math.max(z1, z2);
+                                                }
+                                                list1.add(new SavedBlock(finalX, finalY, finalZ, world.getBlockId(finalX, finalY, finalZ), world.getBlockMetadata(finalX, finalY, finalZ)));
+                                                world.setBlock(finalX, finalY, finalZ, block.id(), block.meta(), flag);
+                                                xa = Math.min(finalX, xa);
+                                                ya = Math.min(finalY, ya);
+                                                za = Math.min(finalZ, za);
+                                                xb = Math.max(finalX, xb);
+                                                yb = Math.max(finalY, yb);
+                                                zb = Math.max(finalZ, zb);
+                                            }
+                                            PacketSender.sendServerToClientMessage(player,"updatePos1:"+xa+","+ya+","+za);
+                                            PacketSender.sendServerToClientMessage(player,"updatePos2:"+xb+","+yb+","+zb);
+                                        }
+                                        list1.addAll(list);
+                                        if (!list1.isEmpty()) {
+                                            addToUndoListServer(list1, player);
+                                            clearRedoListServer(player);
+                                            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been moved"));
+                                        }
+                                    }
                                 }
+                            } catch (Exception e) {
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// move <to|add> <x> <y> <z>"));
                             }
-                            list.add(new SavedBlock(currentBlockX, currentBlockY, currentBlockZ, world.getBlockId(currentBlockX, currentBlockY, currentBlockZ), world.getBlockMetadata(currentBlockX, currentBlockY, currentBlockZ)));
-                            world.setBlock(currentBlockX, currentBlockY, currentBlockZ, result.id(), result.meta(), flag);
-                            numBlock++;
+                        }
+                        case "replace" -> {
+                            try {
+                                if (strings.length > 1) {
+                                    if (isPosValid) replaceArea(sender, strings, y1, y2, x1, x2, z1, z2, world, flag, player);
+                                    else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
+                                } else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // replace <id> [id replaced]"));
+                            } catch (Exception e) {
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // replace <id> [id replaced]"));
+                            }
+                        }
+                        case "copy" -> {
+                            try {
+                                copy(sender, player, isPosValid, x1, x2, y1, y2, z1, z2, ignoreAir, world);
+                            } catch (Exception e) {
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // copy"));
+                            }
+                        }
+                        case "line" -> {
+                            try {
+                                if (isPosValid) {
+                                    list = ShapeGen.buildLine(world, strings, x1, y1, z1, x2, y2, z2, strings.length > 2 ? Integer.parseInt(strings[2]) : 1, flag, player);
+                                    if (!list.isEmpty()) {
+                                        addToUndoListServer(list, player);
+                                        clearRedoListServer(player);
+                                    }
+                                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
+
+                                }
+                            }catch (Exception e) {
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // line <id> [thickness]"));
+                            }
+                        }
+                        case "plane" -> {
+                            try {
+                                if (isPosValid&&strings.length>1) {
+                                    int side = strings.length>2 ? strings[2].equalsIgnoreCase("s") ? 1 : 0 : 0;
+                                    int thickness = strings.length>3 ? Integer.parseInt(strings[3]) : 1;
+
+                                    list = ShapeGen.buildPlane(world, strings[1], x1, y1, z1, x2, y2, z2, thickness, side,replace, flag, player);
+
+                                    if (!list.isEmpty()) {
+                                        addToUndoListServer(list, player);
+                                        clearRedoListServer(player);
+                                    }
+                                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
+                                }
+                            }catch (Exception e) {
+                                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // plane <id> [x:z] [thickness]"));
+                            }
                         }
                     }
-                }
+                };
+                int requestId = ClientRequestManager.registerStatusCallback(player, continuationCode);
+                PacketSender.sendServerToClientMessage(player, "updateAllPos:" + requestId);
             }
         }
-        return list;
     }
 
-    public static List<SavedBlock> generateOpenCylinder(World world, int centerX, int baseCenterY, int centerZ, String string, int flag, float radius, int height, int thickness, boolean replace) {
-        List<SavedBlock> list = new ArrayList<>();
-        if (world == null || radius <= 0 || height <= 0 || thickness <= 0 || thickness >= radius) {
-            System.err.println("Cannot generate hollow cylinder: Invalid parameters.");
-            return list;
+    public static void saveShapeTool(ICommandSender sender, String[] strings, ItemStack itemStack) {
+        if (!itemStack.hasTagCompound()) {
+            itemStack.setTagCompound(new NBTTagCompound());
         }
-        radius+=0.5f;
-        double radiusSquared = (double) radius * radius;
-        float innerRadius = radius - thickness;
-        double innerRadiusSquared = (double) innerRadius * innerRadius;
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (float x = -radius; x <= radius; x++) {
-            for (float z = -radius; z <= radius; z++) {
-                double dx = x -0.5;
-                double dz = z -0.5;
-                double distanceSquared = (dx * dx) + (dz * dz);
-                if (distanceSquared < radiusSquared && distanceSquared >= innerRadiusSquared) {
-                    for (int y = 0; y < height; y++) {
-                        int currentBlockX = MathHelper.floor_float (centerX + x);
-                        int currentBlockZ = MathHelper.floor_float (centerZ + z);
-                        int currentBlockY = baseCenterY + y;
-                        if (replace && world.getBlockId(currentBlockX, currentBlockY, currentBlockZ) == 0) continue;
-                        BlockInfo result = getRandomBlockFromOdds(results);
-                        if (result.id() != 0) {
-                            ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                            List<ItemStack> subtype = new ArrayList<>();
-                            itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                            if (result.meta() > subtype.size() - 1) {
-                                Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                                return list;
+        NBTTagCompound nbt = itemStack.getTagCompound();
+        NBTTagCompound buildingParamsNBT;
+        if (nbt.hasKey("BuildingParams")) {
+            buildingParamsNBT = nbt.getCompoundTag("BuildingParams");
+        } else {
+            buildingParamsNBT = new NBTTagCompound();
+            nbt.setCompoundTag("BuildingParams", buildingParamsNBT);
+        }
+
+        buildingParamsNBT.setString("shape", strings[1]);
+        buildingParamsNBT.setString("blockUsed", strings[2]);
+        buildingParamsNBT.setString("parameters", strings[3]);
+        buildingParamsNBT.setString("volume", strings.length>4?strings[4]:"full");
+
+        for (String s : strings) {
+            switch (s) {
+                case "hollow" -> buildingParamsNBT.setString("volume", "hollow");
+                case "open" -> buildingParamsNBT.setString("volume", "open");
+            }
+        }
+        sender.sendChatToPlayer(ChatMessageComponent.createFromText("§dCurrent item got transformed into a building tool with the characteristics:"));
+        sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-shape= §a" + buildingParamsNBT.getString("shape")));
+        sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-block(s)= §a" + buildingParamsNBT.getString("blockUsed")));
+        sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-parameters= §a" + buildingParamsNBT.getString("parameters")));
+        sender.sendChatToPlayer(ChatMessageComponent.createFromText(" §f-volume= §a" + buildingParamsNBT.getString("volume")));
+    }
+
+    public static void redo(int num, EntityPlayerMP player, World world, int flag) {
+        if (!getRedoList(player).isEmpty()) {
+            int count = 0;
+            for (int j = 0; j < num; j++) {
+                if (getRedoList(player).isEmpty()) break;
+                int xa = 9999999;
+                int ya = 9999999;
+                int za = 9999999;
+                int yb = -9999999;
+                int xb = -9999999;
+                int zb = -9999999;
+                List<SavedBlock> list = new ArrayList<>();
+                for (SavedBlock undoBlock : getRedoList(player).get(getRedoList(player).size() - 1)) {
+                    list.add(new SavedBlock(undoBlock.x(), undoBlock.y(), undoBlock.z(), world.getBlockId(undoBlock.x(), undoBlock.y(), undoBlock.z()), world.getBlockMetadata(undoBlock.x(), undoBlock.y(), undoBlock.z())));
+                }
+                for (int i = getRedoList(player).get(getRedoList(player).size() - 1).size() - 1; i >= 0; i--) {
+                    SavedBlock block = getRedoList(player).get(getRedoList(player).size() - 1).get(i);
+                    world.setBlock(block.x(), block.y(), block.z(), block.id(), block.meta(), flag);
+                }
+                addToUndoListServer(list, player);
+                removeToRedoList(player);
+            }
+            player.sendChatToPlayer(ChatMessageComponent.createFromText("§dThe last " + (count > 1 ? count + " " : "") + "action" + (count > 1 ? "s have been" : " has been") + " redone"));
+        }else player.sendChatToPlayer(ChatMessageComponent.createFromText("§dThere is no action to redo"));
+    }
+
+    public static void undo(int num, EntityPlayerMP player, World world, int flag) {
+        if (!getUndoList(player).isEmpty()) {
+            int count = 0;
+            for (int i = 0; i < num; i++) {
+                if (getUndoList(player).isEmpty()) break;
+                int xa = 9999999;
+                int ya = 9999999;
+                int za = 9999999;
+                int yb = -9999999;
+                int xb = -9999999;
+                int zb = -9999999;
+                List<SavedBlock> list = new ArrayList<>();
+                for (SavedBlock block : getUndoList(player).get(getUndoList(player).size() - 1)) {
+                    list.add(new SavedBlock(block.x(), block.y(), block.z(), world.getBlockId(block.x(), block.y(), block.z()), world.getBlockMetadata(block.x(), block.y(), block.z())));
+                    world.setBlock(block.x(), block.y(), block.z(), block.id(), block.meta(), flag);
+                    numBlock++;
+                }
+                addToRedoList(list, player);
+                removeFromList(player);
+                count++;
+            }
+            player.sendChatToPlayer(ChatMessageComponent.createFromText("§dThe last " + (count > 1 ? count + " " : "") + "action" + (count > 1 ? "s have been" : " has been") + " reverted"));
+        }else player.sendChatToPlayer(ChatMessageComponent.createFromText("§dThere is no action to undo"));
+    }
+
+    public static void replaceArea(ICommandSender sender, String[] strings, int y1, int y2, int x1, int x2, int z1, int z2, World world, int flag, EntityPlayerMP player) {
+        numBlock=0;
+        List<SavedBlock> list = new ArrayList<>();
+        List<BlockInfo> results1 = getBlockInfo(strings[1], sender.getCommandSenderName());
+        if (results1==null){
+            getPlayer(sender, sender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
+            return;
+        }
+        List<BlockInfo> results2 = new ArrayList<>();
+        if (strings.length > 2) {
+            results2 = getBlockInfo(strings[2], sender.getCommandSenderName());
+        }
+        if (results2==null){
+            getPlayer(sender, sender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
+            return;
+        }
+        for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
+            for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
+                for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
+                    BlockInfo result1 = getRandomBlockFromOdds(results1);
+                    if (result1.id() != 0) {
+                        ItemStack itemStack = new ItemStack(result1.id(), 0, 0);
+                        List<ItemStack> subtype = new ArrayList<>();
+                        itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
+                        if (result1.meta() > subtype.size() - 1) {
+                            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result1.meta() + " out of bounds for length " + (subtype.size())));
+                            return;
+                        }
+                    }
+                    int x = Math.min(x1, x2) + i;
+                    int y = Math.min(y1, y2) + j;
+                    int z = Math.min(z1, z2) + k;
+                    if (strings.length > 2) {
+                        for (BlockInfo result2 : results2) {
+                            if (result2 != null && world.getBlockId(x, y, z) == result2.id() && world.getBlockMetadata(x, y, z) == result2.meta()) {
+                                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
+                                numBlock++;
                             }
                         }
-                        list.add(new SavedBlock(currentBlockX, currentBlockY, currentBlockZ, world.getBlockId(currentBlockX, currentBlockY, currentBlockZ), world.getBlockMetadata(currentBlockX, currentBlockY, currentBlockZ)));
-                        world.setBlock(currentBlockX, currentBlockY, currentBlockZ, result.id(), result.meta(), flag);
+                    } else if (!world.isAirBlock(x, y, z)) {
+                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                        world.setBlock(x, y, z, result1.id(), result1.meta(), flag);
                         numBlock++;
                     }
                 }
             }
         }
-        return list;
+        sender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) was replaced"));
+        if (!list.isEmpty()) {
+            addToUndoListServer(list, player);
+            clearRedoListServer(player);
+        }
     }
 
-    public static List<SavedBlock> generateCube(World world, int centerX, int centerY, int centerZ, String string, int flag, int sizeX, int sizeY, int sizeZ, boolean replace) {
+    public static void setArea(String[] strings, int y1, int y2, int x1, int x2, int z1, int z2, EntityPlayerMP player, World world, int flag) {
+        numBlock=0;
+        List<BlockInfo> results = getBlockInfo(strings[1], player.getCommandSenderName());
         List<SavedBlock> list = new ArrayList<>();
-        if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
-            System.err.println("Cannot generate cube: Invalid world or dimensions.");
-            return list;
+        if (results==null){
+            player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
+            return;
         }
-        int actualStartX = centerX - (sizeX / 2);
-        int actualStartY = centerY - (sizeY / 2);
-        int actualStartZ = centerZ - (sizeZ / 2);
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (int x = actualStartX; x < actualStartX + sizeX; x++) {
-            for (int y = actualStartY; y < actualStartY + sizeY; y++) {
-                for (int z = actualStartZ; z < actualStartZ + sizeZ; z++) {
-                    if (replace&&world.getBlockId(x, y, z)==0)continue;
+        for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
+            for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
+                for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
                     BlockInfo result = getRandomBlockFromOdds(results);
+                    int x = Math.min(x1, x2) + i;
+                    int y = Math.min(y1, y2) + j;
+                    int z = Math.min(z1, z2) + k;
                     if (result.id() != 0) {
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
                         itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
                         if (result.meta() > subtype.size() - 1) {
-                            Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                            return list;
+                            player.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
                         }
                     }
                     list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
@@ -999,91 +782,150 @@ public class CommandWorldEdit extends CommandBase {
                 }
             }
         }
-        return list;
+        if (!list.isEmpty()) {
+            addToUndoListServer(list, player);
+            clearRedoListServer(player);
+        }player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
     }
 
-    public static List<SavedBlock> generateHollowCube(World world, int centerX, int centerY, int centerZ, String string, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace) {
+    public static void paste(ICommandSender sender, String[] strings, EntityPlayerMP player, boolean ignoreAir, World world, int causeUpdate) {
+        numBlock = 0;
         List<SavedBlock> list = new ArrayList<>();
-        if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || thickness <= 0) {
-            System.err.println("Cannot generate hollow cube: Invalid world, dimensions, or thickness.");
-            return list;
+        int x;
+        int y;
+        int z;
+        if (strings.length > 1) {
+            try {
+                x = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posX, strings[1]));
+                y = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posY, strings[2]));
+                z = MathHelper.floor_double(CommandBase.func_110666_a(sender, sender.getPlayerCoordinates().posZ, strings[3]));
+            } catch (Exception ignored) {
+                x = Integer.parseInt(strings[1]);
+                y = Integer.parseInt(strings[2]);
+                z = Integer.parseInt(strings[3]);
+            }
+        } else {
+            x = sender.getPlayerCoordinates().posX;
+            y = sender.getPlayerCoordinates().posY;
+            z = sender.getPlayerCoordinates().posZ;
         }
-        int actualStartX = centerX - (sizeX / 2);
-        int actualStartY = centerY - (sizeY / 2);
-        int actualStartZ = centerZ - (sizeZ / 2);
-        int innerStartX = actualStartX + thickness;
-        int innerStartY = actualStartY + thickness;
-        int innerStartZ = actualStartZ + thickness;
-        int innerEndX = (actualStartX + sizeX) - thickness;
-        int innerEndY = (actualStartY + sizeY) - thickness;
-        int innerEndZ = (actualStartZ + sizeZ) - thickness;
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (int x = actualStartX; x < actualStartX + sizeX; x++) {
-            for (int y = actualStartY; y < actualStartY + sizeY; y++) {
-                for (int z = actualStartZ; z < actualStartZ + sizeZ; z++) {
-                    boolean isOutsideInnerSpace = (x < innerStartX || x >= innerEndX) ||
-                            (y < innerStartY || y >= innerEndY) ||
-                            (z < innerStartZ || z >= innerEndZ);
-                    if (replace&&world.getBlockId(x, y, z)==0)continue;
-                    BlockInfo result = getRandomBlockFromOdds(results);
-                    if (result.id() != 0) {
-                        ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                        List<ItemStack> subtype = new ArrayList<>();
-                        itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                        if (result.meta() > subtype.size() - 1) {
-                            Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                            return list;
-                        }
-                    }
-                    if (isOutsideInnerSpace) {
-                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                        world.setBlock(x, y, z, result.id(), result.meta(), flag);
+        if (!getCopyList(player).isEmpty()) {
+            for (SavedBlock block : getCopyList(player)) {
+                if (ignoreAir) {
+                    if (block.id() != 0) {
+                        list.add(new SavedBlock(block.x() + x, block.y() + y, block.z() + z, world.getBlockId(block.x() + x, block.y() + y, block.z() + z), world.getBlockMetadata(block.x() + x, block.y() + y, block.z() + z)));
+                        world.setBlock(block.x() + x, block.y() + y, block.z() + z, block.id(), block.meta(), causeUpdate);
                         numBlock++;
+                    }
+                } else {
+                    list.add(new SavedBlock(block.x() + x, block.y() + y, block.z() + z, world.getBlockId(block.x() + x, block.y() + y, block.z() + z), world.getBlockMetadata(block.x() + x, block.y() + y, block.z() + z)));
+                    world.setBlock(block.x() + x, block.y() + y, block.z() + z, block.id(), block.meta(), causeUpdate);
+                    numBlock++;
+                }
+            }
+            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been pasted"));
+            if (!list.isEmpty()) {
+                addToUndoListServer(list, player);
+                clearRedoListServer(player);
+            }
+        }else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to copy an area first"));
+    }
+
+    public static void copy(ICommandSender sender, EntityPlayerMP player, boolean isPosValid, int x1, int x2, int y1, int y2, int z1, int z2, boolean finalIgnoreAir, World world) {
+        numBlock = 0;
+        clearCopyList(player);
+        List<SavedBlock> list = new ArrayList<>();
+        if (isPosValid) {
+            for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
+                for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
+                    for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
+                        int x = Math.min(x1, x2) + i;
+                        int y = Math.min(y1, y2) + j;
+                        int z = Math.min(z1, z2) + k;
+
+                        if (finalIgnoreAir) {
+                            if (!world.isAirBlock(x, y, z)) {
+                                list.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                numBlock++;
+                            }
+                        } else {
+                            list.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                            numBlock++;
+                        }
                     }
                 }
             }
-        }
-        return list;
+            saveCopyList(list, player);
+            sender.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been copied"));
+        } else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
     }
 
-    public static List<SavedBlock> generateOpenCube(World world, int centerX, int centerY, int centerZ, String string, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace) {
-        List<SavedBlock> list = new ArrayList<>();
-        if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || thickness <= 0) {
-            System.err.println("Cannot generate hollow cube: Invalid world, dimensions, or thickness.");
-            return list;
+    private static List<SavedBlock> getCopyList(EntityPlayerMP player) {
+        List<SavedBlock> copyList = PacketUtils.playersCopyServer.get(player.getEntityName());
+        if (copyList==null){
+            return new ArrayList<>();
+        }else return copyList;
+    }
+
+    private static List<List<SavedBlock>> getUndoList(EntityPlayerMP player) {
+        List<List<SavedBlock>> undoList = PacketUtils.playersUndoListServer.get(player.getEntityName());
+        if (undoList==null){
+            return new ArrayList<>();
+        }else return undoList;
+    }
+
+    private static List<List<SavedBlock>> getRedoList(EntityPlayerMP player) {
+        List<List<SavedBlock>> redoList = PacketUtils.playersRedoListServer.get(player.getEntityName());
+        if (redoList==null){
+            return new ArrayList<>();
+        }else return redoList;
+    }
+
+    private static void removeFromList(EntityPlayerMP player) {
+        List<List<SavedBlock>> undoList = PacketUtils.playersUndoListServer.get(player.getEntityName());
+        undoList.remove(undoList.size()-1);
+        PacketUtils.playersUndoListServer.put(player.getEntityName(),undoList);
+    }
+
+    private static void removeToRedoList(EntityPlayerMP player) {
+        List<List<SavedBlock>> redoList = PacketUtils.playersRedoListServer.get(player.getEntityName());
+        redoList.remove(redoList.size()-1);
+        PacketUtils.playersRedoListServer.put(player.getEntityName(),redoList);
+    }
+
+    public static void saveCopyList(List<SavedBlock> list, EntityPlayerMP player) {
+        List<SavedBlock> copyList = PacketUtils.playersCopyServer.get(player.getEntityName());
+        if (copyList==null){
+            copyList=new ArrayList<>();
         }
-        int actualStartX = centerX - (sizeX / 2);
-        int actualStartY = centerY - (sizeY / 2);
-        int actualStartZ = centerZ - (sizeZ / 2);
-        int innerStartX = actualStartX + thickness;
-        int innerStartZ = actualStartZ + thickness;
-        int innerEndX = (actualStartX + sizeX) - thickness;
-        int innerEndZ = (actualStartZ + sizeZ) - thickness;
-        @NotNull List<BlockInfo> results = getBlockInfo(string);
-        for (int x = actualStartX; x < actualStartX + sizeX; x++) {
-            for (int y = actualStartY; y < actualStartY + sizeY; y++) {
-                for (int z = actualStartZ; z < actualStartZ + sizeZ; z++) {
-                    boolean isPartOfSideWall = (x < innerStartX || x >= innerEndX) || (z < innerStartZ || z >= innerEndZ);
-                    if (replace&&world.getBlockId(x, y, z)==0)continue;
-                    BlockInfo result = getRandomBlockFromOdds(results);
-                    if (result.id() != 0) {
-                        ItemStack itemStack = new ItemStack(result.id(), 0, 0);
-                        List<ItemStack> subtype = new ArrayList<>();
-                        itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                        if (result.meta() > subtype.size() - 1) {
-                            Minecraft.getMinecraft().thePlayer.sendChatToPlayer(ChatMessageComponent.createFromText("§cIndex " + result.meta() + " out of bounds for length " + (subtype.size())));
-                            return list;
-                        }
-                    }
-                    if (isPartOfSideWall) {
-                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                        world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                        numBlock++;
-                    }
-                }
-            }
+        copyList.addAll(list);
+        PacketUtils.playersCopyServer.put(player.getEntityName(),copyList);
+    }
+
+    private static void addToRedoList(List<SavedBlock> list, EntityPlayerMP player) {
+        List<List<SavedBlock>> redoList = PacketUtils.playersRedoListServer.get(player.getEntityName());
+        if (redoList==null){
+            redoList=new ArrayList<>();
         }
-        return list;
+        redoList.add(list);
+        PacketUtils.playersRedoListServer.put(player.getEntityName(),redoList);
+    }
+
+    public static void addToUndoListServer(List<SavedBlock> list1, EntityPlayerMP player) {
+        List<List<SavedBlock>> undoList = PacketUtils.playersUndoListServer.get(player.getEntityName());
+        if (undoList==null){
+            undoList=new ArrayList<>();
+        }
+        undoList.add(list1);
+        PacketUtils.playersUndoListServer.put(player.getEntityName(),undoList);
+    }
+
+    public static void clearRedoListServer(EntityPlayerMP player) {
+        PacketUtils.playersRedoListServer.remove(player.getEntityName());
+    }
+
+    public static void clearCopyList(EntityPlayerMP player) {
+        PacketUtils.playersCopyServer.remove(player.getEntityName());
     }
 
 }

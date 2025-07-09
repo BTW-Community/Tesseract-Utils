@@ -1,6 +1,9 @@
 package net.dravigen.tesseractUtils.GUI;
 
-import net.dravigen.tesseractUtils.configs.EnumConfig;
+import net.dravigen.tesseractUtils.enums.EnumConfig;
+import net.dravigen.tesseractUtils.enums.EnumKeybinds;
+import net.dravigen.tesseractUtils.utils.PacketUtils;
+import net.dravigen.tesseractUtils.utils.GuiUtils;
 import net.minecraft.src.*;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -16,7 +19,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     private static final ResourceLocation customButtonReset = new ResourceLocation("tesseract_utils:textures/gui/buttonReset.png");
     private static GuiButton currentButton;
     private int buttonId = -1;
-    private final GuiScreen parentScreen;
+    public final GuiScreen parentScreen;
     private final List<GuiButton> buttons = new ArrayList<>();
     private final List<GuiButton> resetButtons = new ArrayList<>();
     private final List<GuiButton> miscButtons = new ArrayList<>();
@@ -31,17 +34,19 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         this.parentScreen = parent;
     }
 
+
+
     @Override
     public void initGui() {
 
         super.initGui();
         StringTranslate stringTranslate = StringTranslate.getInstance();
-        scrollAreaPosY = this.height / 6 + 29;
-        scrollAreaHeight = 11 * 29;
+        scrollAreaPosY = (int) (this.height * 0.2251);
+        scrollAreaHeight =  height-scrollAreaPosY - 49;  // (int) (height*0.643f);
         int count = 1;
         for (EnumConfig item : enumConfigs) {
             if (Minecraft.getMinecraft().thePlayer != null) {
-                if (!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode && !item.getBSFriendly()) {
+                if ((!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode||!PacketUtils.isPlayerOPClient) && !item.getBSFriendly()) {
                     continue;
                 }
             }
@@ -68,7 +73,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
                         20,
                         item.getProperty(),
                         GuiUtils.getInstance().getSliderDisplay(item.getProperty()),
-                        getFloatValue(ordinal), 0);
+                        getFloatValue(ordinal));
                 buttons.add(slider);
                 this.buttonList.add(slider);
             } else if (item.isKeybind()) {
@@ -93,7 +98,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
                         20,
                         item.getProperty(),
                         GuiUtils.getInstance().getSliderDisplay(item.getProperty()),
-                        getFloatValue(ordinal), 0);
+                        getFloatValue(ordinal));
                 buttons.add(slider);
                 this.buttonList.add(slider);
             }
@@ -114,7 +119,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         // Add a "Done" button
         GuiButton doneButton = new GuiButtonCustom(100,
                 width / 2 - 100,
-                height / 6 + (29 * 13) + 10,
+                height - 24,
                 200,
                 20,
                 200,
@@ -127,11 +132,18 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         maxScrollOffset = Math.max(0, totalContentHeight - scrollAreaHeight);
     }
 
+    private int prevWidth = -1;
+    private int prevHeight = -1;
+
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-
-
-
+        if (prevWidth==-1){
+            prevHeight=this.height;
+            prevWidth=this.width;
+        }
+        if (prevWidth!=this.width||prevHeight!=this.height) {
+            this.mc.displayGuiScreen(new GuiConfigSettingsScreen(parentScreen));
+        }
         drawDefaultBackground();
         for (int i = 0; i < buttons.size(); i++) {
             GuiButton button = buttons.get(i);
@@ -150,12 +162,12 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         if (maxScrollOffset > 0) {
             this.mc.getTextureManager().bindTexture(customButtonBar);
             GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-            this.drawTexturedModalRect(width - 14, scrollAreaPosY, 246, 0, 10 , 195);
-            this.drawTexturedModalRect(width - 14, scrollAreaPosY+ 195, 246, 200-124, 10 , 124);
+            this.drawTexturedModalRect(width - 14, scrollAreaPosY, 246, 0, 10 , scrollAreaHeight>200 ? 195 : scrollAreaHeight/2);
+            this.drawTexturedModalRect(width - 14, scrollAreaPosY+ (scrollAreaHeight>200 ? 195 : scrollAreaHeight/2), 246,  200-(scrollAreaHeight>200 ? scrollAreaHeight-195 : scrollAreaHeight/2), 10 , (scrollAreaHeight>200 ? scrollAreaHeight-195 : scrollAreaHeight/2));
             int thumbY = getCalculatedThumbY(scrollOffset);
             int thumbHeight = getCalculatedThumbHeight();
-            this.drawTexturedModalRect(width - 15, thumbY, 233, 0, 14, thumbHeight/2);
-            this.drawTexturedModalRect(width - 15, thumbY+thumbHeight/2, 233, thumbHeight/2, 14 , thumbHeight/2);
+            this.drawTexturedModalRect(width - 15, thumbY, 233, 0, 14, (int) (thumbHeight*0.75));
+            this.drawTexturedModalRect(width - 15, (int) (thumbY+(thumbHeight*0.75)), 233, 40-thumbHeight/4, 14 , thumbHeight/4);
         }
     }
 
@@ -185,10 +197,10 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/title.png"));
         GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         var2.startDrawingQuads();
-        var2.addVertexWithUV(this.width / 2f - 717 / 3f, 128 / 1.5, 0.0, 0, 1);
-        var2.addVertexWithUV(this.width / 2f + 717 / 3f, 128 / 1.5, 0.0, 1, 1);
-        var2.addVertexWithUV(this.width / 2f + 717 / 3f, 0.0 / 1.5, 0.0, 1, 0);
-        var2.addVertexWithUV(this.width / 2f - 717 / 3f, 0.0 / 1.5, 0.0, 0, 0);
+        var2.addVertexWithUV(this.width *0.25, height*0.172, 0.0, 0, 1);
+        var2.addVertexWithUV(this.width *0.75, height*0.172, 0.0, 1, 1);
+        var2.addVertexWithUV(this.width *0.75, 0.0, 0.0, 1, 0);
+        var2.addVertexWithUV(this.width *0.25, 0.0, 0.0, 0, 0);
         var2.draw();
 
         FontRenderer var4 = Minecraft.getMinecraft().fontRenderer;
@@ -196,7 +208,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
         int count = 0;
         for (EnumConfig config : enumConfigs) {
             if (Minecraft.getMinecraft().thePlayer != null) {
-                if (!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode && !config.getBSFriendly()) {
+                if ((!Minecraft.getMinecraft().thePlayer.capabilities.isCreativeMode || !PacketUtils.isPlayerOPClient) && !config.getBSFriendly()) {
                     continue;
                 }
             }
@@ -222,26 +234,34 @@ public class GuiConfigSettingsScreen extends GuiScreen {
             count++;
         }
     }
+
+
     @Override
     protected void actionPerformed(GuiButton button) {
+        if (currentButton!=null) {
+            String var2 = currentButton.displayString;
+            currentButton.displayString = var2.contains("<") ? var2.replace("> ", "").replace(" <", "") : var2;
+        }
         currentButton = button;
-        for (EnumConfig config:enumConfigs){
+        for (EnumConfig config:enumConfigs) {
             if (button.id == config.getIndex()) {
                 if (config.isBool()) {
                     config.setValue(!(boolean) config.getValue());
                     button.displayString = (boolean) config.getValue() ? "Enabled" : "Disabled";
                     this.mc.displayGuiScreen(new GuiConfigSettingsScreen(parentScreen));
-                }else if (config.isKeybind()) {
+                } else if (config.isKeybind()) {
                     this.buttonId = button.id;
-                    String var1 = button.displayString;
-                    button.displayString = "> " + var1 + " <";
+                    if (!button.displayString.contains(">")) {
+                        String var1 = button.displayString;
+                        button.displayString = "> " + var1 + " <";
+                    }
                 }
                 break;
-            }else if (button.id == config.getIndex() + 100) {
+            } else if (button.id == config.getIndex() + 100) {
                 if (!config.getValue().equals(config.getBaseValue())) {
                     config.setValue(config.getBaseValue());
-                    if (config.isKeybind()){
-                        button.displayString = GameSettings.getKeyDisplayString((int)config.getValue());
+                    if (config.isKeybind()) {
+                        button.displayString = GameSettings.getKeyDisplayString((int) config.getValue());
                         properties.put(config.getProperty(), config.getBaseValue());
                         KeyBinding.resetKeyBindingArrayAndHash();
                     }
@@ -265,6 +285,13 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     protected void keyTyped(char par1, int par2) {
         for (EnumConfig config:enumConfigs){
             if (this.buttonId == config.getIndex()){
+                for (EnumKeybinds value : EnumKeybinds.values()) {
+                    if (value.getIndex()!=this.buttonId&&value.getIntValue()==par2){
+                        currentButton.displayString = "used by '" + value.getName() + "'";
+                        return;
+                    }
+                }
+
                 config.setValue(par2);
                 currentButton.displayString = GameSettings.getKeyDisplayString(par2);
                 properties.put(config.getProperty(), par2);
@@ -288,7 +315,9 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     private float getFloatValue(int ordinal) {
         for (EnumConfig config:enumConfigs){
             if (ordinal== config.getIndex()){
-                return (float) (config.getIntValue()-1) /config.getMaxValue();
+                if (config.getIntValue()>config.getMaxValue())config.setValue(config.getMaxValue());
+                if (config.getIntValue()<0)config.setValue(0);
+                return (float) config.getIntValue() /config.getMaxValue();
             }
         }
         return 1.0f;
@@ -297,12 +326,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     private String boolToString(boolean bool) {
         return bool ? "Enabled" : "Disabled";
     }
-/*
-    private String intToString(int ordinal, int value) {
-        String res = "";
 
-        return StatCollector.translateToLocal(res);
-    }*/
     @Override
     public void handleMouseInput() {
         super.handleMouseInput();
@@ -331,8 +355,7 @@ public class GuiConfigSettingsScreen extends GuiScreen {
     }
 
     private int getCalculatedThumbHeight() {
-        //int totalContentHeight = buttons.size() * 29*2;
-        return Math.max(10, (int) ((float) scrollAreaHeight /11)); //scrollAreaHeight / (float) totalContentHeight));
+        return 29;
     }
 
     private int getCalculatedThumbY(int currentScrollOffset) {
