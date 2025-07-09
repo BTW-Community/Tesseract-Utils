@@ -1,6 +1,10 @@
-package net.dravigen.tesseractUtils.advanced_edit;
+package net.dravigen.tesseractUtils.utils;
 
-import net.minecraft.src.Vec3;
+import net.dravigen.tesseractUtils.TesseractUtilsAddon;
+import net.minecraft.src.*;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class RayTracingUtils {
 
@@ -129,5 +133,80 @@ public class RayTracingUtils {
 
         // If we made it here, there's an intersection
         return new HitResult(tMin, hitFace);
+    }
+    /**
+     * Performs a ray trace from an entity's eye position to find the closest hit entity.
+     *
+     * @param sourceEntity The entity from which to cast the ray (e.g., the player).
+     * @param maxDistance The maximum distance for the ray trace.
+     * @param partialTicks For smooth interpolation (use 1.0F for current position/look).
+     * @return The closest Entity hit by the ray, or null if no entity is found.
+     */
+
+    public static Entity getEntityFromRayTrace(EntityPlayer sourceEntity, double maxDistance, float partialTicks) {
+        if (sourceEntity == null || sourceEntity.worldObj == null) {
+            return null;
+        }
+
+        World world = sourceEntity.worldObj;
+        Vec3 startVec = world.getWorldVec3Pool().getVecFromPool(sourceEntity.posX, sourceEntity.posY + sourceEntity.getEyeHeight(), sourceEntity.posZ);
+        Vec3 lookVec = sourceEntity.getLook(partialTicks);
+        Vec3 endVec = startVec.addVector(lookVec.xCoord * maxDistance, lookVec.yCoord * maxDistance, lookVec.zCoord * maxDistance);
+
+        MovingObjectPosition blockHit = world.rayTraceBlocks_do_do(startVec, endVec, false,true);
+
+        if (blockHit != null) {endVec = world.getWorldVec3Pool().getVecFromPool(blockHit.hitVec.xCoord, blockHit.hitVec.yCoord, blockHit.hitVec.zCoord);}
+
+        double expandAmount = 1.0D;
+        AxisAlignedBB searchBox = sourceEntity.boundingBox.expand(maxDistance, maxDistance, maxDistance).expand(expandAmount, expandAmount, expandAmount);
+
+        List<Entity> possibleEntities = world.getEntitiesWithinAABBExcludingEntity(sourceEntity, searchBox);
+
+        Entity foundEntity = null;
+        double closestDistance = maxDistance;
+        for (Entity currentEntity : possibleEntities) {
+            if (currentEntity instanceof EntityPlayer || !(currentEntity instanceof EntityLivingBase)) {
+                continue;
+            }
+            AxisAlignedBB entityBoundingBox = currentEntity.boundingBox.expand(
+                    currentEntity.getCollisionBorderSize(),
+                    currentEntity.getCollisionBorderSize(),
+                    currentEntity.getCollisionBorderSize()
+            );
+
+            MovingObjectPosition entityIntercept = entityBoundingBox.calculateIntercept(startVec, endVec);
+
+            if (entityIntercept != null) {
+                double distanceToIntercept = startVec.distanceTo(entityIntercept.hitVec);
+
+                if (distanceToIntercept < closestDistance) {
+                    foundEntity = currentEntity;
+                    closestDistance = distanceToIntercept;
+                }
+            }
+        }
+        return foundEntity;
+    }
+    public static @NotNull RayTracingUtils.BlockFromRayTrace getBlockFromRayTrace(EntityPlayer player) {
+        Vec3 var3 = player.getPosition(TesseractUtilsAddon.partialTick);
+        Vec3 var4 = player.getLook(TesseractUtilsAddon.partialTick);
+        Vec3 var5 = var3.addVector(var4.xCoord * 256, var4.yCoord * 256, var4.zCoord * 256);
+        MovingObjectPosition block = player.worldObj.clip(var3, var5);
+        int sideHit = 0;
+        int x = 0;
+        int y = 0;
+        int z = 0;
+        Vec3 hitVec = Vec3.createVectorHelper(0,0,0);
+        if (block != null) {
+            x = block.blockX;
+            y = block.blockY;
+            z = block.blockZ;
+            sideHit = block.sideHit;
+            hitVec = block.hitVec;
+        }
+        return new BlockFromRayTrace(block, sideHit, x, y, z, hitVec);
+    }
+
+    public record BlockFromRayTrace(MovingObjectPosition block, int sideHit, int x, int y, int z, Vec3 hitVec3) {
     }
 }

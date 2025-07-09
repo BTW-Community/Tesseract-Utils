@@ -1,6 +1,6 @@
 package net.dravigen.tesseractUtils.mixin.client;
 
-import net.dravigen.tesseractUtils.configs.EnumConfig;
+import net.dravigen.tesseractUtils.enums.EnumConfig;
 import net.minecraft.src.*;
 import org.lwjgl.input.Keyboard;
 import org.objectweb.asm.Opcodes;

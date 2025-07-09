@@ -7,7 +7,7 @@ import btw.entity.UrnEntity;
 import btw.entity.item.BloodWoodSaplingItemEntity;
 import btw.entity.item.FloatingItemEntity;
 import btw.entity.mechanical.platform.BlockLiftedByPlatformEntity;
-import net.dravigen.tesseractUtils.command.UtilsCommand;
+import net.dravigen.tesseractUtils.utils.ListsUtils;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,7 +24,7 @@ public class EntityListMixin {
 
     @Inject(method = "addMapping(Ljava/lang/Class;  Ljava/lang/String;I)V",at = @At("TAIL"))
     private static void getMap(CallbackInfo ci){
-        UtilsCommand.CLASS_TO_STRING_MAPPING = classToStringMapping;
+        ListsUtils.CLASS_TO_STRING_MAPPING = classToStringMapping;
         List<Class<?>> blacklistClass = new ArrayList<>();
         blacklistClass.add(EntityPainting.class);
         blacklistClass.add(UrnEntity.class);
@@ -40,7 +40,7 @@ public class EntityListMixin {
         blacklistClass.add(DynamiteEntity.class);
 
         for (Class<?> entry : blacklistClass) {
-            UtilsCommand.CLASS_TO_STRING_MAPPING.remove(entry);
+            ListsUtils.CLASS_TO_STRING_MAPPING.remove(entry);
         }
     }
 }

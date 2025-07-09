@@ -4,7 +4,7 @@ import btw.AddonHandler;
 import btw.BTWAddon;
 import net.dravigen.tesseractUtils.command.*;
 import net.dravigen.tesseractUtils.inventory.InventoryDataManager;
-import net.dravigen.tesseractUtils.inventory.ModDirectories;
+import net.dravigen.tesseractUtils.utils.ModDirectories;
 import net.dravigen.tesseractUtils.inventory.SavedInventoriesList;
 import net.minecraft.src.*;
 
@@ -26,6 +26,7 @@ public class TesseractUtilsAddon extends BTWAddon {
     public static float tps;
     public static int currentBuildingMode =8;
     public static float partialTick = 1;
+    public static boolean checkedOP = false;
 
 
     public static TesseractUtilsAddon getInstance() {

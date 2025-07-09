@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.src.EntityPlayerMP;
 import net.minecraft.src.Minecraft;
 import net.minecraft.src.Packet250CustomPayload;
@@ -53,12 +54,20 @@ public class PacketSender {
             System.err.println("Attempted to send S2C packet from client-side!");
             return;
         }
-
         try {
+
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(bos);
 
-            dos.writeUTF(String.valueOf(message));
+            String string = message.toString();
+
+            Object clientHaveTU = PacketUtils.clientHaveTU.get(player.getEntityName());
+            boolean initPacket = string.startsWith("isPlayerOP")||string.startsWith("haveTU")||string.startsWith("sendNamesLists")||string.startsWith("updatePlayerInfo");
+            if (!initPacket&&clientHaveTU!=null&&!(boolean) clientHaveTU)return;
+
+            dos.writeUTF(string);
+
+
 
             Packet250CustomPayload packet = new Packet250CustomPayload(TUChannels.SERVER_TO_CLIENT_CHANNEL, bos.toByteArray());
             player.playerNetServerHandler.sendPacketToPlayer(packet);

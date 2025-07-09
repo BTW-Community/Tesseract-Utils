@@ -1,13 +1,17 @@
 package net.dravigen.tesseractUtils.mixin.clientServer;
 
+import net.dravigen.tesseractUtils.TesseractUtilsAddon;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.src.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import static net.dravigen.tesseractUtils.configs.EnumConfig.*;
+
+
+import static net.dravigen.tesseractUtils.enums.EnumConfig.*;
 
 @Mixin(EntityPlayer.class)
 public abstract class EntityPlayerMixin extends EntityLivingBase{
@@ -22,7 +26,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @Redirect(method = "moveEntityWithHeading",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/PlayerCapabilities;getFlySpeed()F"))
     private float modifySprintFlightSpeed(PlayerCapabilities instance){
-        return this.capabilities.isCreativeMode&&FLIGHT_SPEED.getIntValue()!=2&&this.isUsingSpecialKey() ? FLIGHT_MOMENTUM.getBoolValue() ? FLIGHT_SPEED.getIntValue()*0.5f : FLIGHT_SPEED.getIntValue()*0.1f: instance.getFlySpeed();
+        return this.capabilities.isCreativeMode&&FLIGHT_SPEED.getIntValue()!=2&&this.isUsingSpecialKey() ? FLIGHT_MOMENTUM.getBoolValue() ? FLIGHT_SPEED.getIntValue()*0.35f : FLIGHT_SPEED.getIntValue()*0.1f: instance.getFlySpeed();
     }
 
     @Redirect(method = "moveEntityWithHeading",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityPlayer;isSprinting()Z"))
@@ -56,7 +60,7 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
             } else if (this.boundingBox.minY >= -3 && this.boundingBox.minY <=-2.8) {
                 this.motionY = 0;
             }
-            if (NO_CLIP.getBoolValue()) {
+            if (TesseractUtilsAddon.modeState==2) {
                 this.onGround = false;
                 this.capabilities.isFlying = true;
                 this.noClip = true;
@@ -64,15 +68,15 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
         }
         if (this.capabilities.isCreativeMode&&this.capabilities.isFlying) {
             if (this.isUsingSpecialKey() && FLIGHT_SPEED.getIntValue() != 2) {
-                if (this.isJumping) {
+                if (this.isJumping&&!this.isSneaking()) {
                     if (FLIGHT_MOMENTUM.getBoolValue()) {
                         this.motionY = FLIGHT_SPEED.getIntValue();
-                    }else this.motionY = FLIGHT_SPEED.getIntValue()*0.25;
+                    }else this.motionY = FLIGHT_SPEED.getIntValue()*0.3;
                 }
-                if (this.isSneaking()) {
+                if (this.isSneaking()&&!this.isJumping) {
                     if (FLIGHT_MOMENTUM.getBoolValue()) {
                         this.motionY = -FLIGHT_SPEED.getIntValue();
-                    }else this.motionY = -FLIGHT_SPEED.getIntValue()*0.25;
+                    }else this.motionY = -FLIGHT_SPEED.getIntValue()*0.3;
                 }
                 /*
                 if (gameSettings.keyBindForward.pressed){
@@ -86,10 +90,11 @@ public abstract class EntityPlayerMixin extends EntityLivingBase{
 
     @Redirect(method = "isEntityInsideOpaqueBlock",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/EntityLivingBase;isEntityInsideOpaqueBlock()Z"))
     private boolean disableBlockOcclusion(EntityLivingBase instance){
-        if (NO_CLIP.getBoolValue()&&this.capabilities.isCreativeMode) {
+        if (this.capabilities.isCreativeMode&&TesseractUtilsAddon.modeState==2) {
             return false;
         }else return super.isEntityInsideOpaqueBlock();
     }
 
-
+    @Unique
+    private static final String NBT_KEY_SAVED_GAMEMODE = "modeState";
 }

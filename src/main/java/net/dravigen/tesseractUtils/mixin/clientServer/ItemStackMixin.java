@@ -1,6 +1,6 @@
 package net.dravigen.tesseractUtils.mixin.clientServer;
 
-import net.dravigen.tesseractUtils.configs.EnumConfig;
+import net.dravigen.tesseractUtils.enums.EnumConfig;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.src.EntityPlayer;
@@ -19,7 +19,8 @@ public class ItemStackMixin {
     @Environment(EnvType.CLIENT)
     @Redirect(method = "getTooltip",at = @At(value = "INVOKE", target = "Lnet/minecraft/src/Item;addInformation(Lnet/minecraft/src/ItemStack;Lnet/minecraft/src/EntityPlayer;Ljava/util/List;Z)V"))
     private void addDura(Item instance, ItemStack stack, EntityPlayer player, List par3List, boolean par4){
-        if (player.worldObj.isRemote) {
+
+        if (player!=null&&player.worldObj.isRemote) {
             if ((boolean)EnumConfig.EXTRA_DEBUG.getValue() &&Minecraft.getMinecraft().gameSettings.advancedItemTooltips&&stack.getMaxDamage()>0) {
                 par3List.add("Durability: " + (stack.getMaxDamage() - stack.getItemDamage()) + " / " + stack.getMaxDamage());
             }

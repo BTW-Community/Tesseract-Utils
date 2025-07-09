@@ -1,30 +1,26 @@
-package net.dravigen.tesseractUtils.advanced_edit;
+package net.dravigen.tesseractUtils.configs;
 
-import net.dravigen.tesseractUtils.command.UtilsCommand;
 import net.minecraft.src.Vec3;
 
 public class BlockSelectionManager {
 
 
-    public static Vec3 block1 = Vec3.createVectorHelper(UtilsCommand.x1,UtilsCommand.y1,UtilsCommand.z1);
-    public static Vec3 block2 = Vec3.createVectorHelper(UtilsCommand.x2,UtilsCommand.y2,UtilsCommand.z2);
+    public static Vec3 block1 = Vec3.createVectorHelper(9999999,9999999,9999999);
+    public static Vec3 block2 = Vec3.createVectorHelper(9999999,9999999,9999999);
 
     public static boolean isBlock1Selected=false;
     public static boolean isBlock2Selected=false;
 
-    // Enum to manage the selection state
     public enum SelectionState {
-        NONE,            // No blocks selected
-        FIRST_SELECTED,  // One block selected
-        TWO_SELECTED     // Two blocks selected, ready for box rendering
+        NONE,
+        FIRST_SELECTED,
+        TWO_SELECTED
     }
     public static SelectionState currentSelectionState = SelectionState.NONE;
 
     public static void clear(){
-        block1 = Vec3.createVectorHelper(UtilsCommand.x1,UtilsCommand.y1,UtilsCommand.z1);
-        block2 = Vec3.createVectorHelper(UtilsCommand.x2,UtilsCommand.y2,UtilsCommand.z2);
-        UtilsCommand.setCoord1(9999999,9999999,9999999);
-        UtilsCommand.setCoord2(9999999,9999999,9999999);
+        block1 = Vec3.createVectorHelper(9999999,9999999,9999999);
+        block2 = Vec3.createVectorHelper(9999999,9999999,9999999);
         currentSelectionState = SelectionState.NONE;
         isBlock1Selected=false;
         isBlock2Selected=false;

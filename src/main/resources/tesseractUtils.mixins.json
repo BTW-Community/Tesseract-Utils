@@ -11,17 +11,17 @@
     "clientServer.DeleteItem",
     "clientServer.EntityListMixin",
     "clientServer.EntityPlayerMixin",
-    "clientServer.ExtrudeItem",
     "clientServer.ItemStackMixin",
     "clientServer.PlaceAsBlockItemMixin",
     "clientServer.PlayerControllerMPMixin",
     "server.EntityLivingMixin",
     "server.MinecraftServerMixin",
-    "server.NetServerHandlerMixin"
+    "server.NetServerHandlerMixin",
+    "server.ServerConfigurationManagerMixin"
   ],
   "client": [
-    "client.EntityRendererMixin",
     "client.EntityPlayerSPMixin",
+    "client.EntityRendererMixin",
     "client.GuiChatMixin",
     "client.GuiInGameMenuMixin",
     "client.GuiIngameMixin",

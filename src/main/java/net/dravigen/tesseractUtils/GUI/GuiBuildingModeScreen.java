@@ -1,8 +1,9 @@
 package net.dravigen.tesseractUtils.GUI;
 
 import net.dravigen.tesseractUtils.TesseractUtilsAddon;
-import net.dravigen.tesseractUtils.advanced_edit.EnumBuildMode;
-import net.dravigen.tesseractUtils.packet.PacketUtils;
+import net.dravigen.tesseractUtils.enums.EnumBuildMode;
+import net.dravigen.tesseractUtils.packet.PacketSender;
+import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.src.*;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -19,12 +20,13 @@ public class GuiBuildingModeScreen extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         if (!Keyboard.isKeyDown(56)){
             TesseractUtilsAddon.currentBuildingMode = (int) (-1*((angle-360)/45f));
+            PacketSender.sendClientToServerMessage("updatePlayerInfo:"+PacketUtils.playerInfoClient(TesseractUtilsAddon.modeState));
             Minecraft.getMinecraft().displayGuiScreen(null);
         }
         ScaledResolution var5 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
         int width = var5.getScaledWidth();
         int height = var5.getScaledHeight();
-        if (PacketUtils.isPlayerOP&&this.mc.thePlayer.capabilities.isCreativeMode) {
+        if (PacketUtils.isPlayerOPClient &&this.mc.thePlayer.capabilities.isCreativeMode) {
             if (Keyboard.isKeyDown(56)) {
                 int dWheel = Mouse.getDWheel();
                 if (dWheel != 0) {
@@ -58,16 +60,8 @@ public class GuiBuildingModeScreen extends GuiScreen {
                 EnumBuildMode enumBuildMode = EnumBuildMode.getEnumFromIndex((int) (-1*((angle-360)/45f)));
                 String desc = enumBuildMode.getDescription();
                 List<String> list = fontRenderer.listFormattedStringToWidth(desc,width/3);
-
-/*
-                GL11.glPushMatrix();
-                this.mc.getTextureManager().bindTexture(new ResourceLocation("tesseract_utils:textures/gui/button.png"));
-                this.drawTexturedModalRect((int) (0.526f*width), height/2- descHalfHeight, 0     ,0 , (int) (0.352*width), descHalfHeight);
-                this.drawTexturedModalRect((int) (0.526f*width), height/2, 0   , 20-descHalfHeight, (int) (0.352*width), descHalfHeight);
-                 GL11.glPopMatrix();
-*/
                 for (String s:list){
-                    fontRenderer.drawSplitString(s,width+48- 120-fontRenderer.getStringWidth(s),height/2- fontRenderer.FONT_HEIGHT + fontRenderer.FONT_HEIGHT*list.indexOf(s), width/3, 0xffffff);
+                    fontRenderer.drawStringWithShadow(s,width+48- 120-fontRenderer.getStringWidth(s),height/2- fontRenderer.FONT_HEIGHT + fontRenderer.FONT_HEIGHT*list.indexOf(s), 0xffffff);
                 }
 
             }

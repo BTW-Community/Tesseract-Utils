@@ -1,13 +1,13 @@
 package net.dravigen.tesseractUtils.command;
 
+import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.src.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static net.dravigen.tesseractUtils.command.UtilsCommand.*;
-import static net.dravigen.tesseractUtils.command.UtilsCommand.entityShowNameList;
+import static net.dravigen.tesseractUtils.utils.ListsUtils.*;
 
 public class CommandSummon extends CommandBase {
     @Override
@@ -21,11 +21,11 @@ public class CommandSummon extends CommandBase {
     }
 
     @Override
-    public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] strings) {
+    public List addTabCompletionOptions(ICommandSender sender, String[] strings) {
         if (strings.length==1){
-            return getInstance().getEntityName(strings);
+            return getInstance().getEntityName(strings, sender.getCommandSenderName());
         }
-        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(par1ICommandSender);
+        MovingObjectPosition blockCoord = getBlockPlayerIsLooking(sender);
         if (strings.length>=3) {
             if (blockCoord != null) {
                 int x = blockCoord.blockX;
@@ -75,13 +75,9 @@ public class CommandSummon extends CommandBase {
             List<String> entitiesName = Arrays.stream(strings[0].split(":")).toList();
             List<Entity> entities = new ArrayList<>();
 
-            for (String entity1 :entitiesName) {
-                for (String name : entityShowNameList){
-                    if (name.equalsIgnoreCase(entity1)){
-                        entities.add(EntityList.createEntityByName(entityTrueNameList.get(entityShowNameList.indexOf(name)), sender.getEntityWorld()));
-                        break;
-                    }
-                }
+            for (String entityName :entitiesName) {
+                int id = PacketUtils.playersEntitiesNameMapServer.get(sender.getCommandSenderName()).get(entityName);
+                entities.add(EntityList.createEntityByID(id, sender.getEntityWorld()));
             }
             for (int j=0; j<entities.size(); j++){
                 Entity entity2 = entities.get(j);

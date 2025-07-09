@@ -1,4 +1,4 @@
-package net.dravigen.tesseractUtils.inventory;
+package net.dravigen.tesseractUtils.utils;
 
 import java.io.File;
 

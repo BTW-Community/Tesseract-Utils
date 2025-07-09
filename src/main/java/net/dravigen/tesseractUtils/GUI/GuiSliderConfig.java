@@ -1,5 +1,6 @@
 package net.dravigen.tesseractUtils.GUI;
 
+import net.dravigen.tesseractUtils.utils.GuiUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.src.GuiButton;
@@ -15,13 +16,11 @@ public class GuiSliderConfig extends GuiButton {
     public float sliderValue;
     public boolean dragging = false;
     private final String id;
-    private final int notches;
 
-    public GuiSliderConfig(int id, int posX, int posY, int width, int height, String stringId, String string, float value, int notches) {
+    public GuiSliderConfig(int id, int posX, int posY, int width, int height, String stringId, String string, float value) {
         super(id, posX, posY, width, height, string);
         this.id = stringId;
         this.sliderValue = value;
-        this.notches = notches;
     }
 
     protected int getHoverState(boolean bl) { return 0; }
@@ -32,9 +31,7 @@ public class GuiSliderConfig extends GuiButton {
         if (this.drawButton) {
             if (this.dragging) {
                 this.sliderValue = (float) (i - (this.xPosition + 4)) / (float) (this.width - 8);
-                this.sliderValue = this.notches > 0
-                        ? roundToNotch(this.sliderValue)
-                        : this.sliderValue;
+
                 if (this.sliderValue < 0.0F) {
                     this.sliderValue = 0.0F;
                 }
@@ -80,17 +77,11 @@ public class GuiSliderConfig extends GuiButton {
 
     public void mouseReleased(int i, int j) {
         this.dragging = false;
-    }
-
-    // I never said I was a good programmer :p
-    private float roundToNotch(float value) {
-        float fac = 1.0f / notches;
-        float facMargin = fac / 2;
-        for (int i = 0; i < notches; i++) {
-            if (value < (fac * i) + facMargin) return fac * i;
-            else if (value < fac * (i + 1)) return fac * (i + 1);
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.currentScreen instanceof GuiConfigSettingsScreen configSettingsScreen){
+            mc.displayGuiScreen(new GuiConfigSettingsScreen(configSettingsScreen.parentScreen));
+        } else if (mc.currentScreen instanceof GuiShapeMenuScreen shapeMenu) {
+            mc.displayGuiScreen(new GuiShapeMenuScreen(shapeMenu.parentScreen));
         }
-        return 1.0f;
     }
-
 }
