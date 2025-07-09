@@ -437,7 +437,18 @@ public class ShapeGen {
         double zIncrement = dz / steps;
 
         int halfThicknessOffset = (thickness - 1) / 2;
-
+        for (int i = 0; i <= steps; i++) {
+            int currentX = (int) Math.round(x1 + i * xIncrement);
+            int currentY = (int) Math.round(y1 + i * yIncrement);
+            int currentZ = (int) Math.round(z1 + i * zIncrement);
+            for (int ox = -halfThicknessOffset; ox < thickness - halfThicknessOffset; ox++) {
+                for (int oy = -halfThicknessOffset; oy < thickness - halfThicknessOffset; oy++) {
+                    for (int oz = -halfThicknessOffset; oz < thickness - halfThicknessOffset; oz++) {
+                        list.add(new SavedBlock(currentX + ox, currentY + oy, currentZ + oz, world.getBlockId(currentX + ox, currentY + oy, currentZ + oz), world.getBlockMetadata(currentX + ox, currentY + oy, currentZ + oz)));
+                    }
+                }
+            }
+        }
         for (int i = 0; i <= steps; i++) {
             int currentX = (int) Math.round(x1 + i * xIncrement);
             int currentY = (int) Math.round(y1 + i * yIncrement);
@@ -446,7 +457,6 @@ public class ShapeGen {
                 for (int oy = -halfThicknessOffset; oy < thickness - halfThicknessOffset; oy++) {
                     for (int oz = -halfThicknessOffset; oz < thickness - halfThicknessOffset; oz++) {
                         BlockInfo result = getInfo(sender, results);
-                        list.add(new SavedBlock(currentX + ox, currentY + oy, currentZ + oz, world.getBlockId(currentX + ox, currentY + oy, currentZ + oz), world.getBlockMetadata(currentX + ox, currentY + oy, currentZ + oz)));
                         world.setBlock(currentX + ox, currentY + oy, currentZ + oz, result.id(), result.meta(), flag);
                         CommandWorldEdit.numBlock++;
                     }
@@ -464,7 +474,7 @@ public class ShapeGen {
             return list;
         }
         boolean slopeAlongX = side == 0;
-        boolean slopeAlongZ = side ==1;
+        boolean slopeAlongZ = side == 1;
 
         int minX = Math.min(xa, xb);
         int maxX = Math.max(xa, xb);
@@ -489,7 +499,6 @@ public class ShapeGen {
         }
 
         if (slopeAlongX) {
-
             int currentX = xa;
             int currentY = ya;
 
@@ -508,8 +517,15 @@ public class ShapeGen {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int z = minZ; z <= maxZ; z++) {
                             if (replace && world.getBlockId(currentX, yFill, z) == 0) continue;
-                            BlockInfo blockToPlace = getInfo(sender, results);
                             list.add(new SavedBlock(currentX, yFill, z, world.getBlockId(currentX, yFill, z), world.getBlockMetadata(currentX, yFill, z)));
+                        }
+                    }
+                }
+                for (int i = 0; i <= dx; i++) {
+                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                        for (int z = minZ; z <= maxZ; z++) {
+                            if (replace && world.getBlockId(currentX, yFill, z) == 0) continue;
+                            BlockInfo blockToPlace = getInfo(sender, results);
                             world.setBlock(currentX, yFill, z, blockToPlace.id(), blockToPlace.meta(), flag);
                             CommandWorldEdit.numBlock++;
                         }
@@ -531,8 +547,15 @@ public class ShapeGen {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int z = minZ; z <= maxZ; z++) {
                             if (replace && world.getBlockId(currentX, yFill, z) == 0) continue;
-                            BlockInfo blockToPlace = getInfo(sender, results);
                             list.add(new SavedBlock(currentX, yFill, z, world.getBlockId(currentX, yFill, z), world.getBlockMetadata(currentX, yFill, z)));
+                        }
+                    }
+                }
+                for (int i = 0; i <= dy; i++) {
+                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                        for (int z = minZ; z <= maxZ; z++) {
+                            if (replace && world.getBlockId(currentX, yFill, z) == 0) continue;
+                            BlockInfo blockToPlace = getInfo(sender, results);
                             world.setBlock(currentX, yFill, z, blockToPlace.id(), blockToPlace.meta(), flag);
                             CommandWorldEdit.numBlock++;
                         }
@@ -568,8 +591,15 @@ public class ShapeGen {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int x = minX; x <= maxX; x++) {
                             if (replace && world.getBlockId(x, yFill, currentZ) == 0) continue;
-                            BlockInfo blockToPlace = getInfo(sender, results);
                             list.add(new SavedBlock(x, yFill, currentZ, world.getBlockId(x, yFill, currentZ), world.getBlockMetadata(x, yFill, currentZ)));
+                        }
+                    }
+                }
+                for (int i = 0; i <= dz; i++) {
+                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                        for (int x = minX; x <= maxX; x++) {
+                            if (replace && world.getBlockId(x, yFill, currentZ) == 0) continue;
+                            BlockInfo blockToPlace = getInfo(sender, results);
                             world.setBlock(x, yFill, currentZ, blockToPlace.id(), blockToPlace.meta(), flag);
                             CommandWorldEdit.numBlock++;
                         }
@@ -591,8 +621,15 @@ public class ShapeGen {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int x = minX; x <= maxX; x++) {
                             if (replace && world.getBlockId(x, yFill, currentZ) == 0) continue;
-                            BlockInfo blockToPlace = getInfo(sender, results);
                             list.add(new SavedBlock(x, yFill, currentZ, world.getBlockId(x, yFill, currentZ), world.getBlockMetadata(x, yFill, currentZ)));
+                        }
+                    }
+                }
+                for (int i = 0; i <= dy; i++) {
+                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                        for (int x = minX; x <= maxX; x++) {
+                            if (replace && world.getBlockId(x, yFill, currentZ) == 0) continue;
+                            BlockInfo blockToPlace = getInfo(sender, results);
                             world.setBlock(x, yFill, currentZ, blockToPlace.id(), blockToPlace.meta(), flag);
                             CommandWorldEdit.numBlock++;
                         }

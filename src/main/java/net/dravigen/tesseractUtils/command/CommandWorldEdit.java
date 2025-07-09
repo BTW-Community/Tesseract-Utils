@@ -595,7 +595,7 @@ public class CommandWorldEdit extends CommandBase {
                             try {
                                 if (strings.length==1)throw new Exception();
                                 if (isPosValid) {
-                                    int side = strings.length>2 ? strings[2].equalsIgnoreCase("s") ? 1 : 0 : 0;
+                                    int side = strings.length>2 ? strings[2].equalsIgnoreCase("z") ? 1 : 0 : 0;
                                     int thickness = strings.length>3 ? Integer.parseInt(strings[3]) : 1;
 
                                     list = ShapeGen.buildPlane(world, strings[1], x1, y1, z1, x2, y2, z2, thickness, side,replace, flag, player);

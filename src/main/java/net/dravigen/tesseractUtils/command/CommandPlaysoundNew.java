@@ -20,7 +20,7 @@ public class CommandPlaysoundNew extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender iCommandSender) {
-        return "";
+        return "/playsound <sound:music> [name]";
     }
 
     public static List<String> soundsName = new ArrayList<>();
@@ -104,7 +104,7 @@ public class CommandPlaysoundNew extends CommandBase {
                     sender.sendChatToPlayer(ChatMessageComponent.createFromText("Playing music: " + soundName));
 
                 }
-            }
+            }else sender.sendChatToPlayer(ChatMessageComponent.createFromText(getCommandUsage(sender)));
         }
     }
 }
