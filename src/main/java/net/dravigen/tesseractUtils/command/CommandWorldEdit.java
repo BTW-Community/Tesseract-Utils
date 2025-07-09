@@ -210,7 +210,7 @@ public class CommandWorldEdit extends CommandBase {
                     clearRedoListServer(player);
                     sender.sendChatToPlayer(ChatMessageComponent.createFromText("§dPlaced " + result.blockName().replace("_", " ") + " at: " + x + ", " + y + ", " + z));
                 } catch (Exception e) {
-                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§c// setblock <id/metadata> <x> <y> <z>"));
+                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // setblock <id/metadata> <x> <y> <z>"));
                 }
             }
             case "shape" -> {
@@ -577,6 +577,7 @@ public class CommandWorldEdit extends CommandBase {
                         }
                         case "line" -> {
                             try {
+                                if (strings.length==1)throw new Exception();
                                 if (isPosValid) {
                                     list = ShapeGen.buildLine(world, strings, x1, y1, z1, x2, y2, z2, strings.length > 2 ? Integer.parseInt(strings[2]) : 1, flag, player);
                                     if (!list.isEmpty()) {
@@ -585,14 +586,15 @@ public class CommandWorldEdit extends CommandBase {
                                     }
                                     player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
 
-                                }
+                                }else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
                             }catch (Exception e) {
                                 player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // line <id> [thickness]"));
                             }
                         }
                         case "plane" -> {
                             try {
-                                if (isPosValid&&strings.length>1) {
+                                if (strings.length==1)throw new Exception();
+                                if (isPosValid) {
                                     int side = strings.length>2 ? strings[2].equalsIgnoreCase("s") ? 1 : 0 : 0;
                                     int thickness = strings.length>3 ? Integer.parseInt(strings[3]) : 1;
 
@@ -603,7 +605,7 @@ public class CommandWorldEdit extends CommandBase {
                                         clearRedoListServer(player);
                                     }
                                     player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been placed"));
-                                }
+                                }else player.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
                             }catch (Exception e) {
                                 player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: // plane <id> [x:z] [thickness]"));
                             }
