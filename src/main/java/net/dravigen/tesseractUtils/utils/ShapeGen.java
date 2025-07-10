@@ -513,14 +513,26 @@ public class ShapeGen {
 
             if (dx >= dy) {
                 int error = 2 * dy - dx;
+                int xx = currentX;
+                int yy = currentY;
                 for (int i = 0; i <= dx; i++) {
-                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                    for (int yFill = yy; yFill >= yy - (thickness - 1); yFill--) {
                         for (int z = minZ; z <= maxZ; z++) {
-                            if (replace && world.getBlockId(currentX, yFill, z) == 0) continue;
-                            list.add(new SavedBlock(currentX, yFill, z, world.getBlockId(currentX, yFill, z), world.getBlockMetadata(currentX, yFill, z)));
+                            if (replace && world.getBlockId(xx, yFill, z) == 0) continue;
+                            list.add(new SavedBlock(xx, yFill, z, world.getBlockId(xx, yFill, z), world.getBlockMetadata(xx, yFill, z)));
                         }
                     }
+                    if (i < dx) {
+                        if (error < 0) {
+                            error += 2 * dy;
+                        } else {
+                            yy += y_inc;
+                            error += 2 * (dy - dx);
+                        }
+                        xx += x_inc;
+                    }
                 }
+                error = 2 * dy - dx;
                 for (int i = 0; i <= dx; i++) {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int z = minZ; z <= maxZ; z++) {
@@ -543,14 +555,26 @@ public class ShapeGen {
                 }
             } else {
                 int error = 2 * dx - dy;
+                int xx = currentX;
+                int yy = currentY;
                 for (int i = 0; i <= dy; i++) {
-                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                    for (int yFill = yy; yFill >= yy - (thickness - 1); yFill--) {
                         for (int z = minZ; z <= maxZ; z++) {
-                            if (replace && world.getBlockId(currentX, yFill, z) == 0) continue;
-                            list.add(new SavedBlock(currentX, yFill, z, world.getBlockId(currentX, yFill, z), world.getBlockMetadata(currentX, yFill, z)));
+                            if (replace && world.getBlockId(xx, yFill, z) == 0) continue;
+                            list.add(new SavedBlock(xx, yFill, z, world.getBlockId(xx, yFill, z), world.getBlockMetadata(xx, yFill, z)));
                         }
                     }
+                    if (i < dy) {
+                        if (error < 0) {
+                            error += 2 * dx;
+                        } else {
+                            xx += x_inc;
+                            error += 2 * (dx - dy);
+                        }
+                        yy += y_inc;
+                    }
                 }
+                error = 2 * dx - dy;
                 for (int i = 0; i <= dy; i++) {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int z = minZ; z <= maxZ; z++) {
@@ -587,14 +611,26 @@ public class ShapeGen {
 
             if (dz >= dy) {
                 int error = 2 * dy - dz;
+                int zz = currentZ;
+                int yy = currentY;
                 for (int i = 0; i <= dz; i++) {
-                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                    for (int yFill = yy; yFill >= yy - (thickness - 1); yFill--) {
                         for (int x = minX; x <= maxX; x++) {
-                            if (replace && world.getBlockId(x, yFill, currentZ) == 0) continue;
-                            list.add(new SavedBlock(x, yFill, currentZ, world.getBlockId(x, yFill, currentZ), world.getBlockMetadata(x, yFill, currentZ)));
+                            if (replace && world.getBlockId(x, yFill, zz) == 0) continue;
+                            list.add(new SavedBlock(x, yFill, zz, world.getBlockId(x, yFill, zz), world.getBlockMetadata(x, yFill, zz)));
                         }
                     }
+                    if (i < dz) {
+                        if (error < 0) {
+                            error += 2 * dy;
+                        } else {
+                            yy += y_inc;
+                            error += 2 * (dy - dz);
+                        }
+                        zz += z_inc;
+                    }
                 }
+                error = 2 * dy - dz;
                 for (int i = 0; i <= dz; i++) {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int x = minX; x <= maxX; x++) {
@@ -617,14 +653,26 @@ public class ShapeGen {
                 }
             } else {
                 int error = 2 * dz - dy;
+                int zz = currentZ;
+                int yy = currentY;
                 for (int i = 0; i <= dy; i++) {
-                    for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
+                    for (int yFill = yy; yFill >= yy - (thickness - 1); yFill--) {
                         for (int x = minX; x <= maxX; x++) {
-                            if (replace && world.getBlockId(x, yFill, currentZ) == 0) continue;
-                            list.add(new SavedBlock(x, yFill, currentZ, world.getBlockId(x, yFill, currentZ), world.getBlockMetadata(x, yFill, currentZ)));
+                            if (replace && world.getBlockId(x, yFill, zz) == 0) continue;
+                            list.add(new SavedBlock(x, yFill, zz, world.getBlockId(x, yFill, zz), world.getBlockMetadata(x, yFill, zz)));
                         }
                     }
+                    if (i < dy) {
+                        if (error < 0) {
+                            error += 2 * dz;
+                        } else {
+                            zz += z_inc;
+                            error += 2 * (dz - dy);
+                        }
+                        yy += y_inc;
+                    }
                 }
+                error = 2 * dz - dy;
                 for (int i = 0; i <= dy; i++) {
                     for (int yFill = currentY; yFill >= currentY - (thickness - 1); yFill--) {
                         for (int x = minX; x <= maxX; x++) {

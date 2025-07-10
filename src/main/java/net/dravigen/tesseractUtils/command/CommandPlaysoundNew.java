@@ -104,7 +104,7 @@ public class CommandPlaysoundNew extends CommandBase {
                     sender.sendChatToPlayer(ChatMessageComponent.createFromText("Playing music: " + soundName));
 
                 }
-            }else sender.sendChatToPlayer(ChatMessageComponent.createFromText(getCommandUsage(sender)));
+            }else sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong usage: /playsound <sound:music> <name>"));
         }
     }
 }
