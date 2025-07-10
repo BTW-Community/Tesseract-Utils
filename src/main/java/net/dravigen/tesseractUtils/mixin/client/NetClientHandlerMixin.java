@@ -18,11 +18,10 @@ import static net.dravigen.tesseractUtils.utils.ListsUtils.initBlocksNameList;
 @Mixin(NetClientHandler.class)
 public class NetClientHandlerMixin {
 
-    @Inject(method = "handleCustomPayload", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "handleCustomPayload", at = @At("HEAD"))
     private void tu_onCustomPayloadS2C(Packet250CustomPayload packet, CallbackInfo ci) {
         if (packet.channel.equals(TUChannels.SERVER_TO_CLIENT_CHANNEL)) {
             PacketHandlerS2C.handle(packet);
-            ci.cancel();
         }
     }
 

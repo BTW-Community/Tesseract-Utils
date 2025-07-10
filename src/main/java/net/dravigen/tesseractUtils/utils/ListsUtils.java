@@ -77,12 +77,12 @@ public class ListsUtils {
             }
         }
         for (ItemStack stack : subBlocks) {
-            if (stack != null) {
+            if (stack != null&&stack.getItem() != null) {
                 String entry = stack.getDisplayName().replace(" ", "_");
                 if (entry.contains("Old")||entry.contains("BlockCandle")||entry.contains("null")) continue;
                 String previousString = "";
                 for (ItemStack stack2 : subBlocks) {
-                    if (subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
+                    if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
                     String name = stack2.getDisplayName().replace(" ", "_");
                     if (name.equalsIgnoreCase(entry)) {
                         if (stack.itemID == stack2.itemID) {
@@ -196,12 +196,12 @@ public class ListsUtils {
             }
         }
         for (ItemStack stack : subItems) {
-            if (stack != null) {
+            if (stack != null&&stack.getItem() != null) {
                 String entry = stack.getDisplayName().replace(" ", "_");
                 if (entry.contains("Old")||entry.contains("BlockCandle")) continue;
                 String previousString = "";
                 for (ItemStack stack2 : subItems) {
-                    if (subItems.indexOf(stack)==subItems.indexOf(stack2))continue;
+                    if (stack2==null||stack2.getItem()==null||subItems.indexOf(stack)==subItems.indexOf(stack2))continue;
                     String name = stack2.getDisplayName().replace(" ", "_");
                     if (name.equalsIgnoreCase(entry)) {
                         if (stack.itemID == stack2.itemID) {

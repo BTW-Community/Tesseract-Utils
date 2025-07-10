@@ -112,11 +112,10 @@ public abstract class NetServerHandlerMixin {
         return 512;
     }
 
-    @Inject(method = "handleCustomPayload", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "handleCustomPayload", at = @At("HEAD"))
     private void tu_onCustomPayloadC2S(Packet250CustomPayload packet, CallbackInfo ci) {
         if (packet.channel.equals(TUChannels.CLIENT_TO_SERVER_CHANNEL)) {
             PacketHandlerC2S.handle(packet, this.playerEntity);
-            ci.cancel();
         }
     }
 
