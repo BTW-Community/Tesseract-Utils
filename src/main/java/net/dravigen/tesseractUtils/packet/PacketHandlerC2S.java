@@ -113,20 +113,21 @@ public class PacketHandlerC2S {
                             int newBlockX = blockPos.x;
                             int newBlockY = blockPos.y;
                             int newBlockZ = blockPos.z;
+
                             if (subChannel.equalsIgnoreCase("extrudeExpand")) {
                                 switch (sideHit) {
                                     case 0:
-                                        newBlockY--; // Bottom face: place below
+                                        newBlockY--;break; // Bottom face: place below
                                     case 1:
-                                        newBlockY++; // Top face: place above
+                                        newBlockY++;break; // Top face: place above
                                     case 2:
-                                        newBlockZ--; // North face: place North
+                                        newBlockZ--;break; // North face: place North
                                     case 3:
-                                        newBlockZ++; // South face: place South
+                                        newBlockZ++;break; // South face: place South
                                     case 4:
-                                        newBlockX--; // West face: place West
+                                        newBlockX--;break; // West face: place West
                                     case 5:
-                                        newBlockX++; // East face: place East
+                                        newBlockX++;break; // East face: place East
                                 }
                             }
                             int targetBlockId = world.getBlockId(newBlockX, newBlockY, newBlockZ);
