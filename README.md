@@ -4,6 +4,17 @@
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
+# NOT UP TO DATE
+
+This presentation is not up to date with versions past 0.8.0 !
+
+Quick features explanation :
+- you can access the building mode by pressing ALT and scrolling with your mouse to select the mode you want
+- You cannot use most tools and other features while in a building mode beware ! It's not a bug !
+- Each building mode have keybinds help on the bottom right corner, in most case your Sneak and Sprint key have special usage but not always pointed out
+- commands are NOT similar to modern vanilla enter the first word of the command and enter to see what is needed: when <id> is asked you can use TAB to auto-fill with correct names or you can use the real id (+ the metadata if there is one, the number after the /)
+- I advise to use F3+H to show block,items id and metadata if needed
+
 ## Presentation
 
 This addon allow you to use handy tools such as setblock, copy/paste, move, replace, undo/redo, and much more.
