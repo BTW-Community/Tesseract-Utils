@@ -4,7 +4,7 @@
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
-# NOT UP TO DATE
+# PRESENTATION NOT UP TO DATE
 
 This presentation is not up to date with versions past 0.8.0 !
 
@@ -174,6 +174,10 @@ You can have access to the addon's config menu by either: going in the main game
 - enableNoClip : if enabled, the player will pass through block like it's air, but can still interact with the world.
 
 - extraDebugInfo : if enabled, coordinates/biome type/facing direction/light level/targeted block information will be shown in the F3 overlay.
+
+## Download
+
+https://github.com/DraViGen/BtW-Tesseract_Utils/releases
 
 ## License
 
