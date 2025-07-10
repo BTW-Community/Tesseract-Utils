@@ -6,7 +6,7 @@ public enum EnumKeybinds {
 
     CONFIG_MENU_KEY("Config Menu","configMenuKey",EnumConfig.CONFIG_MENU_KEY.getIndex(), Keyboard.KEY_F6, true),
     SHAPE_MENU_KEY("Shape Menu","shapeMenuKey",EnumConfig.SHAPE_MENU_KEY.getIndex(), Keyboard.KEY_F7,false),
-    BAR_SWAP_KEY("Hotbar Swap","barSwapKey",EnumConfig.BAR_SWAP_KEY.getIndex(), Keyboard.KEY_H, true),
+    //BAR_SWAP_KEY("Hotbar Swap","barSwapKey",EnumConfig.BAR_SWAP_KEY.getIndex(), Keyboard.KEY_H, true),
     UNDO_KEY("Undo","undo",EnumConfig.UNDO_KEY.getIndex(), Keyboard.KEY_SUBTRACT, false),
     REDO_KEY("Redo","redo",EnumConfig.REDO_KEY.getIndex(), Keyboard.KEY_ADD, false),
     START_MUSIC_KEY("Start Music","startMusicKey",EnumConfig.START_MUSIC_KEY.getIndex(), Keyboard.KEY_M,true),

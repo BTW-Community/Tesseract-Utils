@@ -309,7 +309,7 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
 
 
             }
-            if (!Keyboard.isKeyDown(Keyboard.KEY_F3) && Keyboard.isKeyDown((int) BAR_SWAP_KEY.getValue())) {
+          /*  if (!Keyboard.isKeyDown(Keyboard.KEY_F3) && Keyboard.isKeyDown((int) BAR_SWAP_KEY.getValue())) {
                 if (!keyPressed) {
                     int windowId = this.inventoryContainer.windowId;
                     PlayerControllerMP controllerMP = this.mc.playerController;
@@ -339,7 +339,7 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                     }
                     keyPressed = true;
                 }
-            } else keyPressed = false;
+            } else keyPressed = false;*/
         }
     }
 }

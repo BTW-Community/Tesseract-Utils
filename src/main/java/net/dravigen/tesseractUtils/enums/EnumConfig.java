@@ -25,7 +25,7 @@ public enum EnumConfig {
 
     CONFIG_MENU_KEY("Config Menu","configMenuKey",375,2, Keyboard.KEY_F6,0, true),
     SHAPE_MENU_KEY("Shape Menu","shapeMenuKey",376,2,Keyboard.KEY_F7,0,false),
-    BAR_SWAP_KEY("Hotbar Swap","barSwapKey",377,2, Keyboard.KEY_H,0, true),
+    //BAR_SWAP_KEY("Hotbar Swap","barSwapKey",377,2, Keyboard.KEY_H,0, true),
     UNDO_KEY("Undo","undo",378,2, Keyboard.KEY_SUBTRACT,0, false),
     REDO_KEY("Redo","redo",379,2, Keyboard.KEY_ADD,0, false),
     START_MUSIC_KEY("Start Music","startMusicKey",380,2, Keyboard.KEY_M,0, true),
