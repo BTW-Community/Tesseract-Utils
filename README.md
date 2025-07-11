@@ -4,6 +4,8 @@
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
+# Wiki is WIP: https://github.com/DraViGen/BtW-Tesseract_Utils/wiki
+
 # PRESENTATION NOT UP TO DATE
 
 This presentation is not up to date with versions past 0.8.0 !
