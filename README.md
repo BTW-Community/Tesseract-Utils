@@ -4,7 +4,10 @@
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
 </p>
 
-# Wiki: [Wiki access](https://github.com/DraViGen/BtW-Tesseract_Utils/wiki)
+Tesseract Utils (T.U for short) is an addon that add a mix of QoL features and useful tools, inspired by modern vanilla and mods like world edit and axiom. 95% of the features are CREATIVE ONLY.
+You can find all the features added in the wiki linked below:
+
+## [Wiki access](https://github.com/DraViGen/BtW-Tesseract_Utils/wiki)
 
 ## Download
 
