@@ -5,6 +5,7 @@
 </p>
 
 Tesseract Utils (T.U for short) is an addon that add a mix of QoL features and useful tools, inspired by modern vanilla and mods like world edit and axiom. 95% of the features are CREATIVE ONLY.
+Adding or modifying useful commands such as /summon, /kill, /give, etc
 You can find all the features added in the wiki linked below:
 
 ## Wiki
