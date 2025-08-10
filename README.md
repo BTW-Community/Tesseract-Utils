@@ -1,4 +1,4 @@
-# Tesseract Utils (BtW's Addon)
+# Tesseract Utils (BtW 3.X Addon)
 
 <p align="center">
   <img src="image/World Editor Banner1.png?raw=true" alt="Addon's banner" width="800"/>
