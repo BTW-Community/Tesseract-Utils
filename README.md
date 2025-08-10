@@ -10,11 +10,11 @@ You can find all the features added in the wiki linked below:
 
 ## Wiki
 
-https://github.com/DraViGen/BtW-Tesseract_Utils/wiki
+https://github.com/BTW-Community/Tesseract-Utils/wiki
 
 ## Download
 
-https://github.com/DraViGen/BtW-Tesseract_Utils/releases
+https://github.com/BTW-Community/Tesseract-Utils/releases
 
 ## License
 
