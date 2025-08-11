@@ -12,6 +12,10 @@ You can find all the features added in the wiki linked below:
 
 https://github.com/BTW-Community/Tesseract-Utils/wiki
 
+## Found a bug or have suggestions ?
+
+https://github.com/BTW-Community/Tesseract-Utils/issues
+
 ## Download
 
 https://github.com/BTW-Community/Tesseract-Utils/releases
