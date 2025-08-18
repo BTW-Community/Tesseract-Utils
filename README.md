@@ -19,8 +19,3 @@ https://github.com/BTW-Community/Tesseract-Utils/issues
 ## Download
 
 https://github.com/BTW-Community/Tesseract-Utils/releases
-
-## License
-
-This addon is under the CC-BY 4.0 license.
-(https://creativecommons.org/licenses/by/4.0/deed.en)
