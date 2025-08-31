@@ -15,8 +15,9 @@ public class ListsUtils {
 
     public static Map<String,String> blocksMap = new HashMap<>();
     public static Map<String,String> itemsMap = new HashMap<>();
-    public static Map<String,Byte> potionsMap = new HashMap<>();
-    public static Map<String,Short> entitiesMap = new HashMap<>();
+    public static Map<String,Short> potionsMap = new HashMap<>();
+    public static Map<String,Integer> entitiesMap = new HashMap<>();
+    public static Map<String,Short> enchantMap = new HashMap<>();
 
 
     public record SavedBlock(int x, int y, int z, int id, int meta) {}
@@ -25,6 +26,17 @@ public class ListsUtils {
 
     public static ListsUtils getInstance() {
         return instance == null ? (new ListsUtils()) : instance;
+    }
+
+    public static void initAllServList(){
+        initEnchantNameList();
+        initEntityList();
+        initPotionList();
+    }
+
+    public static void initAllClientList(){
+        initBlocksNameList();
+        initItemsNameList();
     }
 
     public static MovingObjectPosition getBlockPlayerIsLooking(ICommandSender sender) {
@@ -57,19 +69,26 @@ public class ListsUtils {
         return blocks.get(blockPosInList);
     }
 
+    public static void initEnchantNameList(){
+        enchantMap.clear();
+        for (Enchantment enchant:Enchantment.enchantmentsList){
+            if (enchant==null)continue;
+            String name = StringTranslate.getInstance().translateKey(enchant.getName());
+            enchantMap.put(name.replace(" ","_"), (short) enchant.effectId);
+        }
+        enchantMap=sortMapShort(enchantMap);
+    }
+
     public static void initBlocksNameList() {
         blocksMap.clear();
-        blocksMap.put("Air", "0");
         List<ItemStack> subBlocks = new ArrayList<>();
         Map<String,String> map = new HashMap<>();
+        map.put("Air", "0");
         for (int i = 0; i < Block.blocksList.length; i++) {
             Block block = Block.blocksList[i];
             if (block == null||block.blockID==74) continue;
             try {
                 block.getSubBlocks(block.blockID, null, subBlocks);
-                if (subBlocks.isEmpty()) {
-                    subBlocks.add(new ItemStack(block));
-                }
             } catch (Throwable e) {
                 System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
                 subBlocks.clear();
@@ -80,7 +99,6 @@ public class ListsUtils {
             if (stack != null&&stack.getItem() != null) {
                 String entry = stack.getDisplayName().replace(" ", "_");
                 if (entry.contains("Old")||entry.contains("BlockCandle")||entry.contains("null")) continue;
-                String previousString = "";
                 for (ItemStack stack2 : subBlocks) {
                     if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
                     String name = stack2.getDisplayName().replace(" ", "_");
@@ -97,7 +115,7 @@ public class ListsUtils {
                 map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
             }
         }
-        blocksMap.putAll(map);
+        blocksMap = sortMapStringFloat(map);
     }
 
     public static @NotNull List<String> getBlockNameList(String[] strings, String username) {
@@ -106,7 +124,7 @@ public class ListsUtils {
         String var2 = ";";
         boolean afterSemiColon = var2.regionMatches(true, 0, var1, var1.length()-1, 1);
 
-        for (String string : playersBlocksMapServer.get(username).keySet()) {
+        for (String string : blocksMap.keySet()) {
             List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(";")));
             String lastString = split.get(split.size()-1);
             if (!afterSemiColon) split.remove(split.size()-1);
@@ -115,11 +133,12 @@ public class ListsUtils {
             if (afterSemiColon){
                 lastString = "";
             }
-            if (string.split("=")[0].toLowerCase().startsWith(lastString.toLowerCase())){
-                finalList.add(firstString+string.split("=")[0]);
+            if (string.toLowerCase().startsWith(lastString.toLowerCase())){
+                finalList.add(firstString+string);
             }
         }
-        for (String string : playersBlocksMapServer.get(username).keySet()) {
+
+        for (String string : blocksMap.keySet()) {
             List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(";")));
             String lastString = split.get(split.size()-1);
             if (!afterSemiColon) split.remove(split.size()-1);
@@ -128,8 +147,8 @@ public class ListsUtils {
             if (afterSemiColon){
                 lastString = "";
             }
-            if (!string.split("=")[0].toLowerCase().startsWith(lastString.toLowerCase())&&string.split("=")[0].toLowerCase().contains(lastString.toLowerCase())){
-                finalList.add(firstString+string.split("=")[0]);
+            if (!string.toLowerCase().startsWith(lastString.toLowerCase())&&string.toLowerCase().contains(lastString.toLowerCase())){
+                finalList.add(firstString+string);
             }
         }
         return finalList;
@@ -139,9 +158,8 @@ public class ListsUtils {
         List<String> differentBlock = Arrays.stream(string.split(";")).toList();
         List<BlockInfo> blocksInfos = new ArrayList<>();
         for (String diff:differentBlock){
-            Block block;
-            String blockName = "";
-            int id = -1;
+            String blockName;
+            int id;
             int meta=0;
             String[] blockNodd = diff.split(":");
             int odd = blockNodd.length==2 ? Integer.parseInt(blockNodd[1]) : 1;
@@ -153,7 +171,7 @@ public class ListsUtils {
                 }
             } catch (NumberFormatException ignored) {
                 try {
-                    String[] idMetaF = playersBlocksMapServer.get(username).get(blockNodd[0]).split("/");
+                    String[] idMetaF = blocksMap.get(idMeta[0]).split("/");
                     id = Integer.parseInt(idMetaF[0]);
                     meta = Integer.parseInt(idMetaF[1]);
                     if (id!=0&&new ItemStack(id, 0, 0).getHasSubtypes() && idMeta.length == 2) {
@@ -186,59 +204,63 @@ public class ListsUtils {
             if (item == null || item.itemID == 74) continue;
             try {
                 item.getSubItems(item.itemID, null, subItems);
+               /*
                 if (subItems.isEmpty() && !item.getHasSubtypes()) {
                     subItems.add(new ItemStack(item, 1, 0));
-                }
+                }*/
             } catch (Throwable e) {
                 System.err.println("Error getting sub-items for Item ID " + i + " (" + item.getClass().getName() + "): " + e.getMessage());
                 subItems.clear();
                 subItems.add(new ItemStack(item, 1, 0));
             }
         }
+
         for (ItemStack stack : subItems) {
-            if (stack != null&&stack.getItem() != null) {
-                String entry = stack.getDisplayName().replace(" ", "_");
-                if (entry.contains("Old")||entry.contains("BlockCandle")) continue;
-                String previousString = "";
-                for (ItemStack stack2 : subItems) {
-                    if (stack2==null||stack2.getItem()==null||subItems.indexOf(stack)==subItems.indexOf(stack2))continue;
-                    String name = stack2.getDisplayName().replace(" ", "_");
-                    if (name.equalsIgnoreCase(entry)) {
-                        if (stack.itemID == stack2.itemID) {
-                            entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
-                        } else {
-                            entry += "|" + stack.itemID;
-                        }
-                        break;
+            if (stack == null || stack.getItem() == null) continue;
+
+            String entry = stack.getDisplayName().replace(" ", "_");
+
+            if (entry.contains("Old") || entry.contains("BlockCandle")) continue;
+
+            for (ItemStack stack2 : subItems) {
+                if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems.indexOf(stack2))
+                    continue;
+                String name = stack2.getDisplayName().replace(" ", "_");
+                if (name.equalsIgnoreCase(entry)) {
+                    if (stack.itemID == stack2.itemID) {
+                        entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                    } else {
+                        entry += "|" + stack.itemID;
                     }
+                    break;
                 }
-                String finalItemName = entry.replace("tile.", "").replace("fc", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
-                map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
             }
+            String finalItemName = entry.replace("tile.", "").replace("fc", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
+            map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
+
         }
-        itemsMap.putAll(map);
+        itemsMap=sortMapStringFloat(map);
+
     }
 
-    public @NotNull List<String> getItemNameList(String[] strings, String username) {
+    public @NotNull List<String> getItemNameList(String[] strings) {
         List<String > finalList = new ArrayList<>();
-        for (String string: playersItemsNameMapServer.get(username).keySet()){
-            if (string.split("=")[0].toLowerCase().startsWith(strings[1].toLowerCase())){
-                finalList.add(string.split("=")[0]);
+        for (String string: itemsMap.keySet()){
+            if (string.toLowerCase().startsWith(strings[1].toLowerCase())){
+                finalList.add(string);
             }
         }
-        for (String string: playersItemsNameMapServer.get(username).keySet()){
-            if (string.split("=")[0].toLowerCase().contains(strings[1].toLowerCase())&&!string.split("=")[0].toLowerCase().startsWith(strings[1].toLowerCase())){
-                finalList.add(string.split("=")[0]);
+        for (String string: itemsMap.keySet()){
+            if (string.toLowerCase().contains(strings[1].toLowerCase())&&!string.toLowerCase().startsWith(strings[1].toLowerCase())){
+                finalList.add(string);
             }
         }
         return finalList;
     }
 
-    public static ItemInfo getItemInfo(String[] strings, String username) {
-        Item item;
-        int id = 99999;
+    public static ItemInfo getItemInfo(String[] strings) {
+        int id;
         int meta = 0;
-        String itemName="";
         String[] idMeta = strings[1].split("/");
         try {
             id = Integer.parseInt(idMeta[0]);
@@ -247,7 +269,7 @@ public class ListsUtils {
             }
         } catch (NumberFormatException ignored) {
             try {
-                String[] idMetaF = playersItemsNameMapServer.get(username).get(strings[1]).split("/");
+                String[] idMetaF = itemsMap.get(idMeta[0]).split("/");
                 id = Integer.parseInt(idMetaF[0]);
                 meta = Integer.parseInt(idMetaF[1]);
                 if (new ItemStack(id, 0, 0).getHasSubtypes() && idMeta.length == 2) {
@@ -272,18 +294,18 @@ public class ListsUtils {
                     translated = base;
                 }
                 String finalName = translated.replace("Entity", "").replace("addon", "").replace("fc", "").replace(StringTranslate.getInstance().translateKey("entity.villager.name"), "").replace("DireWolf", "The_Beast").replace("JungleSpider", "Jungle_Spider").replace("arrow", "Arrow").replace(" ", "_");
-                entitiesMap.put(finalName, (short) EntityList.getEntityIDFromClass(entityClass));
+                entitiesMap.put(finalName, EntityList.getEntityIDFromClass(entityClass));
             }
         }
     }
 
-    public @NotNull List<String> getEntityName(String[] strings, String username) {
+    public @NotNull List<String> getEntityName(String[] strings) {
         List<String> finalList = new ArrayList<>();
         String var1 = strings[strings.length - 1];
         String var2 = ":";
         boolean afterColon = var2.regionMatches(true, 0, var1, var1.length()-1, 1);
 
-        for (String string : playersEntitiesNameMapServer.get(username).keySet()) {
+        for (String string : entitiesMap.keySet()) {
             List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(":")));
             String lastString = split.get(split.size()-1);
             if (!afterColon) split.remove(split.size()-1);
@@ -296,6 +318,7 @@ public class ListsUtils {
                 finalList.add(firstString+string);
             }
         }
+        Collections.sort(finalList);
         return finalList;
     }
 
@@ -303,8 +326,9 @@ public class ListsUtils {
         for (Potion potion:Potion.potionTypes){
             if (potion==null)continue;
             String name = StringTranslate.getInstance().translateKey(potion.getName());
-            potionsMap.put(name.replace(" ","_"), (byte) potion.id);
+            potionsMap.put(name.replace(" ","_"), (short) potion.id);
         }
+        potionsMap = sortMapShort(potionsMap);
     }
 
     public record BlockInfo(String blockName, int id, int meta, int odd) { }
@@ -463,17 +487,31 @@ public class ListsUtils {
         return foundBlocks;
     }
 
-    public static Map<String, Integer> sortMapInt(Map<String, Float> unsortedMap) {
-        List<Map.Entry<String, Float>> listOfEntries = new ArrayList<>(unsortedMap.entrySet());
+    public static Map<String, Integer> sortMapInt(Map<String, Integer> unsortedMap) {
+        List<Map.Entry<String, Integer>> listOfEntries = new ArrayList<>(unsortedMap.entrySet());
         listOfEntries.sort((entry1, entry2) -> {
-            int valueComparison = Float.compare(entry1.getValue(), entry2.getValue());
+            int valueComparison = Integer.compare(entry1.getValue(), entry2.getValue());
             if (valueComparison == 0) return entry1.getKey().compareTo(entry2.getKey());
             return valueComparison;
         });
         Map<String, Integer> sortedMapByValue = new LinkedHashMap<>();
-        for (Map.Entry<String, Float> entry : listOfEntries) {
-            float a = entry.getValue();
-            Integer value = (int) a;
+        for (Map.Entry<String, Integer> entry : listOfEntries) {
+            Integer value = entry.getValue();
+            sortedMapByValue.put(entry.getKey(), value);
+        }
+        return sortedMapByValue;
+    }
+
+    public static Map<String, Short> sortMapShort(Map<String, Short> unsortedMap) {
+        List<Map.Entry<String, Short>> listOfEntries = new ArrayList<>(unsortedMap.entrySet());
+        listOfEntries.sort((entry1, entry2) -> {
+            int valueComparison = Short.compare(entry1.getValue(), entry2.getValue());
+            if (valueComparison == 0) return entry1.getKey().compareTo(entry2.getKey());
+            return valueComparison;
+        });
+        Map<String, Short> sortedMapByValue = new LinkedHashMap<>();
+        for (Map.Entry<String, Short> entry : listOfEntries) {
+            Short value = entry.getValue();
             sortedMapByValue.put(entry.getKey(), value);
         }
         return sortedMapByValue;
@@ -489,6 +527,26 @@ public class ListsUtils {
         Map<String, Float> sortedMapByValue = new LinkedHashMap<>();
         for (Map.Entry<String, Float> entry : listOfEntries) {
             sortedMapByValue.put(entry.getKey(), entry.getValue());
+        }
+        return sortedMapByValue;
+    }
+
+    public static Map<String, String> sortMapStringFloat(Map<String, String> unsortedMap) {
+        Map<String, Float> var2 = new HashMap<>();
+        for (Map.Entry<String, String> s:unsortedMap.entrySet()){
+            String var1 = s.getValue().replace("/",".");
+            float f = Float.parseFloat(var1);
+            var2.put(s.getKey(),f);
+        }
+        List<Map.Entry<String, Float>> listOfEntries = new ArrayList<>(var2.entrySet());
+        listOfEntries.sort((entry1, entry2) -> {
+            int valueComparison = Float.compare(entry1.getValue(), entry2.getValue());
+            if (valueComparison == 0) return entry1.getKey().compareTo(entry2.getKey());
+            return valueComparison;
+        });
+        Map<String, String> sortedMapByValue = new LinkedHashMap<>();
+        for (Map.Entry<String, Float> entry : listOfEntries) {
+            sortedMapByValue.put(entry.getKey(), unsortedMap.get(entry.getKey()));
         }
         return sortedMapByValue;
     }

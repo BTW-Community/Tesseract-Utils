@@ -39,12 +39,17 @@ public class PacketUtils {
 
     public static Map<String,Integer> playersGamemodeServer = new HashMap<>();
 
+
+    /*
     public static Map<String,Map<String,String>> playersBlocksMapServer = new HashMap<>();
 
     public static Map<String,Map<String,String>> playersItemsNameMapServer = new HashMap<>();
 
     public static Map<String,Map<String,Integer>> playersEntitiesNameMapServer = new TreeMap<>();
 
-    public static Map<String,Map<String,Integer>> playersPotionsNameListServer = new HashMap<>();
+    public static Map<String,Map<String,Short>> playersPotionsNameListServer = new HashMap<>();
+
+    public static Map<String,Map<String,Short>> playersEnchantNameListServer = new HashMap<>();
+*/
 
 }

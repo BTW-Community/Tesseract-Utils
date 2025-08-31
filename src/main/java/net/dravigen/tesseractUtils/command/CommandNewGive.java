@@ -28,7 +28,7 @@ public class CommandNewGive extends CommandBase {
         if (strings.length==1){
             return CommandGive.getListOfStringsMatchingLastWord(strings, this.getPlayers());
         }else if (strings.length==2){
-            return ListsUtils.getInstance().getItemNameList(strings, sender.getCommandSenderName());
+            return ListsUtils.getInstance().getItemNameList(strings);
         }
         return null;
     }
@@ -44,9 +44,9 @@ public class CommandNewGive extends CommandBase {
             player = CommandGive.getPlayer(sender, strings[0]);
             ItemInfo itemInfo;
             if (strings.length==4) {
-                itemInfo = getItemInfo(new String[]{"",strings[1]+"/"+strings[3]},sender.getCommandSenderName());
+                itemInfo = getItemInfo(new String[]{"",strings[1]+"/"+strings[3]});
             }else {
-                itemInfo = getItemInfo(strings,sender.getCommandSenderName());
+                itemInfo = getItemInfo(strings);
             }
             if (itemInfo==null){
                 player.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));

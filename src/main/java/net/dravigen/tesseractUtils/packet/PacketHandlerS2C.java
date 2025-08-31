@@ -81,10 +81,14 @@ public class PacketHandlerS2C {
                         PacketSender.sendClientToServerMessage("updateAllPos:" + x1 + "," + y1 + "," + z1+","+x2 + "," + y2 + "," + z2 + "," + property);
                     }
                     case "sendNamesLists"->{
+                        initAllClientList();
+
                         PacketSender.sendClientToServerMessage("getBlocksNameList:"+ blocksMap);
-                        PacketSender.sendClientToServerMessage("getEntitiesNameList:"+ entitiesMap);
                         PacketSender.sendClientToServerMessage("getItemsNameList:"+ itemsMap);
-                        PacketSender.sendClientToServerMessage("getPotionsNameList:"+ potionsMap);
+
+                        //PacketSender.sendClientToServerMessage("getEntitiesNameList:"+ entitiesMap);
+                        //PacketSender.sendClientToServerMessage("getPotionsNameList:"+ potionsMap);
+                        //PacketSender.sendClientToServerMessage("getEnchantNameList:" + enchantMap);
                     }
                     case "haveTU"-> {
                         PacketUtils.serverHaveTU=true;

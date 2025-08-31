@@ -1,7 +1,6 @@
 package net.dravigen.tesseractUtils.command;
 
 import net.dravigen.tesseractUtils.utils.ListsUtils;
-import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 
@@ -19,17 +18,21 @@ public class CommandNewKill extends CommandBase{
     public String getCommandUsage(ICommandSender iCommandSender) {
         return "";
     }
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
 
     @Override
     public List addTabCompletionOptions(ICommandSender sender, String[] strings) {
         if (strings.length==1){
             return getListOfStringsMatchingLastWord(strings,"player","entity","item","all");
         }else if (strings.length==2 && strings[0].equalsIgnoreCase("entity")){
-            return ListsUtils.getInstance().getEntityName(strings,sender.getCommandSenderName());
+            return ListsUtils.getInstance().getEntityName(strings);
         }else if (strings.length==2 && strings[0].equalsIgnoreCase("player")){
             return getListOfStringsMatchingLastWord(strings, MinecraftServer.getServer().getAllUsernames());
         }else if (strings.length==2 && strings[0].equalsIgnoreCase("item")){
-            return ListsUtils.getInstance().getItemNameList(strings,sender.getCommandSenderName());
+            return ListsUtils.getInstance().getItemNameList(strings);
         }
         return null;
     }
@@ -57,7 +60,7 @@ public class CommandNewKill extends CommandBase{
                 sender.sendChatToPlayer(ChatMessageComponent.createFromText("Killed " + killCount + " entities"));
             } else if (strings[0].equalsIgnoreCase("entity")) {
                 int killCount = 0;
-                int id = PacketUtils.playersEntitiesNameMapServer.get(sender.getCommandSenderName()).get(strings[1]);
+                int id = entitiesMap.get(strings[1]);
                 for (Object object:sender.getEntityWorld().loadedEntityList){
                     Entity entity = (Entity) object;
                     if (!(entity instanceof EntityPlayer)&&EntityList.getEntityIDFromClass(entity.getClass())==id){
@@ -84,7 +87,7 @@ public class CommandNewKill extends CommandBase{
             }
             else if (strings[0].equalsIgnoreCase("item")) {
                 int killCount = 0;
-                ItemInfo itemInfo = getItemInfo(strings,sender.getCommandSenderName());
+                ItemInfo itemInfo = getItemInfo(strings);
                 if (itemInfo==null){
                     getPlayer(sender,sender.getCommandSenderName()).sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
                     return;

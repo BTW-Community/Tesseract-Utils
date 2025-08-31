@@ -212,14 +212,13 @@ public class PacketHandlerC2S {
                         int hitSide = Integer.parseInt(infos[6]);
                         int flag = Integer.parseInt(infos[7]);
                         ItemStack stack = player.getHeldItem();
-                        int id = stack.itemID;
                         int meta = stack.getItemDamage();
                         PlaceAsBlockItem blockItem = (PlaceAsBlockItem) stack.getItem();
                         int iNewBlockID = blockItem.getBlockIDToPlace(meta, hitSide, clickX, clickY, clickZ);
                         Block newBlock = Block.blocksList[iNewBlockID];
                         int iNewMetadata = blockItem.getMetadata(meta);
                         iNewMetadata = newBlock.onBlockPlaced(world, x, y, z, hitSide, clickX, clickY, clickZ, iNewMetadata);
-                        if (world.setBlock(x, y, z, iNewBlockID, iNewMetadata = newBlock.preBlockPlacedBy(world, x, y, z, iNewMetadata, player), flag)) {
+                        if (world.setBlock(x, y, z, iNewBlockID, newBlock.preBlockPlacedBy(world, x, y, z, iNewMetadata, player), flag)) {
                             if (world.getBlockId(x, y, z) == iNewBlockID) {
                                 newBlock.onBlockPlacedBy(world, x, y, z, player, stack);
                             }
@@ -386,26 +385,25 @@ public class PacketHandlerC2S {
                             }
                         }
                     }
+
                     case "getBlocksNameList" -> {
-                        playersBlocksMapServer.remove(player.getEntityName());
                         List<String> blocks = List.of(trim.split(","));
-                        Map<String, String> map = new HashMap<>();
                         for (String identity : blocks) {
                             String[] split = identity.split("=");
-                            map.put(split[0], split[1]);
+                            blocksMap.putIfAbsent(split[0], split[1]);
                         }
-                        playersBlocksMapServer.put(player.getEntityName(), sortMapByStringValues(map));
+                        blocksMap = sortMapStringFloat(blocksMap);
+                        System.out.println(blocksMap);
                     }
                     case "getItemsNameList" -> {
-                        playersItemsNameMapServer.remove(player.getEntityName());
                         List<String> items = List.of(trim.split(","));
-                        Map<String, String> map = new HashMap<>();
                         for (String identity : items) {
                             String[] split = identity.split("=");
-                            map.put(split[0], split[1]);
+                            itemsMap.putIfAbsent(split[0], split[1]);
                         }
-                        playersItemsNameMapServer.put(player.getEntityName(), sortMapByStringValues(map));
+                        itemsMap=sortMapByStringValues(itemsMap);
                     }
+                    /*
                     case "getEntitiesNameList" -> {
                         playersEntitiesNameMapServer.remove(player.getEntityName());
                         List<String> entities = List.of(trim.split(","));
@@ -421,16 +419,30 @@ public class PacketHandlerC2S {
                     case "getPotionsNameList" -> {
                         playersPotionsNameListServer.remove(player.getEntityName());
                         List<String> potions = List.of(trim.split(","));
-                        Map<String, Float> map = new HashMap<>();
+                        Map<String, Short> map = new HashMap<>();
                         for (String identity : potions) {
                             String[] split = identity.split("=");
                             String name = split[0];
-                            int id = Integer.parseInt(split[1]);
-                            map.put(name, (float) id);
+                            short id = Short.parseShort(split[1]);
+                            map.put(name, id);
                         }
-                        playersPotionsNameListServer.put(player.getEntityName(), sortMapInt(map));
+                        playersPotionsNameListServer.put(player.getEntityName(), sortMapShort(map));
 
                     }
+                    case "getEnchantNameList" -> {
+                        playersEnchantNameListServer.remove(player.getEntityName());
+                        List<String> enchant = List.of(trim.split(","));
+                        Map<String, Short> map = new HashMap<>();
+                        for (String identity : enchant) {
+                            String[] split = identity.split("=");
+                            String name = split[0];
+                            short id = Short.parseShort(split[1]);
+                            map.put(name, id);
+                        }
+                        playersEnchantNameListServer.put(player.getEntityName(), sortMapShort(map));
+
+                    }
+                   */
                     case "copy" -> {
                         String[] infos = property.split(",");
                         int x1 = Integer.parseInt(infos[0]);
@@ -440,7 +452,7 @@ public class PacketHandlerC2S {
                         int y2 = Integer.parseInt(infos[4]);
                         int z2 = Integer.parseInt(infos[5]);
                         boolean ignoreAir = Boolean.parseBoolean(infos[6]);
-                        copy(player, player, true, x1, x2, y1, y2, z1, z2, ignoreAir, player.worldObj);
+                        copy(player, true, x1, x2, y1, y2, z1, z2, ignoreAir, player.worldObj,false);
                     }
                     case "paste" -> {
                         String[] infos = property.split(",");
@@ -456,7 +468,7 @@ public class PacketHandlerC2S {
                         int y = Math.min(y1, y2);
                         int z = Math.max(z1, z2);
                         String[] strings = {"", "" + x, "" + y, "" + z};
-                        paste(player, strings, player, ignoreAir, player.worldObj, flag);
+                        paste(player, strings, ignoreAir, player.worldObj, flag);
                     }
                     case "cut" -> {
                         String[] infos = property.split(",");
@@ -470,7 +482,9 @@ public class PacketHandlerC2S {
                         int flag = Integer.parseInt(infos[7]);
                         int numBlock = 0;
                         clearCopyList(player);
-                        List<SavedBlock> list = new ArrayList<>();
+                        List<SavedBlock> undoList = new ArrayList<>();
+                        List<SavedBlock> copyList = new ArrayList<>();
+
                         for (int i = 0; i <= MathHelper.abs_int(x1 - x2); i++) {
                             for (int j = 0; j <= MathHelper.abs_int(y1 - y2); j++) {
                                 for (int k = 0; k <= MathHelper.abs_int(z1 - z2); k++) {
@@ -479,20 +493,22 @@ public class PacketHandlerC2S {
                                     int z = Math.min(z1, z2) + k;
                                     if (ignoreAir) {
                                         if (!world.isAirBlock(x, y, z)) {
-                                            list.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                            undoList.add(new SavedBlock(x,y,z,world.getBlockId(x,y,z),world.getBlockMetadata(x,y,z)));
+                                            copyList.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                             world.setBlock(x, y, z, 0, 0, flag);
                                             numBlock++;
                                         }
                                     } else {
-                                        list.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                                        undoList.add(new SavedBlock(x,y,z,world.getBlockId(x,y,z),world.getBlockMetadata(x,y,z)));
+                                        copyList.add(new SavedBlock(x - Math.max(x1, x2), y - Math.min(y1, y2), z - Math.max(z1, z2), world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
                                         world.setBlock(x, y, z, 0, 0, flag);
                                         numBlock++;
                                     }
                                 }
                             }
                         }
-                        saveCopyList(list, player);
-                        addToUndoListServer(list, player);
+                        saveCopyList(copyList, player);
+                        addToUndoListServer(undoList, player);
                         clearRedoListServer(player);
                         player.sendChatToPlayer(ChatMessageComponent.createFromText("§d" + numBlock + " block(s) have been cut"));
                     }
@@ -526,11 +542,10 @@ public class PacketHandlerC2S {
                         int y2 = Integer.parseInt(infos[4]);
                         int z2 = Integer.parseInt(infos[5]);
                         int flag = Integer.parseInt(infos[6]);
-                        List<SavedBlock> undoList = new ArrayList<>();
                         ItemStack[] hotbarItems = new ItemStack[9];
                         System.arraycopy(player.inventory.mainInventory, 0, hotbarItems, 0, 9);
                         StringBuilder blocks = new StringBuilder();
-                        String replacedBlock = "";
+                        String replacedBlock;
                         ItemStack heldItem = player.getHeldItem();
                         for (ItemStack stack : hotbarItems) {
                             if (stack == null) continue;
@@ -544,10 +559,10 @@ public class PacketHandlerC2S {
                             finalString = new String[]{"", String.valueOf(blocks), replacedBlock};
                         } else finalString = new String[]{"", String.valueOf(blocks)};
 
-                        replaceArea(player, finalString, y1, y2, x1, x2, z1, z2, world, flag, player);
+                        replaceArea(player, finalString, y1, y2, x1, x2, z1, z2, world, flag);
                     }
-                    case "undo" -> undo(1, player, world, Integer.parseInt(property));
-                    case "redo" -> redo(1, player, world, Integer.parseInt(property));
+                    case "undo" -> undo(1, player, world, Integer.parseInt(property),false);
+                    case "redo" -> redo(1, player, world, Integer.parseInt(property),false);
                     case "haveTU" -> clientHaveTU.put(player.getEntityName(), true);
                     case "saveShapeTool" ->{
                         String info = property.replace("!",":");
@@ -567,7 +582,7 @@ public class PacketHandlerC2S {
     private static List<SavedBlock> useShapeTool(EntityPlayerMP player, String shape, String[] parameters, int y, String toolHollowOrOpen, List<SavedBlock> list, int x, int z, String blockUsed, boolean replace) {
         switch (shape.toLowerCase()) {
             case "sphere" -> {
-                int radius=5;
+                int radius;
                 int thickness=1;
                 if(parameters.length>=EnumShape.values().length){
                     radius = Integer.parseInt(parameters[EnumShape.RADIUS.ordinal()]);
@@ -583,8 +598,8 @@ public class PacketHandlerC2S {
                     list = ShapeGen.generateSphere(player.worldObj, x, y, z, blockUsed, 2, radius, replace, player);
             }
             case "cylinder" -> {
-                int radius=5;
-                int height=5;
+                int radius;
+                int height;
                 int thickness=1;
                 if(parameters.length>=EnumShape.values().length){
                     radius = Integer.parseInt(parameters[EnumShape.RADIUS.ordinal()]);
@@ -606,10 +621,10 @@ public class PacketHandlerC2S {
                     list = ShapeGen.generateCylinder(player.worldObj, x, y, z, blockUsed, 2, radius, height, replace, player);
             }
             case "cube" -> {
-                int sizeX = 9;
-                int sizeY = 9;
-                int sizeZ = 9;
-                int thickness = 1;
+                int sizeX;
+                int sizeY;
+                int sizeZ;
+                int thickness;
                 if (parameters.length>=EnumShape.values().length) {
                     sizeX = Integer.parseInt(parameters[EnumShape.SIZE_X.ordinal()]);
                     sizeY = Integer.parseInt(parameters[EnumShape.SIZE_Y.ordinal()]);
@@ -632,10 +647,10 @@ public class PacketHandlerC2S {
                     list = ShapeGen.generateCube(player.worldObj, x, y, z, blockUsed, 2, sizeX, sizeY, sizeZ, replace, player);
             }
             case "pyramid" -> {
-                int sizeX = 9;
-                int sizeY = 9;
-                int sizeZ = 9;
-                int thickness = 1;
+                int sizeX;
+                int sizeY;
+                int sizeZ;
+                int thickness;
                 if (parameters.length>=EnumShape.values().length) {
                     sizeX = Integer.parseInt(parameters[EnumShape.SIZE_X.ordinal()]);
                     sizeY = Integer.parseInt(parameters[EnumShape.SIZE_Y.ordinal()]);

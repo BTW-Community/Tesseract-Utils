@@ -1,8 +1,10 @@
 package net.dravigen.tesseractUtils.mixin.server;
 
+import net.dravigen.tesseractUtils.utils.ListsUtils;
 import net.dravigen.tesseractUtils.utils.PacketUtils;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -15,5 +17,15 @@ public class MinecraftServerMixin {
         PacketUtils.playersRedoListServer.clear();
         PacketUtils.playersCopyServer.clear();
         PacketUtils.playersUndoListServer.clear();
+    }
+
+    @Unique
+    boolean called = false;
+    @Inject(method = "run",at = @At(value = "INVOKE", target = "Ljava/lang/Thread;sleep(JI)V",shift = At.Shift.BEFORE))
+    private void start(CallbackInfo ci){
+        if (!called){
+            ListsUtils.initAllServList();
+            called=true;
+        }
     }
 }

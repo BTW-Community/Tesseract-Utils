@@ -8,6 +8,9 @@ public class BlockSelectionManager {
     public static Vec3 block1 = Vec3.createVectorHelper(9999999,9999999,9999999);
     public static Vec3 block2 = Vec3.createVectorHelper(9999999,9999999,9999999);
 
+    public static int[] servBlock1 = new int[]{9999999,9999999,9999999};
+    public static int[] servBlock2 = new int[]{9999999,9999999,9999999};
+
     public static boolean isBlock1Selected=false;
     public static boolean isBlock2Selected=false;
 
@@ -52,5 +55,10 @@ public class BlockSelectionManager {
         isBlock2Selected=true;
     }
 
-
+    public static void setServBlock1(int x, int y, int z){
+        servBlock1 = new int[]{x, y, z};
+    }
+    public static void setServBlock2(int x, int y, int z){
+        servBlock2 = new int[]{x, y, z};
+    }
 }

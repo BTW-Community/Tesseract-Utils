@@ -44,10 +44,10 @@ public abstract class RenderGlobalMixin {
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             if (isBlock1Selected) {
-                renderTransparentCube(block1.xCoord, block1.yCoord, block1.zCoord, 1F, 0.0F, 0.0F, 0.5F);
+                renderTransparentCube(block1.xCoord, block1.yCoord, block1.zCoord, 1F, 0.0F, 0.0F, 0.25F);
             }
             if (isBlock2Selected) {
-                renderTransparentCube(block2.xCoord, block2.yCoord, block2.zCoord, 0.0F, 0.0F, 1.0F, 0.5F);
+                renderTransparentCube(block2.xCoord, block2.yCoord, block2.zCoord, 0.0F, 0.0F, 1.0F, 0.25F);
             }
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             ItemStack heldItem = player.getHeldItem();
@@ -205,7 +205,7 @@ public abstract class RenderGlobalMixin {
                 sin = sin < 0 ? 0 : sin;
 
                 GL11.glLineWidth(0.75F);
-                GL11.glColor4f(1.0F, 1.0F, 0.0F, 0.1001f + (0.5f - 0.1001f) * sin);
+                GL11.glColor4f(1.0F, 1.0F, 0.0F, 0.1001f + (0.3f - 0.1001f) * sin);
                 drawWireframeBoxConditions(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, false);
 
                 GL11.glLineWidth(3F);
@@ -223,7 +223,7 @@ public abstract class RenderGlobalMixin {
                         sin = sin < 0 ? 0 : sin;
 
                         GL11.glEnable(GL11.GL_DEPTH_TEST);
-                        GL11.glColor4f(0.47F, 0.77F, 1.0F, 0.4f + (0.2f) * sin);
+                        GL11.glColor4f(0.47F, 0.77F, 1.0F, 0.15f + (0.1f) * sin);
                         drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, i, inverted, hitResult.hitFace);
                     }
                 }

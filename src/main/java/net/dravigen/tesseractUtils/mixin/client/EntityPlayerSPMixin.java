@@ -183,7 +183,8 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                             }
                         }
                     }
-                } else {
+                }
+                else {
                     leftClickPressed=false;
                     pressed=false;
                 }
@@ -278,17 +279,15 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                     if (!middleClickPressed) {
                         if (getEnumFromIndex(currentBuildingMode).getCanSelect()) {
                             BlockFromRayTrace block = getBlockFromRayTrace(this);
-                            if (block != null) {
-                                int xDiff = (int) (block2.xCoord - block1.xCoord);
-                                int yDiff = (int) (block2.yCoord - block1.yCoord);
-                                int zDiff = (int) (block2.zCoord - block1.zCoord);
-                                if (this.isUsingSpecialKey()) {
-                                    setBlock2(block.x(), block.y(), block.z());
-                                    setBlock1(block.x() - xDiff, block.y() - yDiff, block.z() - zDiff);
-                                } else {
-                                    setBlock1(block.x(), block.y(), block.z());
-                                    setBlock2(block.x() + xDiff, block.y() + yDiff, block.z() + zDiff);
-                                }
+                            int xDiff = (int) Math.abs(block2.xCoord - block1.xCoord);
+                            int yDiff = (int) Math.abs(block2.yCoord - block1.yCoord);
+                            int zDiff = (int) Math.abs(block2.zCoord - block1.zCoord);
+                            if (this.isUsingSpecialKey()) {
+                                setBlock2(block.x(), block.y(), block.z());
+                                setBlock1(block.x() + xDiff, block.y() - yDiff, block.z() + zDiff);
+                            } else {
+                                setBlock1(block.x(), block.y(), block.z());
+                                setBlock2(block.x() - xDiff, block.y() + yDiff, block.z() - zDiff);
                             }
                         }
                         middleClickPressed = true;

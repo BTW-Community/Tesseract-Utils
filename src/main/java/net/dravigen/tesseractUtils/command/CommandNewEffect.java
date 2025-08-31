@@ -1,6 +1,6 @@
 package net.dravigen.tesseractUtils.command;
 
-import net.dravigen.tesseractUtils.utils.PacketUtils;
+import net.dravigen.tesseractUtils.utils.ListsUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.*;
 import java.util.List;
@@ -28,7 +28,7 @@ public class CommandNewEffect extends CommandBase {
         }else if (strings.length==2){
             return CommandGive.getListOfStringsMatchingLastWord(strings, "clear", "set");
         }else if (strings.length==3&&strings[1].equalsIgnoreCase("set")){
-            return getListOfStringsFromIterableMatchingLastWord(strings, PacketUtils.playersPotionsNameListServer.get(sender.getCommandSenderName()).keySet());
+            return getListOfStringsFromIterableMatchingLastWord(strings, ListsUtils.potionsMap.keySet());
         }
         return null;
     }
@@ -50,7 +50,7 @@ public class CommandNewEffect extends CommandBase {
                 id = Integer.parseInt(strings[2]);
             }catch (Exception ignored){
                 try {
-                    id = PacketUtils.playersPotionsNameListServer.get(sender.getCommandSenderName()).get(strings[2]);
+                    id = ListsUtils.potionsMap.get(strings[2]);
                 } catch (Exception e) {
                     throw new NumberInvalidException("commands.effect.notFound", strings[2]);
                 }

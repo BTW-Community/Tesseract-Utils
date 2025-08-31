@@ -13,7 +13,7 @@ import static net.dravigen.tesseractUtils.utils.ListsUtils.getRandomBlockFromOdd
 
 public class ShapeGen {
 
-    public static List<SavedBlock> generateSphere(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateSphere(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || radius <= 0) {
             System.err.println("Cannot generate sphere: Invalid world or radius.");
@@ -50,7 +50,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateHollowSphere(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, int thickness, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateHollowSphere(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || radius <= 0 || thickness <= 0 || thickness > radius) {
             System.err.println("Cannot generate hollow sphere: Invalid world, radius, or thickness.");
@@ -89,7 +89,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateCylinder(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, float height, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateCylinder(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, float height, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || radius <= 0 || height <= 0) {
             return list;
@@ -126,7 +126,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateHollowCylinder(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, float height, int thickness, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateHollowCylinder(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, float height, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || radius <= 0 || height <= 0 || thickness <= 0 || thickness >= radius) {
             System.err.println("Cannot generate hollow cylinder: Invalid parameters.");
@@ -170,7 +170,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateOpenCylinder(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, float height, int thickness, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateOpenCylinder(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, float radius, float height, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || radius <= 0 || height <= 0 || thickness <= 0 || thickness >= radius) {
             System.err.println("Cannot generate hollow cylinder: Invalid parameters.");
@@ -210,7 +210,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateCube(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateCube(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
             System.err.println("Cannot generate cube: Invalid world or dimensions.");
@@ -239,7 +239,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateHollowCube(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateHollowCube(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || thickness <= 0) {
             System.err.println("Cannot generate hollow cube: Invalid world, dimensions, or thickness.");
@@ -277,7 +277,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateOpenCube(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateOpenCube(World world, int centerX, int centerY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || thickness <= 0) {
             System.err.println("Cannot generate hollow cube: Invalid world, dimensions, or thickness.");
@@ -311,7 +311,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generatePyramid(World world, int centerX, int baseY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generatePyramid(World world, int centerX, int baseY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || sizeX <= 0 || sizeZ <= 0) {
             System.err.println("Cannot generate cube: Invalid world or dimensions.");
@@ -368,7 +368,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> generateHollowPyramid(World world, int centerX, int baseY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, EntityPlayer sender) {
+    public static List<SavedBlock> generateHollowPyramid(World world, int centerX, int baseY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
             System.err.println("Cannot generate cube: Invalid world or dimensions.");
@@ -411,7 +411,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> buildLine(World world, String[] strings, int x1, int y1, int z1, int x2, int y2, int z2, int thickness, int flag, EntityPlayer sender) {
+    public static List<SavedBlock> buildLine(World world, String[] strings, int x1, int y1, int z1, int x2, int y2, int z2, int thickness, int flag, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         if (thickness <= 0) {
             System.err.println("Error: Line thickness must be a positive integer.");
@@ -466,7 +466,7 @@ public class ShapeGen {
         return list;
     }
 
-    public static List<SavedBlock> buildPlane(World world, String blocksUsed, int xa, int ya, int za, int xb, int yb, int zb, int thickness, int side, boolean replace, int flag, EntityPlayer sender) {
+    public static List<SavedBlock> buildPlane(World world, String blocksUsed, int xa, int ya, int za, int xb, int yb, int zb, int thickness, int side, boolean replace, int flag, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
         List<BlockInfo> results = getBlockInfo(blocksUsed, sender.getCommandSenderName());
         if (results == null || results.isEmpty()) {
@@ -698,7 +698,7 @@ public class ShapeGen {
         return list;
     }
 
-    private static @NotNull BlockInfo getInfo(EntityPlayer sender, List<BlockInfo> results) {
+    private static @NotNull BlockInfo getInfo(ICommandSender sender, List<BlockInfo> results) {
         BlockInfo result = getRandomBlockFromOdds(results);
         if (result.id() != 0) {
             ItemStack itemStack = new ItemStack(result.id(), 0, 0);
