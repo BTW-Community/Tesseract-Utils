@@ -24,6 +24,8 @@ public class ListsUtils {
 
     public static ListsUtils instance;
 
+    public static Map<String,String> englishLanguage = new HashMap<>();
+
     public static ListsUtils getInstance() {
         return instance == null ? (new ListsUtils()) : instance;
     }
@@ -32,11 +34,12 @@ public class ListsUtils {
         initEnchantNameList();
         initEntityList();
         initPotionList();
+        initBlocksNameList();
     }
 
     public static void initAllClientList(){
-        initBlocksNameList();
-        initItemsNameList();
+        initBlocksNameListClientSub();
+        initItemsNameListClientSub();
     }
 
     public static MovingObjectPosition getBlockPlayerIsLooking(ICommandSender sender) {
@@ -91,17 +94,20 @@ public class ListsUtils {
                 block.getSubBlocks(block.blockID, null, subBlocks);
             } catch (Throwable e) {
                 System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
-                subBlocks.clear();
                 subBlocks.add(new ItemStack(block));
             }
         }
         for (ItemStack stack : subBlocks) {
             if (stack != null&&stack.getItem() != null) {
-                String entry = stack.getDisplayName().replace(" ", "_");
+                //String entry = stack.getDisplayName().replace(" ", "_");
+                String entry = translate(stack);
+
                 if (entry.contains("Old")||entry.contains("BlockCandle")||entry.contains("null")) continue;
                 for (ItemStack stack2 : subBlocks) {
                     if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
-                    String name = stack2.getDisplayName().replace(" ", "_");
+                    //String name = stack2.getDisplayName().replace(" ", "_");
+                    String name = translate(stack2);
+
                     if (name.equalsIgnoreCase(entry)) {
                         if (stack.itemID == stack2.itemID) {
                             entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
@@ -118,7 +124,60 @@ public class ListsUtils {
         blocksMap = sortMapStringFloat(map);
     }
 
-    public static @NotNull List<String> getBlockNameList(String[] strings, String username) {
+    public static void initBlocksNameListClientSub(){
+        List<ItemStack> subBlocks = new ArrayList<>();
+        Map<String,String> map = new HashMap<>();
+        for (Block block:Block.blocksList) {
+            if (block==null)continue;
+            List<ItemStack> sub = new ArrayList<>();
+            Item item = new ItemStack(block).getItem();
+            block.getSubBlocks(block.blockID, null, sub);
+            if (!(item.getHasSubtypes())||sub.size()==1||block.blockID==74) continue;
+            for (int j = 1; j < sub.size(); j++) {
+                subBlocks.add(sub.get(j));
+            }
+            /*
+            try {
+                block.getSubBlocks(block.blockID, null, subBlocks);
+            } catch (Throwable e) {
+                System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
+                subBlocks.add(new ItemStack(block));
+            }*/
+        }
+        for (ItemStack stack : subBlocks) {
+            if (stack != null&&stack.getItem() != null) {
+                //String entry = stack.getDisplayName().replace(" ", "_");
+                String entry = translate(stack);
+
+                if (entry.contains("Old")||entry.contains("BlockCandle")||entry.contains("null")) continue;
+                for (ItemStack stack2 : subBlocks) {
+                    if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
+                    //String name = stack2.getDisplayName().replace(" ", "_");
+                    String name = translate(stack2);
+
+                    if (name.equalsIgnoreCase(entry)) {
+                        if (stack.itemID == stack2.itemID) {
+                            entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                        } else {
+                            entry += "|" + stack.itemID;
+                        }
+                        break;
+                    }
+                }
+                String finalItemName = entry.replace("tile.", "").replace("fc", "").replace("name.", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
+                map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
+            }
+        }
+        blocksMap = sortMapStringFloat(map);
+    }
+
+    private static @NotNull String translate(ItemStack stack) {
+        String par1Str = (stack.getUnlocalizedName() + ".name").trim();
+        String var2 = englishLanguage.get(par1Str);
+        return (var2 == null ? par1Str : var2).replace(" ", "_");
+    }
+
+    public static @NotNull List<String> getBlockNameList(String[] strings) {
         List<String> finalList = new ArrayList<>();
         String var1 = strings[strings.length - 1];
         String var2 = ";";
@@ -210,7 +269,6 @@ public class ListsUtils {
                 }*/
             } catch (Throwable e) {
                 System.err.println("Error getting sub-items for Item ID " + i + " (" + item.getClass().getName() + "): " + e.getMessage());
-                subItems.clear();
                 subItems.add(new ItemStack(item, 1, 0));
             }
         }
@@ -218,14 +276,72 @@ public class ListsUtils {
         for (ItemStack stack : subItems) {
             if (stack == null || stack.getItem() == null) continue;
 
-            String entry = stack.getDisplayName().replace(" ", "_");
+            //String entry = stack.getDisplayName().replace(" ", "_");
+            String entry = translate(stack);
 
             if (entry.contains("Old") || entry.contains("BlockCandle")) continue;
 
             for (ItemStack stack2 : subItems) {
                 if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems.indexOf(stack2))
                     continue;
-                String name = stack2.getDisplayName().replace(" ", "_");
+                //String name = stack2.getDisplayName().replace(" ", "_");
+                String name = translate(stack2);
+                if (name.equalsIgnoreCase(entry)) {
+                    if (stack.itemID == stack2.itemID) {
+                        entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                    } else {
+                        entry += "|" + stack.itemID;
+                    }
+                    break;
+                }
+            }
+            String finalItemName = entry.replace("tile.", "").replace("fc", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
+            map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
+
+        }
+        itemsMap=sortMapStringFloat(map);
+
+    }
+
+    public static void initItemsNameListClientSub() {
+        List<Item> itemList = new ArrayList<>();
+        List<ItemStack> subItems = new ArrayList<>();
+        Map<String,String> map = new HashMap<>();
+        for (Item item : Item.itemsList) {
+            if (item == null) continue;
+            List<ItemStack> sub = new ArrayList<>();
+            item.getSubItems(item.itemID, null, sub);
+            if (!item.getHasSubtypes() || sub.size() == 1 || item.itemID == 74) continue;
+            for (int j = 1; j < sub.size(); j++) {
+                subItems.add(sub.get(j));
+            }
+        }
+
+
+            /*
+            try {
+                item.getSubItems(item.itemID, null, subItems);
+
+            } catch (Throwable e) {
+                System.err.println("Error getting sub-items for Item ID " + i + " (" + item.getClass().getName() + "): " + e.getMessage());
+                subItems.add(new ItemStack(item, 1, 0));
+            }*/
+
+
+        for (ItemStack stack : subItems) {
+            if (stack == null || stack.getItem() == null) continue;
+
+            //String entry = stack.getDisplayName().replace(" ", "_");
+            String entry = translate(stack);
+
+            if (entry.contains("Old") || entry.contains("BlockCandle")) continue;
+
+            for (ItemStack stack2 : subItems) {
+                if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems.indexOf(stack2)) continue;
+
+                //String name = stack2.getDisplayName().replace(" ", "_");
+                String name = translate(stack2);
+
                 if (name.equalsIgnoreCase(entry)) {
                     if (stack.itemID == stack2.itemID) {
                         entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");

@@ -272,7 +272,6 @@ public class PacketHandlerC2S {
                         listPos.remove(listPos.size() - 1);
                         boolean replace = player.isUsingSpecialKey();
                         boolean shapeMode = Boolean.parseBoolean(infos[infos.length - 1]);
-                        int flag = Integer.parseInt(infos[infos.length - 2]);
                         String shape = infos[EnumShape.SHAPE.ordinal()];
                         String[] parameters = infos;
                         String hollowOpen = infos[EnumShape.VOLUME.ordinal()];
@@ -393,7 +392,6 @@ public class PacketHandlerC2S {
                             blocksMap.putIfAbsent(split[0], split[1]);
                         }
                         blocksMap = sortMapStringFloat(blocksMap);
-                        System.out.println(blocksMap);
                     }
                     case "getItemsNameList" -> {
                         List<String> items = List.of(trim.split(","));
@@ -401,7 +399,7 @@ public class PacketHandlerC2S {
                             String[] split = identity.split("=");
                             itemsMap.putIfAbsent(split[0], split[1]);
                         }
-                        itemsMap=sortMapByStringValues(itemsMap);
+                        itemsMap=sortMapStringFloat(itemsMap);
                     }
                     /*
                     case "getEntitiesNameList" -> {

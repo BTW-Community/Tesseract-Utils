@@ -71,7 +71,7 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "setblock"->{
                 if (var1 == 2) {
-                    return getBlockNameList(strings, username);
+                    return getBlockNameList(strings);
                 }
                 if (blockCoord != null) {
                     int x = blockCoord.blockX;
@@ -88,7 +88,7 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "shape"->{
                 if (var1 == 2) {
-                    return getBlockNameList(strings,username);
+                    return getBlockNameList(strings);
                 }
                 if (blockCoord != null) {
                     int x = blockCoord.blockX;
@@ -108,14 +108,14 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "set"->{
                 if (var1 == 2) {
-                    return getBlockNameList(strings,username);
+                    return getBlockNameList(strings);
                 } else if (var1 == 3) {
                     return getListOfStringsMatchingLastWord(strings, "hollow", "wall");
                 }
             }
             case "replace"->{
                 if (var1 == 2 || var1 == 3) {
-                    return getBlockNameList(strings,username);
+                    return getBlockNameList(strings);
                 }
             }
             case "copy"->{
@@ -156,7 +156,7 @@ public class CommandWorldEdit extends CommandBase {
                 if (var1 ==2){
                     return getListOfStringsMatchingLastWord(strings, "sphere", "cylinder","cube", "pyramid", "plane");
                 } else if (var1 ==3){
-                    return getBlockNameList(strings,username);
+                    return getBlockNameList(strings);
                 }else if (var1 == 4) {
                     return getListOfStringsMatchingLastWord(strings, "1:1:1:1");
                 } else if (var1 == 5) {
@@ -165,12 +165,12 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "line"->{
                 if (var1 == 2) {
-                    return getBlockNameList(strings,username);
+                    return getBlockNameList(strings);
                 }
             }
             case "plane"->{
                 if (var1 == 2) {
-                    return getBlockNameList(strings,username);
+                    return getBlockNameList(strings);
                 } else if (var1 == 3) {
                     return getListOfStringsMatchingLastWord(strings, "x", "z");
                 }
