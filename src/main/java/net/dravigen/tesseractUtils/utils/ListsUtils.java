@@ -13,8 +13,11 @@ public class ListsUtils {
 
     public static Map<Class<?>, String> CLASS_TO_STRING_MAPPING;
 
-    public static Map<String,String> blocksMap = new HashMap<>();
-    public static Map<String,String> itemsMap = new HashMap<>();
+    public static Map<String,String> blocksMapServ = new HashMap<>();
+    public static Map<String,String> itemsMapServ = new HashMap<>();
+    public static Map<String,String> itemsMapClient = new HashMap<>();
+    public static Map<String,String> blocksMapClient = new HashMap<>();
+
     public static Map<String,Short> potionsMap = new HashMap<>();
     public static Map<String,Integer> entitiesMap = new HashMap<>();
     public static Map<String,Short> enchantMap = new HashMap<>();
@@ -34,7 +37,8 @@ public class ListsUtils {
         initEnchantNameList();
         initEntityList();
         initPotionList();
-        initBlocksNameList();
+        initBlocksNameListServ();
+        initItemsNameListServ();
     }
 
     public static void initAllClientList(){
@@ -82,16 +86,21 @@ public class ListsUtils {
         enchantMap=sortMapShort(enchantMap);
     }
 
-    public static void initBlocksNameList() {
-        blocksMap.clear();
+    public static void initBlocksNameListServ() {
+        blocksMapServ.clear();
         List<ItemStack> subBlocks = new ArrayList<>();
+        List<ItemStack> subBlocks2 = new ArrayList<>();
+
         Map<String,String> map = new HashMap<>();
         map.put("Air", "0");
         for (int i = 0; i < Block.blocksList.length; i++) {
             Block block = Block.blocksList[i];
             if (block == null||block.blockID==74) continue;
+
             try {
-                block.getSubBlocks(block.blockID, null, subBlocks);
+                subBlocks.add(new ItemStack(block));
+
+                block.getSubBlocks(block.blockID, null, subBlocks2);
             } catch (Throwable e) {
                 System.err.println("Error getting sub-blocks for Block ID " + i + " (" + block.getClass().getName() + "): " + e.getMessage());
                 subBlocks.add(new ItemStack(block));
@@ -103,8 +112,8 @@ public class ListsUtils {
                 String entry = translate(stack);
 
                 if (entry.contains("Old")||entry.contains("BlockCandle")||entry.contains("null")) continue;
-                for (ItemStack stack2 : subBlocks) {
-                    if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
+                for (ItemStack stack2 : subBlocks2) {
+                    if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks2.indexOf(stack2))continue;
                     //String name = stack2.getDisplayName().replace(" ", "_");
                     String name = translate(stack2);
 
@@ -121,18 +130,22 @@ public class ListsUtils {
                 map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
             }
         }
-        blocksMap = sortMapStringFloat(map);
+        blocksMapServ = sortMapStringFloat(map);
     }
 
     public static void initBlocksNameListClientSub(){
+        blocksMapClient.clear();
         List<ItemStack> subBlocks = new ArrayList<>();
+        List<ItemStack> subBlocks2 = new ArrayList<>();
         Map<String,String> map = new HashMap<>();
         for (Block block:Block.blocksList) {
             if (block==null)continue;
             List<ItemStack> sub = new ArrayList<>();
             Item item = new ItemStack(block).getItem();
             block.getSubBlocks(block.blockID, null, sub);
-            if (!(item.getHasSubtypes())||sub.size()==1||block.blockID==74) continue;
+            if (block.blockID==74) continue;
+            subBlocks2.addAll(sub);
+            if (!(item.getHasSubtypes())||sub.size()==1) continue;
             for (int j = 1; j < sub.size(); j++) {
                 subBlocks.add(sub.get(j));
             }
@@ -150,8 +163,8 @@ public class ListsUtils {
                 String entry = translate(stack);
 
                 if (entry.contains("Old")||entry.contains("BlockCandle")||entry.contains("null")) continue;
-                for (ItemStack stack2 : subBlocks) {
-                    if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks.indexOf(stack2))continue;
+                for (ItemStack stack2 : subBlocks2) {
+                    if (stack2==null||stack2.getItem()==null||subBlocks.indexOf(stack)==subBlocks2.indexOf(stack2))continue;
                     //String name = stack2.getDisplayName().replace(" ", "_");
                     String name = translate(stack2);
 
@@ -168,7 +181,7 @@ public class ListsUtils {
                 map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
             }
         }
-        blocksMap = sortMapStringFloat(map);
+        blocksMapClient = sortMapStringFloat(map);
     }
 
     private static @NotNull String translate(ItemStack stack) {
@@ -183,7 +196,7 @@ public class ListsUtils {
         String var2 = ";";
         boolean afterSemiColon = var2.regionMatches(true, 0, var1, var1.length()-1, 1);
 
-        for (String string : blocksMap.keySet()) {
+        for (String string : blocksMapServ.keySet()) {
             List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(";")));
             String lastString = split.get(split.size()-1);
             if (!afterSemiColon) split.remove(split.size()-1);
@@ -197,7 +210,7 @@ public class ListsUtils {
             }
         }
 
-        for (String string : blocksMap.keySet()) {
+        for (String string : blocksMapServ.keySet()) {
             List<String> split = new ArrayList<>(List.of(strings[strings.length - 1].split(";")));
             String lastString = split.get(split.size()-1);
             if (!afterSemiColon) split.remove(split.size()-1);
@@ -230,7 +243,7 @@ public class ListsUtils {
                 }
             } catch (NumberFormatException ignored) {
                 try {
-                    String[] idMetaF = blocksMap.get(idMeta[0]).split("/");
+                    String[] idMetaF = blocksMapServ.get(idMeta[0]).split("/");
                     id = Integer.parseInt(idMetaF[0]);
                     meta = Integer.parseInt(idMetaF[1]);
                     if (id!=0&&new ItemStack(id, 0, 0).getHasSubtypes() && idMeta.length == 2) {
@@ -250,10 +263,11 @@ public class ListsUtils {
         return blocksInfos;
     }
 
-    public static void initItemsNameList() {
-        itemsMap.clear();
+    public static void initItemsNameListServ() {
+        itemsMapServ.clear();
         List<Item> itemList = new ArrayList<>();
         List<ItemStack> subItems = new ArrayList<>();
+        List<ItemStack> subItems2 = new ArrayList<>();
         Map<String,String> map = new HashMap<>();
         for (Item item : Item.itemsList) {
             if (item != null) itemList.add(item);
@@ -262,17 +276,16 @@ public class ListsUtils {
             Item item = itemList.get(i);
             if (item == null || item.itemID == 74) continue;
             try {
-                item.getSubItems(item.itemID, null, subItems);
+                subItems.add(new ItemStack(item, 1, 0));
+                item.getSubItems(item.itemID, null, subItems2);
                /*
                 if (subItems.isEmpty() && !item.getHasSubtypes()) {
-                    subItems.add(new ItemStack(item, 1, 0));
                 }*/
             } catch (Throwable e) {
                 System.err.println("Error getting sub-items for Item ID " + i + " (" + item.getClass().getName() + "): " + e.getMessage());
                 subItems.add(new ItemStack(item, 1, 0));
             }
         }
-
         for (ItemStack stack : subItems) {
             if (stack == null || stack.getItem() == null) continue;
 
@@ -281,8 +294,8 @@ public class ListsUtils {
 
             if (entry.contains("Old") || entry.contains("BlockCandle")) continue;
 
-            for (ItemStack stack2 : subItems) {
-                if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems.indexOf(stack2))
+            for (ItemStack stack2 : subItems2) {
+                if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems2.indexOf(stack2))
                     continue;
                 //String name = stack2.getDisplayName().replace(" ", "_");
                 String name = translate(stack2);
@@ -299,35 +312,26 @@ public class ListsUtils {
             map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
 
         }
-        itemsMap=sortMapStringFloat(map);
+        itemsMapServ =sortMapStringFloat(map);
 
     }
 
     public static void initItemsNameListClientSub() {
-        List<Item> itemList = new ArrayList<>();
+        itemsMapClient.clear();
         List<ItemStack> subItems = new ArrayList<>();
+        List<ItemStack> subItems2 = new ArrayList<>();
         Map<String,String> map = new HashMap<>();
         for (Item item : Item.itemsList) {
             if (item == null) continue;
             List<ItemStack> sub = new ArrayList<>();
             item.getSubItems(item.itemID, null, sub);
-            if (!item.getHasSubtypes() || sub.size() == 1 || item.itemID == 74) continue;
+            if (item.itemID == 74) continue;
+            subItems2.addAll(sub);
+            if (!item.getHasSubtypes() || sub.size() == 1) continue;
             for (int j = 1; j < sub.size(); j++) {
                 subItems.add(sub.get(j));
             }
         }
-
-
-            /*
-            try {
-                item.getSubItems(item.itemID, null, subItems);
-
-            } catch (Throwable e) {
-                System.err.println("Error getting sub-items for Item ID " + i + " (" + item.getClass().getName() + "): " + e.getMessage());
-                subItems.add(new ItemStack(item, 1, 0));
-            }*/
-
-
         for (ItemStack stack : subItems) {
             if (stack == null || stack.getItem() == null) continue;
 
@@ -336,8 +340,8 @@ public class ListsUtils {
 
             if (entry.contains("Old") || entry.contains("BlockCandle")) continue;
 
-            for (ItemStack stack2 : subItems) {
-                if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems.indexOf(stack2)) continue;
+            for (ItemStack stack2 : subItems2) {
+                if (stack2 == null || stack2.getItem() == null || subItems.indexOf(stack) == subItems2.indexOf(stack2)) continue;
 
                 //String name = stack2.getDisplayName().replace(" ", "_");
                 String name = translate(stack2);
@@ -355,18 +359,18 @@ public class ListsUtils {
             map.put(finalItemName, stack.itemID + "/" + stack.getItemDamage());
 
         }
-        itemsMap=sortMapStringFloat(map);
+        itemsMapClient =sortMapStringFloat(map);
 
     }
 
     public @NotNull List<String> getItemNameList(String[] strings) {
         List<String > finalList = new ArrayList<>();
-        for (String string: itemsMap.keySet()){
+        for (String string: itemsMapServ.keySet()){
             if (string.toLowerCase().startsWith(strings[1].toLowerCase())){
                 finalList.add(string);
             }
         }
-        for (String string: itemsMap.keySet()){
+        for (String string: itemsMapServ.keySet()){
             if (string.toLowerCase().contains(strings[1].toLowerCase())&&!string.toLowerCase().startsWith(strings[1].toLowerCase())){
                 finalList.add(string);
             }
@@ -385,7 +389,7 @@ public class ListsUtils {
             }
         } catch (NumberFormatException ignored) {
             try {
-                String[] idMetaF = itemsMap.get(idMeta[0]).split("/");
+                String[] idMetaF = itemsMapServ.get(idMeta[0]).split("/");
                 id = Integer.parseInt(idMetaF[0]);
                 meta = Integer.parseInt(idMetaF[1]);
                 if (new ItemStack(id, 0, 0).getHasSubtypes() && idMeta.length == 2) {

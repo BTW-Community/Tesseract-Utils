@@ -31,8 +31,6 @@ public abstract class EntityRendererMixin {
 
     @Shadow private float previousWithEffectIntensity;
 
-    @Shadow protected abstract float getNightVisionBrightness(EntityPlayer par1EntityPlayer, float par2);
-
     @Shadow private float fogColor1;
 
     @Shadow private float fogColor2;
@@ -42,7 +40,7 @@ public abstract class EntityRendererMixin {
     @Shadow @Final private DynamicTexture lightmapTexture;
 
     @Inject(method = "updateFogColor",at = @At("TAIL"))
-    private void idkBro(float par1, CallbackInfo ci){
+    private void vanillaNightVis(float par1, CallbackInfo ci){
         if (this.mc.thePlayer.capabilities.isCreativeMode&& PacketUtils.isPlayerOPClient &&this.mc.thePlayer.isPotionActive(Potion.nightVision)&&(boolean) VANILLA_NIGHTVIS.getValue()) {
 
             float var17;
@@ -123,7 +121,7 @@ public abstract class EntityRendererMixin {
             double var14 = (var3.lastTickPosY + (var3.posY - var3.lastTickPosY) * (double) par1) * var2.provider.getVoidFogYFactor();
             if (var3.isPotionActive(Potion.blindness)) {
                 int var16 = var3.getActivePotionEffect(Potion.blindness).getDuration();
-                var14 = var16 < 20 ? (var14 *= 1.0f - (float) var16 / 20.0f) : 0.0;
+                var14 = var16 < 20 ? var14 * (1.0f - (float) var16 / 20.0f) : 0.0;
             } else if (this.mc.gameSettings.thirdPersonView == 0 && var3.hasHeadCrabbedSquid()) {
                 var14 = 0.2;
             }
@@ -172,7 +170,7 @@ public abstract class EntityRendererMixin {
     }*/
 
     @Inject(method = "modUpdateLightmapOverworld",at = @At("TAIL"))
-    private void aaaaah(WorldClient world, float fPartialTicks, CallbackInfo ci){
+    private void setNewLightmap(WorldClient world, float fPartialTicks, CallbackInfo ci){
         if (this.mc.thePlayer.capabilities.isCreativeMode&& PacketUtils.isPlayerOPClient &&this.mc.thePlayer.isPotionActive(Potion.nightVision)&&(boolean) VANILLA_NIGHTVIS.getValue()) {
             int[] numbers = new int[256];
             Arrays.fill(numbers, -1);

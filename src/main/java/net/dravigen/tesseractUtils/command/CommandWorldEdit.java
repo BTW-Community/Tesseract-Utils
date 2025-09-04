@@ -29,7 +29,7 @@ public class CommandWorldEdit extends CommandBase {
 
     @Override
     public String getCommandUsage(ICommandSender iCommandSender) {
-        return "/edit <set> <id/metadata> [hollow:wall] [thickness] OR /edit <setblock> <x> <y> <z> <id/metadata> OR /edit <replace> <id/metadata> [id/metadata replaced] OR /edit <stack> <side> <count> OR /edit <move> <to:add> <x> <y> <z> OR /edit <rotate> [reverse] OR /edit <undo> OR /edit <copy> OR /edit <paste> [x,y,z] OR /edit <pos1> OR /edit <pos2> OR /edit <reach> <distance> OR /edit <disablePlaceCooldown> <True:False> OR /edit <disableBreakCooldown> <True:False> OR /edit <disableMomentum> <True:False> OR /edit <enableClickReplace> <True:False> OR /edit <enableNoClip> <True:False> OR /edit <enableExtraDebugInfo> <True:False>";
+        return "/edit <fill> <id/metadata> [hollow:wall] [thickness] OR /edit <setblock> <x> <y> <z> <id/metadata> OR /edit <replace> <id/metadata> [id/metadata replaced] OR /edit <stack> <side> <count> OR /edit <move> <to:add> <x> <y> <z> OR /edit <rotate> [reverse] OR /edit <undo> OR /edit <copy> OR /edit <paste> [x,y,z] OR /edit <pos1> OR /edit <pos2> OR /edit <reach> <distance> OR /edit <disablePlaceCooldown> <True:False> OR /edit <disableBreakCooldown> <True:False> OR /edit <disableMomentum> <True:False> OR /edit <enableClickReplace> <True:False> OR /edit <enableNoClip> <True:False> OR /edit <enableExtraDebugInfo> <True:False>";
     }
 
     @Override
@@ -37,7 +37,7 @@ public class CommandWorldEdit extends CommandBase {
         String username = sender.getCommandSenderName();
         int var1 = strings.length;
         if (var1 ==1) {
-            return getListOfStringsMatchingLastWord(strings,"set", "setblock", "shape", "replace", "line", "plane", "stack", "move", "rotate", "undo", "redo", "copy", "paste", "pos1", "pos2", "posAll","tool");
+            return getListOfStringsMatchingLastWord(strings,"fill", "setblock", "shape", "replace", "line", "plane", "stack", "move", "rotate", "undo", "redo", "copy", "paste", "pos1", "pos2", "posAll","tool");
         }
         MovingObjectPosition blockCoord = getBlockPlayerIsLooking(sender);
         switch (strings[0].toLowerCase()){
@@ -106,7 +106,7 @@ public class CommandWorldEdit extends CommandBase {
                     return getListOfStringsMatchingLastWord(strings, "sphere","cylinder", "cube", "pyramid");
                 }
             }
-            case "set"->{
+            case "fill"->{
                 if (var1 == 2) {
                     return getBlockNameList(strings);
                 } else if (var1 == 3) {
@@ -254,6 +254,8 @@ public class CommandWorldEdit extends CommandBase {
                     int centerX = 999999;
                     int centerY = 999999;
                     int centerZ = 999999;
+                    String shapeS = strings[1];
+                    final String idS = strings[2];
                     String[] parameters = strings[3].split(":");
                     float var1 = Float.parseFloat(parameters[0]);
                     int var2 = parameters.length > 1 ? Integer.parseInt(parameters[1]) : 1;
@@ -288,38 +290,38 @@ public class CommandWorldEdit extends CommandBase {
                     }
                     List<SavedBlock> list = new ArrayList<>();
                     final int replaceYIfNegative = var2 < 0 ? centerY + var2 : centerY;
-                    switch (strings[2].toLowerCase()) {
+                    switch (shapeS.toLowerCase()) {
                         case "sphere" -> {
                             if (hollow) {
-                                list = ShapeGen.generateHollowSphere(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, replace, sender);
+                                list = ShapeGen.generateHollowSphere(world, centerX, centerY, centerZ, idS, flag, var1, var2, replace, sender);
                             } else
-                                list = ShapeGen.generateSphere(world, centerX, centerY, centerZ, strings[1], flag, var1, replace, sender);
+                                list = ShapeGen.generateSphere(world, centerX, centerY, centerZ, idS, flag, var1, replace, sender);
                         }
                         case "cylinder" -> {
                             centerY = replaceYIfNegative;
                             var2 = var2 < 0 ? var2 * (-1) : var2;
                             if (hollow)
-                                list = ShapeGen.generateHollowCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, var3, replace, sender);
+                                list = ShapeGen.generateHollowCylinder(world, centerX, centerY, centerZ, idS, flag, var1, var2, var3, replace, sender);
                             else if (open)
-                                list = ShapeGen.generateOpenCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, var3, replace, sender);
+                                list = ShapeGen.generateOpenCylinder(world, centerX, centerY, centerZ, idS, flag, var1, var2, var3, replace, sender);
                             else
-                                list = ShapeGen.generateCylinder(world, centerX, centerY, centerZ, strings[1], flag, var1, var2, replace, sender);
+                                list = ShapeGen.generateCylinder(world, centerX, centerY, centerZ, idS, flag, var1, var2, replace, sender);
                         }
                         case "cube" -> {
                             centerY = replaceYIfNegative;
                             var2 = var2 < 0 ? var2 * (-1) : var2;
                             if (hollow)
-                                list = ShapeGen.generateHollowCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace, sender);
+                                list = ShapeGen.generateHollowCube(world, centerX, centerY, centerZ, idS, flag, (int) var1, var2, var3, var4, replace, sender);
                             else if (open)
-                                list = ShapeGen.generateOpenCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace, sender);
+                                list = ShapeGen.generateOpenCube(world, centerX, centerY, centerZ, idS, flag, (int) var1, var2, var3, var4, replace, sender);
                             else
-                                list = ShapeGen.generateCube(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, replace, sender);
+                                list = ShapeGen.generateCube(world, centerX, centerY, centerZ, idS, flag, (int) var1, var2, var3, replace, sender);
                         }
                         case "pyramid" -> {
                             if (hollow)
-                                list = ShapeGen.generateHollowPyramid(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, var4, replace, sender);
+                                list = ShapeGen.generateHollowPyramid(world, centerX, centerY, centerZ, idS, flag, (int) var1, var2, var3, var4, replace, sender);
                             else
-                                list = ShapeGen.generatePyramid(world, centerX, centerY, centerZ, strings[1], flag, (int) var1, var2, var3, replace, sender);
+                                list = ShapeGen.generatePyramid(world, centerX, centerY, centerZ, idS, flag, (int) var1, var2, var3, replace, sender);
                         }
                     }
                     if (!list.isEmpty()) {
@@ -328,7 +330,7 @@ public class CommandWorldEdit extends CommandBase {
                         sendMsg(sender, "§d" + numBlock + " block(s) have been placed",mute);
                     }
                 } catch (Exception e) {
-                    sendMsg(sender, "§c// shape <type> <id> <parameters> <x> <y> <z> [hollow|open] [replace]",mute);
+                    sendMsg(sender, "§c// shape <shape> <id> <parameters> <x> <y> <z> [hollow|open] [replace]",mute);
                 }
             }
             case "paste" -> {
@@ -480,7 +482,7 @@ public class CommandWorldEdit extends CommandBase {
             }
 
             /// need pos update
-            case "set", "move", "replace", "copy", "line", "rotate", "plane", "stack" -> {
+            case "fill", "move", "replace", "copy", "line", "rotate", "plane", "stack" -> {
                 if (sender.getCommandSenderName().equalsIgnoreCase("@")){
                     areaEdit(sender, strings, BlockSelectionManager.servBlock1, BlockSelectionManager.servBlock2, world, flag, ignoreAir, mute);
 
@@ -512,7 +514,7 @@ public class CommandWorldEdit extends CommandBase {
             }
         }
         switch (strings[0]) {
-            case "set" -> {
+            case "fill" -> {
                 try {
                     boolean hollow = strings.length > 2 && strings[2].equalsIgnoreCase("hollow");
                     boolean wall = strings.length > 2 && strings[2].equalsIgnoreCase("wall");
@@ -1075,6 +1077,8 @@ public class CommandWorldEdit extends CommandBase {
         }
         boolean mute = Arrays.stream(strings).anyMatch(s -> s.equalsIgnoreCase("mute"));
 
+
+
         NBTTagCompound nbt = itemStack.getTagCompound();
         NBTTagCompound buildingParamsNBT;
         if (nbt.hasKey("BuildingParams")) {
@@ -1082,6 +1086,29 @@ public class CommandWorldEdit extends CommandBase {
         } else {
             buildingParamsNBT = new NBTTagCompound();
             nbt.setCompoundTag("BuildingParams", buildingParamsNBT);
+        }
+        String[] parameters = strings[3].split(":");
+        switch (strings[1].toLowerCase()) {
+            case "sphere":
+                if (parameters.length == 0) {
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cSphere's parameters are incorrect or missing ! You need to specify the radius"));
+                    return;
+                }
+            case "cylinder":
+                if (parameters.length <= 1 ) {
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cCylinder's parameters are incorrect or missing ! You need to specify the radius:height"));
+                    return;
+                }
+            case "cube":
+                if (parameters.length <= 2 ) {
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cCube's parameters are incorrect or missing ! You need to specify the sizeX:sizeY:sizeZ"));
+                    return;
+                }
+            case "pyramid":
+                if (parameters.length <= 2 ) {
+                    sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cPyramid's parameters are incorrect or missing ! You need to specify the sizeX:sizeY:sizeZ"));
+                    return;
+                }
         }
 
         buildingParamsNBT.setString("shape", strings[1]);
@@ -1222,7 +1249,7 @@ public class CommandWorldEdit extends CommandBase {
                         ItemStack itemStack = new ItemStack(result1.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
                         itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                        if (result1.meta() > subtype.size() - 1) {
+                        if (itemStack.getHasSubtypes()&&result1.meta() > subtype.size() - 1) {
                             sendMsg(sender, "§cIndex " + result1.meta() + " out of bounds for length " + (subtype.size()),mute);
                             return;
                         }
@@ -1276,7 +1303,7 @@ public class CommandWorldEdit extends CommandBase {
                         ItemStack itemStack = new ItemStack(result.id(), 0, 0);
                         List<ItemStack> subtype = new ArrayList<>();
                         itemStack.getItem().getSubItems(itemStack.itemID, null, subtype);
-                        if (result.meta() > subtype.size() - 1) {
+                        if (itemStack.getHasSubtypes()&&result.meta() > subtype.size() - 1) {
                             sendMsg(sender, "§cIndex " + result.meta() + " out of bounds for length " + (subtype.size()),mute);
                         }
                     }

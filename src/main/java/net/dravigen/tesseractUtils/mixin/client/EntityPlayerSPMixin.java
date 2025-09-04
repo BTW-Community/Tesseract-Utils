@@ -114,6 +114,9 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                 boolean isCopyMode = currentBuildingMode == COPY_MODE.getIndex();
                 boolean isBlockSetMode = currentBuildingMode == BLOCK_SET_MODE.getIndex();
                 boolean isSetPermanentMode = isItem && itemId == Item.hoeWood.itemID;
+                boolean isReplaceMode = !this.isSneaking() && !this.isUsingSpecialKey() && isItem && heldItem.getItem() instanceof PlaceAsBlockItem && (currentBuildingMode == REPLACE_MODE.getIndex());
+
+                /// left click
                 if (Mouse.isButtonDown(0)) {
                     pressed=true;
                     if (!leftClickPressed) {
@@ -198,6 +201,7 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                     shapeList.clear();
                 }
 
+                /// right click
                 if (Mouse.isButtonDown(1)) {
                     if (!rightClickPressed) {
                         if (!isBuildTool) {
@@ -214,32 +218,32 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                                 BlockFromRayTrace result = getBlockFromRayTrace(this);
                                 if (result.block() != null)
                                     PacketSender.sendClientToServerMessage("extrudeExpand:" + result.x() + "," + result.y() + "," + result.z() + "," + result.sideHit() + "," + FUZZY_EXTRUDER.getBoolValue() + "," + EXTRUDE_LIMIT.getIntValue());
-                            } else {
-                                if (isSetPermanentMode) {
-                                    Entity entityHit = getEntityFromRayTrace(this, 256, partialTick);
-                                    if (entityHit instanceof EntityLiving living)
-                                        PacketSender.sendClientToServerMessage("updatePermanentMob:" + entityHit.entityId);
-                                } else if (!this.isSneaking() && !this.isUsingSpecialKey() && isItem && heldItem.getItem() instanceof PlaceAsBlockItem && (currentBuildingMode == REPLACE_MODE.getIndex())) {
-                                    BlockFromRayTrace result = getBlockFromRayTrace(this);
-                                    if (result.block() != null) {
-                                        Vec3 direction = result.hitVec3();
-                                        float clickX = (float) direction.xCoord - (float) result.x();
-                                        float clickY = (float) direction.yCoord - (float) result.y();
-                                        float clickZ = (float) direction.zCoord - (float) result.z();
-                                        PacketSender.sendClientToServerMessage("replace:" + result.x() + "," + result.y() + "," + result.z() + "," + clickX + "," + clickY + "," + clickZ + "," + result.sideHit() + "," + flag);
-                                    }
-                                } else if (isCopyMode) {
-                                    if (isPosValid)
-                                        PacketSender.sendClientToServerMessage("paste:" + x1 + "," + y1 + "," + z1 + "," + x2 + "," + y2 + "," + z2 + "," + ignoreAir + "," + flag);
-                                    else
-                                        this.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
-                                } else if (isBlockSetMode) {
-                                    if (isPosValid)
-                                        PacketSender.sendClientToServerMessage("replaceArea:" + x1 + "," + y1 + "," + z1 + "," + x2 + "," + y2 + "," + z2 + "," + flag);
-                                    else
-                                        this.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
+                            } else if (isSetPermanentMode) {
+                                Entity entityHit = getEntityFromRayTrace(this, 256, partialTick);
+                                if (entityHit instanceof EntityLiving living)
+                                    PacketSender.sendClientToServerMessage("updatePermanentMob:" + entityHit.entityId);
+                            } else if (isReplaceMode) {
+                                BlockFromRayTrace result = getBlockFromRayTrace(this);
+                                if (result.block() != null) {
+                                    Vec3 direction = result.hitVec3();
+                                    float clickX = (float) direction.xCoord - (float) result.x();
+                                    float clickY = (float) direction.yCoord - (float) result.y();
+                                    float clickZ = (float) direction.zCoord - (float) result.z();
+                                    PacketSender.sendClientToServerMessage("replace:" + result.x() + "," + result.y() + "," + result.z() + "," + clickX + "," + clickY + "," + clickZ + "," + result.sideHit() + "," + flag);
                                 }
+                            } else if (isCopyMode) {
+                                if (isPosValid)
+                                    PacketSender.sendClientToServerMessage("paste:" + x1 + "," + y1 + "," + z1 + "," + x2 + "," + y2 + "," + z2 + "," + ignoreAir + "," + flag);
+                                else
+                                    this.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
+                            } else if (isBlockSetMode) {
+                                if (isPosValid)
+                                    PacketSender.sendClientToServerMessage("replaceArea:" + x1 + "," + y1 + "," + z1 + "," + x2 + "," + y2 + "," + z2 + "," + flag);
+                                else
+                                    this.sendChatToPlayer(ChatMessageComponent.createFromText("§cYou need to select an area"));
+
                             }
+
                         }
                         else {
                             BlockFromRayTrace result = getBlockFromRayTrace(this);
@@ -275,6 +279,8 @@ public abstract class EntityPlayerSPMixin extends AbstractClientPlayer {
                         }
                     }
                 } else rightClickPressed = false;
+
+                /// middle click
                 if (Mouse.isButtonDown(2)) {
                     if (!middleClickPressed) {
                         if (getEnumFromIndex(currentBuildingMode).getCanSelect()) {

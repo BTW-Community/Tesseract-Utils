@@ -303,7 +303,7 @@ public class PacketHandlerC2S {
                             int x = Integer.parseInt(coord[0]);
                             int y = Integer.parseInt(coord[1]);
                             int z = Integer.parseInt(coord[2]);
-                            list = useShapeTool(player, shape, parameters, y, hollowOpen, list, x, z, blockUsed, replace);
+                            list = useShapeTool(player, shape, parameters, y, hollowOpen, list, x, z, blockUsed, replace,shapeMode);
                             if (!list.isEmpty()) {
                                 playersRedoListServer.remove(player.getEntityName());
                                 List<List<SavedBlock>> undoList = playersUndoListServer.get(player.getEntityName());
@@ -389,17 +389,22 @@ public class PacketHandlerC2S {
                         List<String> blocks = List.of(trim.split(","));
                         for (String identity : blocks) {
                             String[] split = identity.split("=");
-                            blocksMap.putIfAbsent(split[0], split[1]);
+                            blocksMapServ.putIfAbsent(split[0], split[1]);
                         }
-                        blocksMap = sortMapStringFloat(blocksMap);
+                        blocksMapServ = sortMapStringFloat(blocksMapServ);
                     }
                     case "getItemsNameList" -> {
+                        System.out.println(itemsMapServ);
+                        System.out.println(property);
+
                         List<String> items = List.of(trim.split(","));
                         for (String identity : items) {
                             String[] split = identity.split("=");
-                            itemsMap.putIfAbsent(split[0], split[1]);
+                            itemsMapServ.putIfAbsent(split[0], split[1]);
                         }
-                        itemsMap=sortMapStringFloat(itemsMap);
+                        itemsMapServ =sortMapStringFloat(itemsMapServ);
+                        System.out.println(itemsMapServ);
+
                     }
                     /*
                     case "getEntitiesNameList" -> {
@@ -577,17 +582,17 @@ public class PacketHandlerC2S {
 
 
 
-    private static List<SavedBlock> useShapeTool(EntityPlayerMP player, String shape, String[] parameters, int y, String toolHollowOrOpen, List<SavedBlock> list, int x, int z, String blockUsed, boolean replace) {
+    private static List<SavedBlock> useShapeTool(EntityPlayerMP player, String shape, String[] parameters, int y, String toolHollowOrOpen, List<SavedBlock> list, int x, int z, String blockUsed, boolean replace, boolean shapeMode) {
         switch (shape.toLowerCase()) {
             case "sphere" -> {
                 int radius;
-                int thickness=1;
-                if(parameters.length>=EnumShape.values().length){
+                int thickness;
+                if(shapeMode){
                     radius = Integer.parseInt(parameters[EnumShape.RADIUS.ordinal()]);
-                    thickness = parameters.length > 1 ? Integer.parseInt(parameters[EnumShape.THICKNESS.ordinal()]) : 1;
+                    thickness = Integer.parseInt(parameters[EnumShape.THICKNESS.ordinal()]);
                 }else {
                     radius = Integer.parseInt(parameters[0]);
-                    thickness = parameters.length>1 ? Integer.parseInt(parameters[1]) : thickness;
+                    thickness = parameters.length>1 ? Integer.parseInt(parameters[1]) : 1;
                 }
                 if (player.isSneaking()) y = y +radius;
                 if (toolHollowOrOpen.equalsIgnoreCase("hollow"))
@@ -598,15 +603,15 @@ public class PacketHandlerC2S {
             case "cylinder" -> {
                 int radius;
                 int height;
-                int thickness=1;
-                if(parameters.length>=EnumShape.values().length){
+                int thickness;
+                if(shapeMode){
                     radius = Integer.parseInt(parameters[EnumShape.RADIUS.ordinal()]);
-                    height = parameters.length > 1 ? Integer.parseInt(parameters[EnumShape.HEIGHT.ordinal()]) : 1;
-                    thickness = parameters.length > 2 ? Integer.parseInt(parameters[EnumShape.THICKNESS.ordinal()]) : 1;
+                    height = Integer.parseInt(parameters[EnumShape.HEIGHT.ordinal()]);
+                    thickness = Integer.parseInt(parameters[EnumShape.THICKNESS.ordinal()]);
                 }else {
                     radius = Integer.parseInt(parameters[0]);
                     height = Integer.parseInt(parameters[1]);
-                    thickness = parameters.length>1 ? Integer.parseInt(parameters[2]) : thickness;
+                    thickness = parameters.length>2 ? Integer.parseInt(parameters[2]) : 1;
                 }
                 y = height < 0 ? y + height : y;
                 height = height < 0 ? height * (-1) : height;
@@ -623,7 +628,7 @@ public class PacketHandlerC2S {
                 int sizeY;
                 int sizeZ;
                 int thickness;
-                if (parameters.length>=EnumShape.values().length) {
+                if (shapeMode) {
                     sizeX = Integer.parseInt(parameters[EnumShape.SIZE_X.ordinal()]);
                     sizeY = Integer.parseInt(parameters[EnumShape.SIZE_Y.ordinal()]);
                     sizeZ = Integer.parseInt(parameters[EnumShape.SIZE_Z.ordinal()]);
@@ -649,7 +654,7 @@ public class PacketHandlerC2S {
                 int sizeY;
                 int sizeZ;
                 int thickness;
-                if (parameters.length>=EnumShape.values().length) {
+                if (shapeMode) {
                     sizeX = Integer.parseInt(parameters[EnumShape.SIZE_X.ordinal()]);
                     sizeY = Integer.parseInt(parameters[EnumShape.SIZE_Y.ordinal()]);
                     sizeZ = Integer.parseInt(parameters[EnumShape.SIZE_Z.ordinal()]);

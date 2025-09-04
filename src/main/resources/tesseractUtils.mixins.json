@@ -15,6 +15,7 @@
     "clientServer.PlaceAsBlockItemMixin",
     "clientServer.PlayerControllerMPMixin",
     "clientServer.StringTranslateMixin",
+    "server.CommandGameModeMixin",
     "server.EntityLivingMixin",
     "server.MinecraftServerMixin",
     "server.NetServerHandlerMixin",

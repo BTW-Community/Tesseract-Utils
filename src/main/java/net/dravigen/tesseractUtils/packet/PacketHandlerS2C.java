@@ -83,8 +83,8 @@ public class PacketHandlerS2C {
                     case "sendNamesLists"->{
                         initAllClientList();
 
-                        PacketSender.sendClientToServerMessage("getBlocksNameList:"+ blocksMap);
-                        PacketSender.sendClientToServerMessage("getItemsNameList:"+ itemsMap);
+                        PacketSender.sendClientToServerMessage("getBlocksNameList:"+ blocksMapClient);
+                        PacketSender.sendClientToServerMessage("getItemsNameList:"+ itemsMapClient);
 
                         //PacketSender.sendClientToServerMessage("getEntitiesNameList:"+ entitiesMap);
                         //PacketSender.sendClientToServerMessage("getPotionsNameList:"+ potionsMap);

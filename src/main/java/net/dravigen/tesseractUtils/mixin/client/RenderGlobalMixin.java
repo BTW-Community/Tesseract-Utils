@@ -75,7 +75,6 @@ public abstract class RenderGlobalMixin {
                     Vec3 var5 = var3.addVector(var4.xCoord * 256, var4.yCoord * 256, var4.zCoord * 256);
                     MovingObjectPosition block = player.worldObj.clip(var3, var5);
                     if (block != null) {
-                        boolean replace = player.isUsingSpecialKey();
                         String shape = EnumShape.SHAPE.getShape();
                         String[] parameters = new String[]{};
                         String actionType = EnumShape.VOLUME.getVolume();
@@ -88,17 +87,20 @@ public abstract class RenderGlobalMixin {
                                     parameters = new String[]{String.valueOf(EnumShape.SIZE_X.getIntValue()), String.valueOf(EnumShape.SIZE_Y.getIntValue()), String.valueOf(EnumShape.SIZE_Z.getIntValue()), String.valueOf(EnumShape.THICKNESS.getIntValue())};
 
                         }
-                        int radius = 0;
+                        int radius;
                         if (currentBuildingMode != SHAPE_MODE.getIndex() && heldItem != null && heldItem.getTagCompound() != null && heldItem.getTagCompound().hasKey("BuildingParams")) {
                             NBTTagCompound buildingParamsNBT = heldItem.getTagCompound().getCompoundTag("BuildingParams");
                             shape = buildingParamsNBT.getString("shape");
                             parameters = buildingParamsNBT.getString("parameters").split(":");
                             actionType = buildingParamsNBT.getString("volume");
                         }
-
                         int hollowOpen = actionType.equalsIgnoreCase("hollow") ? 0 : actionType.equalsIgnoreCase("open") ? 1 : 2;
+                        if(parameters.length==0){
+                            player.sendChatToPlayer(ChatMessageComponent.createFromText("§cCannot find shape's parameters !"));
+                            return;
+                        }
                         radius = Integer.parseInt(parameters[0]);
-                        int thickness = 1;
+                        int thickness;
                         switch (shape.toLowerCase()) {
                             case "sphere" -> {
                                 int y = block.blockY;
@@ -107,25 +109,37 @@ public abstract class RenderGlobalMixin {
                                 renderSphere(player.worldObj, radius, block.blockX, y, block.blockZ, hollowOpen, thickness);
                             }
                             case "cylinder" -> {
-                                int height = parameters.length > 1 ? Integer.parseInt(parameters[1]) : 1;
-                                thickness = parameters.length > 2 ? Integer.parseInt(parameters[2]) : 1;
+                                if(parameters.length == 1){
+                                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§cShape's parameters are incorrect or missing !"));
+                                    return;
+                                }
+                                int height = Integer.parseInt(parameters[1]);
+                                thickness = parameters.length == 3 ? Integer.parseInt(parameters[2]) : 1;
                                 int y = block.blockY;
                                 if (player.isSneaking()) y = y + height / 2;
                                 renderCylinder(player.worldObj, radius, block.blockX, y, block.blockZ, height, hollowOpen, thickness);
                             }
                             case "cube" -> {
+                                if(parameters.length <= 2){
+                                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§cShape's parameters are incorrect or missing !"));
+                                    return;
+                                }
                                 int sizeX = Integer.parseInt(parameters[0]);
-                                int sizeY = parameters.length > 1 ? Integer.parseInt(parameters[1]) : 1;
-                                int sizeZ = parameters.length > 2 ? Integer.parseInt(parameters[2]) : 1;
-                                thickness = parameters.length > 3 ? Integer.parseInt(parameters[3]) : 1;
+                                int sizeY = Integer.parseInt(parameters[1]);
+                                int sizeZ = Integer.parseInt(parameters[2]);
+                                thickness = parameters.length == 4 ? Integer.parseInt(parameters[3]) : 1;
                                 int y = block.blockY;
                                 if (player.isSneaking()) y = y + sizeY / 2;
                                 renderCube(player.worldObj, block.blockX, y, block.blockZ, sizeX, sizeY, sizeZ, hollowOpen, thickness);
                             }
                             case "pyramid" -> {
+                                if(parameters.length <= 2){
+                                    player.sendChatToPlayer(ChatMessageComponent.createFromText("§cShape's parameters are incorrect or missing !"));
+                                    return;
+                                }
                                 int sizeX = Integer.parseInt(parameters[0]);
-                                int sizeY = parameters.length > 1 ? Integer.parseInt(parameters[1]) : 1;
-                                int sizeZ = parameters.length > 2 ? Integer.parseInt(parameters[2]) : 1;
+                                int sizeY = Integer.parseInt(parameters[1]);
+                                int sizeZ = Integer.parseInt(parameters[2]);
                                 thickness = parameters.length > 3 ? Integer.parseInt(parameters[3]) : 1;
                                 int y = block.blockY;
                                 renderPyramid(player.worldObj, block.blockX, y, block.blockZ, sizeX, sizeY, sizeZ, hollowOpen, thickness);
@@ -163,7 +177,7 @@ public abstract class RenderGlobalMixin {
                     }
                 }
             } catch (Exception e) {
-                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cSomething went wrong but idk why"));
+                player.sendChatToPlayer(ChatMessageComponent.createFromText("§cSomething about RenderGlobal went wrong, please report what you did in detail"));
             }
             GL11.glDisable(GL11.GL_TEXTURE_2D);
             GL11.glDisable(GL11.GL_LIGHTING);
