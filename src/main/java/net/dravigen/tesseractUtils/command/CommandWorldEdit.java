@@ -87,7 +87,7 @@ public class CommandWorldEdit extends CommandBase {
                 }
             }
             case "shape"->{
-                if (var1 == 2) {
+                if (var1 == 3) {
                     return getBlockNameList(strings);
                 }
                 if (blockCoord != null) {
@@ -102,7 +102,7 @@ public class CommandWorldEdit extends CommandBase {
                         return getListOfStringsMatchingLastWord(strings, String.valueOf(z));
                     }
                 }
-                if (var1 ==3){
+                if (var1 ==2){
                     return getListOfStringsMatchingLastWord(strings, "sphere","cylinder", "cube", "pyramid");
                 }
             }
@@ -154,7 +154,7 @@ public class CommandWorldEdit extends CommandBase {
             }
             case "tool"->{
                 if (var1 ==2){
-                    return getListOfStringsMatchingLastWord(strings, "sphere", "cylinder","cube", "pyramid", "plane");
+                    return getListOfStringsMatchingLastWord(strings, "sphere", "cylinder","cube", "pyramid");
                 } else if (var1 ==3){
                     return getBlockNameList(strings);
                 }else if (var1 == 4) {
@@ -288,15 +288,17 @@ public class CommandWorldEdit extends CommandBase {
                         centerY = blockCoord.blockY;
                         centerZ = blockCoord.blockZ;
                     }
+                    System.out.println(shapeS + " " + idS + " " + parameters);
                     List<SavedBlock> list = new ArrayList<>();
                     final int replaceYIfNegative = var2 < 0 ? centerY + var2 : centerY;
                     switch (shapeS.toLowerCase()) {
                         case "sphere" -> {
                             if (hollow) {
                                 list = ShapeGen.generateHollowSphere(world, centerX, centerY, centerZ, idS, flag, var1, var2, replace, sender);
-                            } else
+                            } else {
+                                System.out.println("bbb");
                                 list = ShapeGen.generateSphere(world, centerX, centerY, centerZ, idS, flag, var1, replace, sender);
-                        }
+                            }}
                         case "cylinder" -> {
                             centerY = replaceYIfNegative;
                             var2 = var2 < 0 ? var2 * (-1) : var2;

@@ -156,7 +156,6 @@ public abstract class RenderGlobalMixin {
                         GL11.glColor4f(1.0F, 0.0F, 0.0F, 1);
                         RenderUtils.drawWireframeBox(entityHit.boundingBox.minX, entityHit.boundingBox.minY, entityHit.boundingBox.minZ, entityHit.boundingBox.maxX, entityHit.boundingBox.maxY, entityHit.boundingBox.maxZ);
                         if (player.isUsingSpecialKey()) {
-                            BlockFromRayTrace block = getBlockFromRayTrace(player);
                             List<Entity> entityList = player.worldObj.getEntitiesWithinAABBExcludingEntity(player, new AxisAlignedBB(entityHit.posX - 2, entityHit.posY - 2, entityHit.posZ - 2, entityHit.posX + 2, entityHit.posY + 2, entityHit.posZ + 2));
                             for (Entity entity : entityList) {
                                 if (entity != entityHit) {
@@ -184,7 +183,7 @@ public abstract class RenderGlobalMixin {
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GL11.glDisable(GL11.GL_DEPTH_TEST);
-            if (EnumConfig.SELECTION_DISPLAY.getBoolValue()&&currentSelectionState == SelectionState.TWO_SELECTED) {
+            if (currentSelectionState == SelectionState.TWO_SELECTED) {
                 double minX = Math.min(block1.xCoord, block2.xCoord) - 0.05;
                 double minY = Math.min(block1.yCoord, block2.yCoord) - 0.05;
                 double minZ = Math.min(block1.zCoord, block2.zCoord) - 0.05;
@@ -226,33 +225,43 @@ public abstract class RenderGlobalMixin {
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
                 GL11.glColor4f(1.0F, 1.0F, 0.0F, 1f);
                 drawWireframeBoxConditions(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, false);
-                for (int i = 0; i < 6; i++) {
-                    if (i != hitResult.hitFace) {
+                GL11.glColor4f(0.0F, 0.0F, 0.0F, 0f);
+                drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, inverted, hitResult.hitFace,true);
+                if (hitResult.hit && getEnumFromIndex(currentBuildingMode).getCanSelect()) {
+                    GL11.glDisable(GL11.GL_DEPTH_TEST);
+                    GL11.glColor4f(1.0F, 0.0F, 0.0F, 1f);
+                    drawWireframeBoxConditions(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, true);
+                    GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+                }
+                if (EnumConfig.SELECTION_DISPLAY.getBoolValue()) {
+                    for (int i = 0; i < 6; i++) {
+                        if (i != hitResult.hitFace) {
+
+                            GL11.glDisable(GL11.GL_DEPTH_TEST);
+                            GL11.glColor4f(0.47F, 0.77F, 1.0F, 0.1001f);
+                            drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, i, inverted, hitResult.hitFace,false);
+
+                            sin = ((float) -Math.sin(this.mc.thePlayer.ticksExisted / 20f) + 0.25f) / 1.25f;
+                            sin = sin < 0 ? 0 : sin;
+
+                            GL11.glEnable(GL11.GL_DEPTH_TEST);
+                            GL11.glColor4f(0.47F, 0.77F, 1.0F, 0.15f + (0.1f) * sin);
+                            drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, i, inverted, hitResult.hitFace,false);
+                        }
+                    }
+                    if (hitResult.hit && getEnumFromIndex(currentBuildingMode).getCanSelect()) {
+                        GL11.glEnable(GL11.GL_DEPTH_TEST);
+
+                        GL11.glColor4f(1.0F, 0.0F, 0.0F, 0.1f);
+                        drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, inverted, hitResult.hitFace,false);
 
                         GL11.glDisable(GL11.GL_DEPTH_TEST);
-                        GL11.glColor4f(0.47F, 0.77F, 1.0F, 0.1001f);
-                        drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, i, inverted, hitResult.hitFace);
-
-                        sin = ((float) -Math.sin(this.mc.thePlayer.ticksExisted / 20f) + 0.25f) / 1.25f;
-                        sin = sin < 0 ? 0 : sin;
-
-                        GL11.glEnable(GL11.GL_DEPTH_TEST);
-                        GL11.glColor4f(0.47F, 0.77F, 1.0F, 0.15f + (0.1f) * sin);
-                        drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, i, inverted, hitResult.hitFace);
+                        GL11.glColor4f(1.0F, 0.0F, 0.0F, 0.2f);
+                        drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, inverted, hitResult.hitFace,false);
                     }
+                    GL11.glDepthMask(true);
                 }
-                if (hitResult.hit && getEnumFromIndex(currentBuildingMode).getCanSelect()) {
-                    GL11.glEnable(GL11.GL_DEPTH_TEST);
-                    GL11.glColor4f(1.0F, 0.0F, 0.0F, 0.5f);
-                    drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, inverted, hitResult.hitFace);
-
-                    GL11.glDisable(GL11.GL_DEPTH_TEST);
-                    GL11.glColor4f(1.0F, 0.0F, 0.0F, 0.101f);
-                    drawHighlightFace(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, inverted, hitResult.hitFace);
-                    GL11.glColor4f(1.0F, 1.0F, 0.0F, 1f);
-                    drawWireframeBoxConditions(minX, minY, minZ, maxX, maxY, maxZ, hitResult.hitFace, true);
-                }
-                GL11.glDepthMask(true);
             }
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             GL11.glDisable(GL11.GL_BLEND);

@@ -326,41 +326,11 @@ public class ShapeGen {
         }
         if (sizeY>0) {
             for (int y = baseY; y < baseY + sizeY; y++) {
-                int ratioWH = MathHelper.floor_float(((float) Math.min(sizeX, sizeZ) / (float) sizeY) * ((float) y - baseY) / 2);
-                int startX = actualStartX + ratioWH;
-                int startZ = actualStartZ + ratioWH;
-                int sizedX = sizeX - ratioWH * 2;
-                int sizedZ = sizeZ - ratioWH * 2;
-
-                for (int x = startX; x < startX + sizedX; x++) {
-                    for (int z = startZ; z < startZ + sizedZ; z++) {
-                        if (replace && world.getBlockId(x, y, z) == 0) continue;
-                        BlockInfo result = getInfo(sender, results);
-
-                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                        world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                        CommandWorldEdit.numBlock++;
-                    }
-                }
+                genFullPyramid(world, baseY, flag, sizeX, sizeY, sizeZ, replace, sender, y, actualStartX, actualStartZ, results, list);
             }
         }else {
             for (int y = baseY; y > baseY + sizeY; y--) {
-                int ratioWH = Math.round((float) ((Math.min(sizeX, sizeZ) / Math.abs(sizeY)) * Math.abs(y - baseY)) / 2);
-                int startX = actualStartX + ratioWH;
-                int startZ = actualStartZ + ratioWH;
-                int sizedX = sizeX - ratioWH * 2;
-                int sizedZ = sizeZ - ratioWH * 2;
-
-                for (int x = startX; x < startX + sizedX; x++) {
-                    for (int z = startZ; z < startZ + sizedZ; z++) {
-                        if (replace && world.getBlockId(x, y, z) == 0) continue;
-                        BlockInfo result = getInfo(sender, results);
-
-                        list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                        world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                        CommandWorldEdit.numBlock++;
-                    }
-                }
+                genFullPyramid(world, baseY, flag, sizeX, sizeY, sizeZ, replace, sender, y, actualStartX, actualStartZ, results, list);
             }
 
         }
@@ -368,47 +338,81 @@ public class ShapeGen {
         return list;
     }
 
+    private static void genFullPyramid(World world, int baseY, int flag, int sizeX, int sizeY, int sizeZ, boolean replace, ICommandSender sender, int y, int actualStartX, int actualStartZ, List<BlockInfo> results, List<SavedBlock> list) {
+        int ratioWH = MathHelper.floor_float(((float)Math.min(sizeX, sizeZ) /(float) sizeY) * ((float) y - baseY)/2);
+        int startX = actualStartX + ratioWH;
+        int startZ = actualStartZ + ratioWH;
+        int sizedX = sizeX - ratioWH * 2;
+        int sizedZ = sizeZ - ratioWH * 2;
+
+        for (int x = startX; x < startX + sizedX; x++) {
+            for (int z = startZ; z < startZ + sizedZ; z++) {
+                if (replace && world.getBlockId(x, y, z) == 0) continue;
+                BlockInfo result = getInfo(sender, results);
+
+                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                world.setBlock(x, y, z, result.id(), result.meta(), flag);
+                CommandWorldEdit.numBlock++;
+            }
+        }
+    }
+
     public static List<SavedBlock> generateHollowPyramid(World world, int centerX, int baseY, int centerZ, String blocksUsed, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, ICommandSender sender) {
         List<SavedBlock> list = new ArrayList<>();
-        if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
+        if (world == null || sizeX <= 0 || sizeZ <= 0) {
             System.err.println("Cannot generate cube: Invalid world or dimensions.");
             return list;
         }
         int actualStartX = centerX - (sizeX / 2);
         int actualStartZ = centerZ - (sizeZ / 2);
-        int innerStartY = baseY + thickness;
-        int innerEndY = (baseY + sizeY) - thickness;
         List<BlockInfo> results = getBlockInfo(blocksUsed,sender.getCommandSenderName());
         if (results==null){
             sender.sendChatToPlayer(ChatMessageComponent.createFromText("§cWrong name or id"));
             return list;
         }
-        for (int y = baseY; y < baseY + sizeY; y++) {
-            int ratioWH = MathHelper.floor_float(((float)Math.min(sizeX, sizeZ) /(float)sizeY) * ((float)y- baseY)/2);
-            int startX = actualStartX + ratioWH;
-            int startZ = actualStartZ + ratioWH;
-            int sizedX = sizeX - ratioWH*2;
-            int sizedZ = sizeZ - ratioWH*2;
-            int innerStartX = startX + thickness;
-            int innerStartZ = startZ + thickness;
-            int innerEndX = (startX + sizedX) - thickness;
-            int innerEndZ = (startZ + sizedZ) - thickness;
-            for (int x = startX; x < startX + sizedX; x++) {
-                for (int z = startZ; z < startZ + sizedZ; z++) {
-                    boolean isOutsideInnerSpace = (x < innerStartX || x >= innerEndX) ||
-                            (y < innerStartY || y >= innerEndY) ||
-                            (z < innerStartZ || z >= innerEndZ);
-                    if (replace && world.getBlockId(x, y, z) == 0 || !isOutsideInnerSpace) continue;
-                    BlockInfo result = getInfo(sender, results);
-
-                    list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
-                    world.setBlock(x, y, z, result.id(), result.meta(), flag);
-                    CommandWorldEdit.numBlock++;
-
-                }
-            }
+        if (sizeY>0) for (int y = baseY; y < baseY + sizeY; y++) {
+            genHollowPyramid(world, baseY, flag, sizeX, sizeY, sizeZ, thickness, replace, sender, y, actualStartX, actualStartZ, results, list);
+        }else for (int y = baseY; y > baseY + sizeY; y--) {
+            genHollowPyramid(world, baseY, flag, sizeX, sizeY, sizeZ, thickness, replace, sender, y, actualStartX, actualStartZ, results, list);
         }
         return list;
+    }
+
+    private static void genHollowPyramid(World world, int baseY, int flag, int sizeX, int sizeY, int sizeZ, int thickness, boolean replace, ICommandSender sender, int y, int actualStartX, int actualStartZ, List<BlockInfo> results, List<SavedBlock> list) {
+        int ratioWH = MathHelper.floor_float(((float)Math.min(sizeX, sizeZ) /(float) sizeY) * ((float) y - baseY)/2);
+        int ratioWH2 = MathHelper.floor_float(((float)Math.min(sizeX, sizeZ) /(float) sizeY) * ((float) y + (sizeY>0?1:-1)- baseY)/2);
+        int startX = actualStartX + ratioWH;
+        int startZ = actualStartZ + ratioWH;
+        int sizedX = sizeX - ratioWH*2;
+        int sizedZ = sizeZ - ratioWH*2;
+
+        int innerStartY = baseY + sizeY>0 ? thickness:-thickness;
+        int innerEndY = (baseY + sizeY) + sizeY>0 ? -thickness:thickness;
+        int innerStartX = startX + thickness;
+        int innerStartZ = startZ + thickness;
+        int innerEndX = (startX + sizedX) - thickness;
+        int innerEndZ = (startZ + sizedZ) - thickness;
+
+        for (int x = startX; x < startX + sizedX; x++) {
+            for (int z = startZ; z < startZ + sizedZ; z++) {
+                boolean isOutsideInnerSpace =
+                        (x < innerStartX || x >= innerEndX) ||
+                        (y < innerStartY || y >= innerEndY) ||
+                        (z < innerStartZ || z >= innerEndZ);
+
+                boolean isBlockAboveOutside =
+                        (x < actualStartX + ratioWH2 || x >= actualStartX + ratioWH2+ sizeX - ratioWH2*2)
+                                || (z < actualStartZ + ratioWH2 || z >= actualStartZ + ratioWH2+ sizeZ - ratioWH2*2);
+
+                if (replace && world.getBlockId(x, y, z) == 0 || (!isOutsideInnerSpace&&!isBlockAboveOutside)) continue;
+                BlockInfo result = getInfo(sender, results);
+
+                list.add(new SavedBlock(x, y, z, world.getBlockId(x, y, z), world.getBlockMetadata(x, y, z)));
+                world.setBlock(x, y, z, result.id(), result.meta(), flag);
+                CommandWorldEdit.numBlock++;
+
+            }
+        }
     }
 
     public static List<SavedBlock> buildLine(World world, String[] strings, int x1, int y1, int z1, int x2, int y2, int z2, int thickness, int flag, ICommandSender sender) {

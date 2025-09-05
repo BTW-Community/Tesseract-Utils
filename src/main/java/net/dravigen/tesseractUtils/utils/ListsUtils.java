@@ -92,7 +92,7 @@ public class ListsUtils {
         List<ItemStack> subBlocks2 = new ArrayList<>();
 
         Map<String,String> map = new HashMap<>();
-        map.put("Air", "0");
+        map.put("Air", "0/0");
         for (int i = 0; i < Block.blocksList.length; i++) {
             Block block = Block.blocksList[i];
             if (block == null||block.blockID==74) continue;
@@ -119,11 +119,14 @@ public class ListsUtils {
 
                     if (name.equalsIgnoreCase(entry)) {
                         if (stack.itemID == stack2.itemID) {
-                            entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                            if (stack.getItemDamage()!=stack2.getItemDamage()) {
+                                entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                                break;
+                            }
                         } else {
                             entry += "|" + stack.itemID;
+                            break;
                         }
-                        break;
                     }
                 }
                 String finalItemName = entry.replace("tile.", "").replace("fc", "").replace("name.", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
@@ -170,11 +173,14 @@ public class ListsUtils {
 
                     if (name.equalsIgnoreCase(entry)) {
                         if (stack.itemID == stack2.itemID) {
-                            entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                            if (stack.getItemDamage()!=stack2.getItemDamage()) {
+                                entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                                break;
+                            }
                         } else {
                             entry += "|" + stack.itemID;
+                            break;
                         }
-                        break;
                     }
                 }
                 String finalItemName = entry.replace("tile.", "").replace("fc", "").replace("name.", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
@@ -284,6 +290,7 @@ public class ListsUtils {
             } catch (Throwable e) {
                 System.err.println("Error getting sub-items for Item ID " + i + " (" + item.getClass().getName() + "): " + e.getMessage());
                 subItems.add(new ItemStack(item, 1, 0));
+                subItems2.add(new ItemStack(item, 1, 0));
             }
         }
         for (ItemStack stack : subItems) {
@@ -301,11 +308,14 @@ public class ListsUtils {
                 String name = translate(stack2);
                 if (name.equalsIgnoreCase(entry)) {
                     if (stack.itemID == stack2.itemID) {
-                        entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                        if (stack.getItemDamage()!=stack2.getItemDamage()) {
+                            entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                            break;
+                        }
                     } else {
                         entry += "|" + stack.itemID;
+                        break;
                     }
-                    break;
                 }
             }
             String finalItemName = entry.replace("tile.", "").replace("fc", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");
@@ -313,7 +323,6 @@ public class ListsUtils {
 
         }
         itemsMapServ =sortMapStringFloat(map);
-
     }
 
     public static void initItemsNameListClientSub() {
@@ -348,11 +357,14 @@ public class ListsUtils {
 
                 if (name.equalsIgnoreCase(entry)) {
                     if (stack.itemID == stack2.itemID) {
-                        entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                        if (stack.getItemDamage()!=stack2.getItemDamage()) {
+                            entry += (stack.getHasSubtypes() ? "/" + stack.getItemDamage() : "");
+                            break;
+                        }
                     } else {
                         entry += "|" + stack.itemID;
+                        break;
                     }
-                    break;
                 }
             }
             String finalItemName = entry.replace("tile.", "").replace("fc", "").replace(".name", "").replace("item.", "").replace("btw:", "").replace(".siding", "").replace(".corner", "").replace(".moulding", "");

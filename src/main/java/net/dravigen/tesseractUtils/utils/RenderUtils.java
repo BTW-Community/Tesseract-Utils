@@ -173,20 +173,22 @@ public class RenderUtils {
 
     }
 
-    public static void drawHighlightFace(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, int face, boolean inverted, int hitFace) {
+    public static void drawHighlightFace(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, int face, boolean inverted, int hitFace, boolean canIncrement) {
         GL11.glBegin(GL11.GL_QUADS);
         int increment = 0;
         int ctrlIncrement = 0;
-        if (face == hitFace) {
-            if (Minecraft.getMinecraft().currentScreen==null) {
-                int dWheel = Mouse.getDWheel();
-                dWheel = dWheel>120 ? 0 : dWheel<-120 ? 0 : dWheel;
-                if (dWheel != 0) {
-                    EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-                    int i = dWheel > 0 ? inverted ? -1 : 1 : inverted ? 1 : -1;
-                    increment = i;
-                    if (((currentBuildingMode== COPY_MODE.getIndex()||currentBuildingMode==BLOCK_SET_MODE.getIndex())&&!player.isSneaking())||(player.isSneaking()&&currentBuildingMode== SELECTION_MODE.getIndex())) {
-                        ctrlIncrement = i;
+        if (canIncrement) {
+            if (face == hitFace) {
+                if (Minecraft.getMinecraft().currentScreen == null) {
+                    int dWheel = Mouse.getDWheel();
+                    dWheel = dWheel > 120 ? 0 : dWheel < -120 ? 0 : dWheel;
+                    if (dWheel != 0) {
+                        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+                        int i = dWheel > 0 ? inverted ? -1 : 1 : inverted ? 1 : -1;
+                        increment = i;
+                        if (((currentBuildingMode == COPY_MODE.getIndex() || currentBuildingMode == BLOCK_SET_MODE.getIndex()) && !player.isSneaking()) || (player.isSneaking() && currentBuildingMode == SELECTION_MODE.getIndex())) {
+                            ctrlIncrement = i;
+                        }
                     }
                 }
             }
@@ -349,12 +351,12 @@ public class RenderUtils {
                             double distFromCameraZ = currentBlockZ + 0.5 - cameraZ;
                             double distanceSquaredToCameraFromBlock = (distFromCameraX * distFromCameraX) + (distFromCameraY * distFromCameraY) + (distFromCameraZ * distFromCameraZ);
                             if (distanceSquaredToCameraFromBlock>distanceSquaredToCameraFromCenter&&!player.isUsingSpecialKey())continue;
-                            boolean drawFaceNX=true;
-                            boolean drawFacePX=true;
-                            boolean drawFaceNY=true;
-                            boolean drawFacePY=true;
-                            boolean drawFaceNZ=true;
-                            boolean drawFacePZ=true;
+                            boolean drawFaceNX;
+                            boolean drawFacePX;
+                            boolean drawFaceNY;
+                            boolean drawFacePY;
+                            boolean drawFaceNZ;
+                            boolean drawFacePZ;
                             if (!player.isUsingSpecialKey()) {
                                 drawFaceNX = !isBlockInSphere(x - 1, y, z, radiusSquared) && distCenterFromCameraX > 0;
                                 drawFacePX = !isBlockInSphere(x + 1, y, z, radiusSquared) && distCenterFromCameraX < 0;
@@ -633,9 +635,8 @@ public class RenderUtils {
 
 
     public static void renderPyramid(World world, int centerX, int baseY, int centerZ, int sizeX, int sizeY, int sizeZ, int hollowOpen, int thickness) {
-        List<ListsUtils.SavedBlock> list = new ArrayList<>();
-        if (world == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
-            System.err.println("Cannot generate cube: Invalid world or dimensions.");
+        if (world == null || sizeX <= 0 || sizeZ <= 0) {
+            System.err.println("Cannot generate pyramid: Invalid world or dimensions.");
             return;
         }
         boolean hollow = hollowOpen == 0;
@@ -672,50 +673,14 @@ public class RenderUtils {
             GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
             EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
             List<TransparentCubeInfo> transparentCubesToRender = new ArrayList<>();
-
-            for (int y = baseY; y < baseY + sizeY; y++) {
-                int ratioWH = MathHelper.floor_float(((float)Math.min(sizeX, sizeZ) /(float)sizeY) * ((float)y- baseY)/2);
-                int startX = actualStartX + ratioWH;
-                int startZ = actualStartZ + ratioWH;
-                int sizedX = sizeX - ratioWH*2;
-                int sizedZ = sizeZ - ratioWH*2;
-                int innerStartX = startX + thickness;
-                int innerStartZ = startZ + thickness;
-                int innerEndX = (startX + sizedX) - thickness;
-                int innerEndZ = (startZ + sizedZ) - thickness;
-                for (int x = startX; x < startX + sizedX; x++) {
-                    for (int z = startZ; z < startZ + sizedZ; z++) {
-                        boolean isOutsideInnerSpace = (x < innerStartX || x >= innerEndX) ||
-                                (y < innerStartY || y >= innerEndY) ||
-                                (z < innerStartZ || z >= innerEndZ);
-                        if (hollow&&player.isUsingSpecialKey()&&!isOutsideInnerSpace)continue;
-                        if (player.isUsingSpecialKey() && world.getBlockId(x, y, z) == 0) continue;
-
-                        double distFromCameraX = x + 0.5 - cameraX;
-                        double distFromCameraY = y + 0.5 - cameraY;
-                        double distFromCameraZ = z + 0.5 - cameraZ;
-                        double distanceSquaredToCameraFromBlock = (distFromCameraX * distFromCameraX) + (distFromCameraY * distFromCameraY) + (distFromCameraZ * distFromCameraZ);
-                        boolean drawFaceNX = true;
-                        boolean drawFacePX = true;
-                        boolean drawFaceNY = true;
-                        boolean drawFacePY = true;
-                        boolean drawFaceNZ = true;
-                        boolean drawFacePZ = true;
-
-                        if (!player.isUsingSpecialKey()) {
-                            drawFaceNX = !isBlockInPyramid(x - 1, y, z, actualStartX,baseY,actualStartZ,sizeX,sizeY,sizeZ);
-                            drawFacePX = !isBlockInPyramid(x + 1, y, z, actualStartX,baseY,actualStartZ,sizeX,sizeY,sizeZ);
-                            drawFaceNY = !isBlockInPyramid(x, y - 1, z, actualStartX,baseY,actualStartZ,sizeX,sizeY,sizeZ);
-                            drawFacePY = !isBlockInPyramid(x, y + 1, z, actualStartX,baseY,actualStartZ,sizeX,sizeY,sizeZ);
-                            drawFaceNZ = !isBlockInPyramid(x, y, z - 1, actualStartX,baseY,actualStartZ,sizeX,sizeY,sizeZ);
-                            drawFacePZ = !isBlockInPyramid(x, y, z + 1, actualStartX,baseY,actualStartZ,sizeX,sizeY,sizeZ);
-                        }
-                        if (!drawFaceNX && !drawFacePX && !drawFaceNY && !drawFacePY && !drawFaceNZ && !drawFacePZ)
-                            continue;
-                        transparentCubesToRender.add(new TransparentCubeInfo(x, y, z, distanceSquaredToCameraFromBlock, drawFaceNX, drawFacePX, drawFaceNY, drawFacePY, drawFaceNZ, drawFacePZ));
-                    }
+            if (sizeY>0) {
+                for (int y = baseY; y < baseY + sizeY; y++) {
+                    renderPyramidSec(world, baseY, sizeX, sizeY, sizeZ, thickness, y, actualStartX, actualStartZ, innerStartY, innerEndY, hollow, player, cameraX, cameraY, cameraZ, transparentCubesToRender);
                 }
+            }else for (int y = baseY; y > baseY + sizeY; y--) {
+                renderPyramidSec(world, baseY, sizeX, sizeY, sizeZ, thickness, y, actualStartX, actualStartZ, innerStartY, innerEndY, hollow, player, cameraX, cameraY, cameraZ, transparentCubesToRender);
             }
+
 
             transparentCubesToRender.sort((c1, c2) -> Double.compare(c2.distanceSquaredToCamera, c1.distanceSquaredToCamera));
             for (TransparentCubeInfo cubeInfo : transparentCubesToRender) {
@@ -737,6 +702,50 @@ public class RenderUtils {
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
+    }
+
+    private static void renderPyramidSec(World world, int baseY, int sizeX, int sizeY, int sizeZ, int thickness, int y, int actualStartX, int actualStartZ, int innerStartY, int innerEndY, boolean hollow, EntityClientPlayerMP player, double cameraX, double cameraY, double cameraZ, List<TransparentCubeInfo> transparentCubesToRender) {
+        int ratioWH = MathHelper.floor_float(((float)Math.min(sizeX, sizeZ) /(float) sizeY) * ((float) y - baseY)/2);
+        int startX = actualStartX + ratioWH;
+        int startZ = actualStartZ + ratioWH;
+        int sizedX = sizeX - ratioWH*2;
+        int sizedZ = sizeZ - ratioWH*2;
+        int innerStartX = startX + thickness;
+        int innerStartZ = startZ + thickness;
+        int innerEndX = (startX + sizedX) - thickness;
+        int innerEndZ = (startZ + sizedZ) - thickness;
+        for (int x = startX; x < startX + sizedX; x++) {
+            for (int z = startZ; z < startZ + sizedZ; z++) {
+                boolean isOutsideInnerSpace = (x < innerStartX || x >= innerEndX) ||
+                        (y < innerStartY || y >= innerEndY) ||
+                        (z < innerStartZ || z >= innerEndZ);
+                if (hollow && player.isUsingSpecialKey()&&!isOutsideInnerSpace)continue;
+                if (player.isUsingSpecialKey() && world.getBlockId(x, y, z) == 0) continue;
+
+                double distFromCameraX = x + 0.5 - cameraX;
+                double distFromCameraY = y + 0.5 - cameraY;
+                double distFromCameraZ = z + 0.5 - cameraZ;
+                double distanceSquaredToCameraFromBlock = (distFromCameraX * distFromCameraX) + (distFromCameraY * distFromCameraY) + (distFromCameraZ * distFromCameraZ);
+                boolean drawFaceNX = true;
+                boolean drawFacePX = true;
+                boolean drawFaceNY = true;
+                boolean drawFacePY = true;
+                boolean drawFaceNZ = true;
+                boolean drawFacePZ = true;
+
+                if (!player.isUsingSpecialKey()) {
+                    drawFaceNX = !isBlockInPyramid(x - 1, y, z, actualStartX, baseY, actualStartZ, sizeX, sizeY, sizeZ);
+                    drawFacePX = !isBlockInPyramid(x + 1, y, z, actualStartX, baseY, actualStartZ, sizeX, sizeY, sizeZ);
+                    drawFaceNY = !isBlockInPyramid(x, y - 1, z, actualStartX, baseY, actualStartZ, sizeX, sizeY, sizeZ);
+                    drawFacePY = !isBlockInPyramid(x, y + 1, z, actualStartX, baseY, actualStartZ, sizeX, sizeY, sizeZ);
+                    drawFaceNZ = !isBlockInPyramid(x, y, z - 1, actualStartX, baseY, actualStartZ, sizeX, sizeY, sizeZ);
+                    drawFacePZ = !isBlockInPyramid(x, y, z + 1, actualStartX, baseY, actualStartZ, sizeX, sizeY, sizeZ);
+                }
+                if (!drawFaceNX && !drawFacePX && !drawFaceNY && !drawFacePY && !drawFaceNZ && !drawFacePZ)
+                    continue;
+                transparentCubesToRender.add(new TransparentCubeInfo(x, y, z, distanceSquaredToCameraFromBlock, drawFaceNX, drawFacePX, drawFaceNY, drawFacePY, drawFaceNZ, drawFacePZ));
+            }
+        }
     }
 
 

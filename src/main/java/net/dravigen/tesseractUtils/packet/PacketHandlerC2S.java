@@ -394,17 +394,12 @@ public class PacketHandlerC2S {
                         blocksMapServ = sortMapStringFloat(blocksMapServ);
                     }
                     case "getItemsNameList" -> {
-                        System.out.println(itemsMapServ);
-                        System.out.println(property);
-
                         List<String> items = List.of(trim.split(","));
                         for (String identity : items) {
                             String[] split = identity.split("=");
                             itemsMapServ.putIfAbsent(split[0], split[1]);
                         }
                         itemsMapServ =sortMapStringFloat(itemsMapServ);
-                        System.out.println(itemsMapServ);
-
                     }
                     /*
                     case "getEntitiesNameList" -> {
@@ -524,7 +519,6 @@ public class PacketHandlerC2S {
                         int y2 = Integer.parseInt(infos[4]);
                         int z2 = Integer.parseInt(infos[5]);
                         int flag = Integer.parseInt(infos[6]);
-                        List<SavedBlock> undoList = new ArrayList<>();
                         ItemStack[] hotbarItems = new ItemStack[9];
                         System.arraycopy(player.inventory.mainInventory, 0, hotbarItems, 0, 9);
                         StringBuilder blocks = new StringBuilder();
@@ -670,6 +664,7 @@ public class PacketHandlerC2S {
                 else
                     list = ShapeGen.generatePyramid(player.worldObj, x, y, z, blockUsed, 2, sizeX, sizeY, sizeZ, replace, player);
             }
+            /*
             case "plane"->{
                 int sizeX = Integer.parseInt(parameters[EnumShape.SIZE_X.ordinal()]);
                 int sizeY = Integer.parseInt(parameters[EnumShape.SIZE_Y.ordinal()]);
@@ -677,7 +672,7 @@ public class PacketHandlerC2S {
                 int thickness = Integer.parseInt(parameters[EnumShape.THICKNESS.ordinal()]);
                 int side = Integer.parseInt(parameters[EnumShape.FACING_SIDE.ordinal()]);
                 list = ShapeGen.buildPlane(player.worldObj, blockUsed, x, y, z, sizeX, sizeY, sizeZ, thickness, side, replace, 2, player);
-            }
+            }*/
         }
         return list;
     }
